@@ -2,7 +2,15 @@ import assert from "node:assert/strict";
 import { test } from "vite-plus/test";
 import { DATA } from "../../src/data/atlas.ts";
 import { PLACEMENTS, ROOT_NOTES } from "../../src/data/packing.ts";
-import { ancestors, buildPackingTree, descendants, lensMembers, overlayRelations, packingPositions, packingView } from "../../src/lib/packing.ts";
+import {
+  ancestors,
+  buildPackingTree,
+  descendants,
+  lensMembers,
+  overlayRelations,
+  packingPositions,
+  packingView,
+} from "../../src/lib/packing.ts";
 
 const tree = buildPackingTree(DATA);
 
@@ -72,8 +80,11 @@ test("unverified ancestry is explicit and searchable, not fabricated or dropped"
 test("all hierarchy links point down; all material examples occupy the final band", () => {
   const view = packingView(tree, "@all");
   const positions = packingPositions(tree, view);
-  for (const link of view.links) assert.ok(positions.get(link.child)!.rank > positions.get(link.parent)!.rank, link.id);
-  const materialRanks = new Set(view.entries.filter((e) => e.role === "material").map((e) => positions.get(e.id)!.rank));
+  for (const link of view.links)
+    assert.ok(positions.get(link.child)!.rank > positions.get(link.parent)!.rank, link.id);
+  const materialRanks = new Set(
+    view.entries.filter((e) => e.role === "material").map((e) => positions.get(e.id)!.rank),
+  );
   assert.equal(materialRanks.size, 1);
 });
 test("every collection retains all matching structures and their ancestors", () => {
@@ -81,7 +92,9 @@ test("every collection retains all matching structures and their ancestors", () 
     const members = lensMembers(DATA, { kind: "collection", id: collection.id })!;
     const view = packingView(tree, "@all", members);
     const visible = new Set(view.entries.map((e) => e.id));
-    for (const id of members) for (const ancestor of ancestors(tree, id)) assert.ok(visible.has(ancestor), `${collection.id}:${ancestor}`);
+    for (const id of members)
+      for (const ancestor of ancestors(tree, id))
+        assert.ok(visible.has(ancestor), `${collection.id}:${ancestor}`);
   }
 });
 test("source flows retain canonical direction and strictness flags", () => {
@@ -89,7 +102,11 @@ test("source flows retain canonical direction and strictness flags", () => {
     const view = packingView(tree, "@all", lensMembers(DATA, { kind: "flow", id: flow.id }));
     const overlays = overlayRelations(DATA, view, { flow: flow.id });
     assert.equal(overlays.length, flow.edges.length);
-    for (const edge of overlays) assert.equal(edge, DATA.edges.find((e) => e.id === edge.id));
+    for (const edge of overlays)
+      assert.equal(
+        edge,
+        DATA.edges.find((e) => e.id === edge.id),
+      );
   }
   assert.equal(DATA.edges.find((e) => e.id === "okamoto-nias-cacl2-rutile")?.undirected, true);
 });
@@ -126,17 +143,54 @@ test("all documentary links refer to existing sources", () => {
   }
 });
 test("unknown or duplicate parents cannot silently enter the hierarchy", () => {
-  assert.throws(() => buildPackingTree(DATA, [...PLACEMENTS, { parent: "missing", child: "fcc", kind: "derive", label: "bad" }]), /Unknown/);
-  assert.throws(() => buildPackingTree(DATA, [...PLACEMENTS, { parent: "bcc", child: "pyrochlore", kind: "derive", label: "bad" }]), /Multiple primary/);
+  assert.throws(
+    () =>
+      buildPackingTree(DATA, [
+        ...PLACEMENTS,
+        { parent: "missing", child: "fcc", kind: "derive", label: "bad" },
+      ]),
+    /Unknown/,
+  );
+  assert.throws(
+    () =>
+      buildPackingTree(DATA, [
+        ...PLACEMENTS,
+        { parent: "bcc", child: "pyrochlore", kind: "derive", label: "bad" },
+      ]),
+    /Multiple primary/,
+  );
 });
 test("cyclic, root and material parent connections are rejected", () => {
   const cyclic = PLACEMENTS.filter((p) => p.child !== "fluorite");
-  assert.throws(() => buildPackingTree(DATA, [...cyclic, { parent: "pyrochlore", child: "fluorite", kind: "derive", label: "bad" }]), /Cycle/);
-  assert.throws(() => buildPackingTree(DATA, [...PLACEMENTS, { parent: "b2", child: "bcc", kind: "derive", label: "bad" }]), /root/);
+  assert.throws(
+    () =>
+      buildPackingTree(DATA, [
+        ...cyclic,
+        { parent: "pyrochlore", child: "fluorite", kind: "derive", label: "bad" },
+      ]),
+    /Cycle/,
+  );
+  assert.throws(
+    () =>
+      buildPackingTree(DATA, [
+        ...PLACEMENTS,
+        { parent: "b2", child: "bcc", kind: "derive", label: "bad" },
+      ]),
+    /root/,
+  );
   const materialParent = PLACEMENTS.filter((p) => p.child !== "pyrochlore");
-  assert.throws(() => buildPackingTree(DATA, [...materialParent, { parent: "bamgwo6", child: "pyrochlore", kind: "derive", label: "bad" }]), /material/);
+  assert.throws(
+    () =>
+      buildPackingTree(DATA, [
+        ...materialParent,
+        { parent: "bamgwo6", child: "pyrochlore", kind: "derive", label: "bad" },
+      ]),
+    /material/,
+  );
 });
 test("missing evidence is rejected", () => {
-  const placements = PLACEMENTS.map((p, i) => i === 0 ? { ...p, evidence: ["not-a-relation"] } : p);
+  const placements = PLACEMENTS.map((p, i) =>
+    i === 0 ? { ...p, evidence: ["not-a-relation"] } : p,
+  );
   assert.throws(() => buildPackingTree(DATA, placements), /Missing source relation/);
 });

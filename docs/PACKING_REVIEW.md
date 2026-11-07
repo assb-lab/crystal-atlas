@@ -10,7 +10,7 @@
 - [x] 全39分類と全8フローに祖先を補完
 - [x] 新規21単体テストのローカル実行
 - [x] Chromium統合試験13シナリオ、JavaScriptエラーなし
-- [ ] Node26 / pnpm12 / Vite+ の指定環境によるcheck・全unit・build・全E2E
+- [x] Node26 / pnpm12 / Vite+ の指定環境によるcheck・全unit・build・全E2E
 - [ ] 独立した実装レビュー（別モデル/人）
 - [ ] 全主経路の結晶化学的な妥当性について専門レビュー
 
