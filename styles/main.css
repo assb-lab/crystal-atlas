@@ -311,6 +311,48 @@ main {
   color: var(--muted);
   font-size: 10px
 }
+.searchdialog {
+  width: min(580px, calc(100% - 28px));
+  max-height: min(75dvh, 680px);
+  padding: 18px;
+  margin: max(12px, 8dvh) auto auto;
+  border: 1px solid #3b5367;
+  border-radius: 12px;
+  color: var(--ink);
+  background: #101d2a;
+}
+.searchdialog::backdrop { background: #030a13c9; }
+.searchdialogheader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.searchdialogheader h2 { font-size: 17px; }
+.searchdialog input { width: 100%; }
+.searchdialog .searchresults { max-height: min(50dvh, 460px); }
+.searchdialog .searchresults button { flex-shrink: 0; }
+.flowpicker {
+  display: grid;
+  gap: 5px;
+  margin: 12px 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+.flowpicker select { width: 100%; min-width: 0; }
+.axiscontrols, .axiscontrols > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.axiscontrols { gap: 7px; margin: 6px 0; }
+.axiscontrols > div {
+  padding: 2px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.axiscontrols button { padding: 3px 6px; }
+#labAxisControls { margin: 10px 18px; }
 .label {
   font-size: 10px;
   letter-spacing: .08em;
@@ -541,15 +583,15 @@ main {
 .node .title {
   font-size: 14px;
   font-weight: 600;
-  fill: #e8f1f6
+  color: #e8f1f6
 }
 .node .formula {
   font-size: 12px;
-  fill: #b6ccda
+  color: #b6ccda
 }
 .node .sg {
   font-size: 10px;
-  fill: #8aa1b5;
+  color: #8aa1b5;
   font-family: var(--mono)
 }
 .node .familystripe {
@@ -562,6 +604,14 @@ main {
 }
 .node text {
   pointer-events: none
+}
+.node foreignObject { pointer-events: none; }
+.node .nodelabel {
+  display: block;
+  line-height: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .edge {
   fill: none;
@@ -1635,6 +1685,7 @@ main {
     padding: 5px 8px;
     font-size: 10px
   }
+  #openSearch kbd { display: none; }
   .hero {
     padding: 20px 18px 18px;
     display: block

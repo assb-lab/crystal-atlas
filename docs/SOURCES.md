@@ -28,5 +28,10 @@
 - **[LY]** H. Ito et al., “Kinetically Stabilized Cation Arrangement in Li₃YCl₆ Superionic Conductor during Solid-State Reaction,” *Adv. Sci.* **8**, 2101413 (2021). Table 1のβ-Li₃YCl₆。 [DOI](https://doi.org/10.1002/advs.202101413)
 - **[LT]** J. Awaka et al., “Synthesis and structure analysis of tetragonal Li₇La₃Zr₂O₁₂ with the garnet-related type structure,” *J. Solid State Chem.* **182**, 2046–2052 (2009). Tables 1–2の正方晶LLZO。 [DOI](https://doi.org/10.1016/j.jssc.2009.05.020)
 - **[LC]** A. C. Moy et al., “Effects of Al concentration on the structure and conductivity of lithium lanthanum zirconium oxide,” *J. Mater. Chem. A* **12**, 28193–28210 (2024). Table S7のAl置換立方晶LLZO。 [DOI](https://doi.org/10.1039/D4TA04862H)
+- **[O07]** Y. Okamoto, M. Nohara, H. Aruga-Katori and H. Takagi, “Spin-Liquid State in the S = 1/2 Hyperkagome Antiferromagnet Na₄Ir₃O₈,” *Phys. Rev. Lett.* **99**, 137207 (2007). Table Iの室温構造とNa部分占有。 [DOI](https://doi.org/10.1103/PhysRevLett.99.137207)
+- **[BI14]** A. Biffin et al., “Unconventional magnetic order on the hyperhoneycomb Kitaev lattice in β-Li₂IrO₃. Full solution via magnetic resonant x-ray diffraction,” *Phys. Rev. B* **90**, 205116 (2014). Table IIIの100 K構造。 [DOI](https://doi.org/10.1103/PhysRevB.90.205116)
+- **[BH82]** B. Brazel and R. Hoppe, “Über Oxoplumbate(IV). Die Kristallstruktur von TT-Li₂PbO₃,” *Z. Naturforsch. B* **37**, 1369–1374 (1982). Table IIの単結晶座標。 [DOI](https://doi.org/10.1515/znb-1982-1102)
+
+岡本の図別フローは図1–7、9–24と、図27–34の構造比較を再構成しています。LiTiO₂型、図14aのMnO₂、CsOs₂O₆と基本格子などはサイト配置を示す理想模型です。RhBr₃型はAlCl₃型プロトタイプの元素置換模型です。図14aのFd−3m型は資料中でγ-MnO₂と表記されていますが、スピネル関連MnO₂はHunterの原著ではλ-MnO₂と呼ばれるため、カード名を「スピネル関連MnO₂」とし、模型に注記しています。 [Hunter, J. Solid State Chem. 39, 142–147 (1981)](https://doi.org/10.1016/0022-4596(81)90323-6)
 
 PDF は版に合わせて画面からローカルで関連付けられます。別版を用いる場合は印刷ページと PDF ページの対応を確認してください。

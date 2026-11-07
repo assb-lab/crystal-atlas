@@ -4,6 +4,8 @@
 
 Galassoと関連資料からの拡充分は `expansion.js` と `expansion-models.js`、固体電解質・開放骨格などの拡充分は `breadth.js` と `breadth-models.js` に格納します。それぞれ構造IDで構造カードと単位胞座標を対応させます。
 
+`okamoto.js` と `okamoto-models.js` は岡本の図別派生フローに対応します。`DATA.flows` の各項目は `id`、`title`、`desc`、`edges`（関係IDの配列）、`refs` を持ちます。資料フローでは操作の記述方向に矢印を表示します。図17のCaCl₂→ルチルの高対称化は、確認済みの群–部分群矢印の逆向きになるため、一般の関係データでは無向の比較として保持しています。
+
 ## 構造ノード: `structures.js`
 
 必須項目は `id`、`name`、`formula`、`family`、`sg`、`desc`、`packing`、`coord`、`link`、`refs`、`x`、`y` です。
@@ -46,5 +48,7 @@ Galassoと関連資料からの拡充分は `expansion.js` と `expansion-models
 ## 更新時
 
 構造や関係を追加したら、一意なID、既存の接続先、参照箇所、骨格の基準を確認し、`npm run check` を実行してください。データのハッシュ一致テストと件数テストは、意図的なデータ更新時に変更内容を確認した上で更新します。ファミリー配置は手動座標です。
+
+`flow-layout.js` は有向関係から階層を求め、親を上段に配置します。無向の比較線は階層を決めません。有向関係に循環を追加した場合は配置の回帰テストが失敗します。
 
 ビルドスクリプトはこのアプリの名前付きES Modulesに限定した処理です。新たなimport構文や同名のトップレベル変数を導入した際は、単一HTMLビルドの互換性も確認してください。

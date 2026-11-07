@@ -9,6 +9,19 @@ const MODEL_KINDS = {
     schematic: '理想化した模型',
 };
 
+const VIEW_DIRECTIONS = [
+    ['a', 'b', 'c'],
+    ['a*', 'b*', 'c*'],
+    ['a-', 'b-', 'c-'],
+];
+const directionLabel = direction => direction.endsWith('-') ? `−${direction[0]}` : direction;
+
+export function viewDirectionControls() {
+    return VIEW_DIRECTIONS.map((directions, i) => `<div role="group" aria-label="${['実格子', '逆格子', '反対側'][i]}">
+        ${directions.map(direction => `<button type="button" class="small" data-view-direction="${direction}" title="${directionLabel(direction)}方向から見る">${directionLabel(direction)}</button>`).join('')}
+    </div>`).join('');
+}
+
 function siteRows(model) {
     if (model.groups) return model.groups.map((group, site) => ({ ...group, site }));
     const rows = new Map();
@@ -34,6 +47,10 @@ export function modelPanelHTML(node, model, comparison = false) {
     return `<section class="crystalpanel${comparison ? ' comparisonmodel' : ''}">
         ${comparison ? `<h3>${esc(node.name)}</h3><p class="muted smalltext">${esc(node.formula)}</p>` : ''}
         <div class="inspectmodel"><canvas tabindex="0" aria-label="${esc(node.name)}の単位胞。ドラッグまたは矢印キーで回転"></canvas></div>
+        <div class="axiscontrols" role="group" aria-label="単位胞の投影方向">
+            ${viewDirectionControls()}
+            ${comparison ? '' : '<button type="button" class="small flat" data-reset-view>視点を戻す</button>'}
+        </div>
         <div class="modelcaption"><span class="badge">${MODEL_KINDS[kind]}</span>${model.spaceGroup ? ` <span class="mono">No. ${model.spaceGroup}</span>` : ''}</div>
         ${!comparison ? '<p class="modelcaption">ドラッグ・矢印キーで回転 ／ ホイール・ピンチで拡大</p>' : ''}
         ${model.note ? `<p class="modelcaption">${esc(model.note)}</p>` : ''}
@@ -49,6 +66,11 @@ export function modelPanelHTML(node, model, comparison = false) {
 export function mountModelPanel(panel, model, options) {
     const view = new CrystalView(panel.querySelector('canvas'), false, options);
     view.set(model);
+    panel.querySelector('.axiscontrols').addEventListener('click', event => {
+        const control = event.target.closest('button');
+        if (control?.dataset.viewDirection) view.lookAlong(control.dataset.viewDirection);
+        if (control?.hasAttribute('data-reset-view')) view.reset();
+    });
     panel.querySelector('.modelsites').addEventListener('change', event => {
         const control = event.target;
         view.visible[Number(control.dataset.modelsite)] = control.checked;

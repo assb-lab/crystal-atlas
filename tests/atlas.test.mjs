@@ -5,7 +5,8 @@ import { readFile } from 'node:fs/promises';
 import { DATA } from '../src/data/atlas.js';
 import { KINDS, LABPRESETS, OCCPRESETS, ROUTES } from '../src/data/presets.js';
 import { esc, frac, normalize, shortestPath, sourcePdfPage } from '../src/utils.js';
-import { expanded, fourFCC, modelFor } from '../src/viewer.js';
+import { directionAngles, expanded, fourFCC, modelFor } from '../src/viewer.js';
+import { derivationPositions } from '../src/flow-layout.js';
 
 const ids = new Set(DATA.nodes.map(n => n.id));
 
@@ -14,17 +15,62 @@ test('the serialized dataset matches the curated snapshot', async () => {
   assert.equal(createHash('sha256').update(JSON.stringify(DATA)).digest('hex'), expected);
 });
 
-test('the atlas has 249 structures, 273 relations, 14 strict relations', () => {
-  assert.equal(DATA.nodes.length, 249);
-  assert.equal(DATA.edges.length, 273);
+test('the atlas has 272 structures, 342 relations, 14 strict relations', () => {
+  assert.equal(DATA.nodes.length, 272);
+  assert.equal(DATA.edges.length, 342);
   assert.equal(DATA.edges.filter(e => e.strict).length, 14);
-  assert.equal(Object.keys(DATA.sources).length, 18);
+  assert.equal(Object.keys(DATA.sources).length, 21);
   assert.equal(Object.keys(DATA.families).length, 26);
 });
 
 test('structure and relationship IDs are unique', () => {
   assert.equal(ids.size, DATA.nodes.length);
   assert.equal(new Set(DATA.edges.map(e => e.id)).size, DATA.edges.length);
+});
+
+test('directed derivations flow downward in every family and source diagram', () => {
+  const cases = ['all', ...Object.keys(DATA.families)].map(family => {
+    const nodes = DATA.nodes.filter(n => family === 'all' || n.family === family);
+    const present = new Set(nodes.map(n => n.id));
+    return { nodes, edges: DATA.edges.filter(e => present.has(e.a) && present.has(e.b)) };
+  });
+  for (const flow of DATA.flows) {
+    assert.ok(flow.refs.length, flow.id);
+    const edges = flow.edges.map(id => {
+      const edge = DATA.edges.find(e => e.id === id);
+      assert.ok(edge, id);
+      assert.ok(edge.refs.some(ref => ref.s === 'K'), id);
+      return { ...edge, undirected: false };
+    });
+    const present = new Set(edges.flatMap(e => [e.a, e.b]));
+    cases.push({ nodes: DATA.nodes.filter(n => present.has(n.id)), edges });
+  }
+  for (const { nodes, edges } of cases) {
+    const positions = derivationPositions(nodes, edges);
+    assert.equal(positions.size, nodes.length);
+    for (const edge of edges.filter(e => !e.undirected)) {
+      assert.ok(positions.get(edge.a).y < positions.get(edge.b).y, edge.id);
+    }
+  }
+});
+
+test('real and reciprocal viewing directions project to a point in oblique cells', () => {
+  const cell = [[3, 0, 0], [1.2, 4, 0], [0.7, -0.8, 5]];
+  const cross = ([a, b, c], [d, e, f]) => [b * f - c * e, c * d - a * f, a * e - b * d];
+  for (const axis of [0, 1, 2]) {
+    for (const reciprocal of [false, true]) {
+      const vector = reciprocal ? cross(cell[(axis + 1) % 3], cell[(axis + 2) % 3]) : cell[axis];
+      for (const sign of ['', '-']) {
+        const { x, y } = directionAngles(cell, 'abc'[axis] + (reciprocal ? '*' : '') + sign);
+        const px = vector[0] * Math.cos(y) + vector[2] * Math.sin(y);
+        const depth = -vector[0] * Math.sin(y) + vector[2] * Math.cos(y);
+        const py = vector[1] * Math.cos(x) - depth * Math.sin(x);
+        assert.ok(Math.abs(px) < 1e-10 && Math.abs(py) < 1e-10);
+        assert.ok((vector[1] * Math.sin(x) + depth * Math.cos(x)) * (sign ? -1 : 1) < 0);
+      }
+    }
+  }
+  assert.notDeepEqual(directionAngles(cell, 'a'), directionAngles(cell, 'a*'));
 });
 
 test('structures reference known families and have valid graph positions', () => {

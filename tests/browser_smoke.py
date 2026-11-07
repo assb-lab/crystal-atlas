@@ -49,9 +49,9 @@ def exercise(page, url):
     else:
         page.goto(url)
     page.wait_for_function('typeof window.atlasDiagnostics === "function"')
-    assert page.evaluate('window.atlasDiagnostics().nodes') == 249
-    assert page.evaluate('window.atlasDiagnostics().models') == 249
-    expect(page.locator('#nodeLayer .node')).to_have_count(11)
+    assert page.evaluate('window.atlasDiagnostics().nodes') == 272
+    assert page.evaluate('window.atlasDiagnostics().models') == 272
+    expect(page.locator('#nodeLayer .node')).to_have_count(16)
     page.locator('#search').fill('L21')
     page.locator('[data-searchnode="heusler"]').click()
     assert page.evaluate('window.atlasDiagnostics().selected') == 'heusler'
@@ -70,7 +70,10 @@ def exercise(page, url):
     page.locator('[data-sub="0"]').uncheck()
     expect(page.locator('#siteLegend .sitecard.off')).to_have_count(1)
     page.locator('#labLabels').check()
+    page.locator('#labAxisControls [data-view-direction="b"]').click()
+    expect(page.locator('#labcanvas')).to_have_attribute('data-direction', 'b')
     page.locator('#labReset').click()
+    expect(page.locator('#labcanvas')).to_have_attribute('data-direction', '')
     page.locator('[data-occpreset="corundum"]').click()
     expect(page.locator('#octaValue')).to_have_text('2/3')
     page.locator('#tetraSlider').evaluate("el => { el.value = '0.25'; }")
@@ -90,11 +93,11 @@ def exercise(page, url):
     expect(page.locator('.routecard')).to_have_count(16)
     page.locator('#closeModal').click()
     page.locator('[data-tab="guide"]').click()
-    expect(page.locator('.sourcecard')).to_have_count(18)
+    expect(page.locator('.sourcecard')).to_have_count(21)
     with page.expect_download() as result:
         page.locator('#exportBtn').click()
     exported = json.loads(Path(result.value.path()).read_text())
-    assert len(exported['nodes']) == 249 and len(exported['edges']) == 273
+    assert len(exported['nodes']) == 272 and len(exported['edges']) == 342
     assert exported['models']['defectfluorite']['kind'] == 'average'
     page.locator('[data-tab="explore"]').click()
     page.locator('[data-family="fcc"]').click()
@@ -145,6 +148,46 @@ def exercise_framework_comparison(page):
     page.keyboard.press('Escape')
 
 
+def exercise_search_axes_and_flows(page, label):
+    page.locator('[data-tab="guide"]').click()
+    page.keyboard.press('Meta+k')
+    expect(page.locator('#globalSearch')).to_be_visible()
+    expect(page.locator('#globalResults button')).to_have_count(272)
+    page.locator('#globalQuery').fill('Li2PbO3')
+    expect(page.locator('#globalResults button').first).to_contain_text('Li₂PbO₃')
+    page.keyboard.press('ArrowDown')
+    page.keyboard.press('Enter')
+    expect(page.locator('#globalSearch')).not_to_be_visible()
+    assert page.evaluate('window.atlasDiagnostics().selected') == 'li2pbo3'
+    canvas = page.locator('#inspector canvas')
+    page.locator('#inspector [data-view-direction="a"]').click()
+    expect(canvas).to_have_attribute('data-direction', 'a')
+    a_view = canvas.evaluate('canvas => canvas.toDataURL()')
+    page.locator('#inspector [data-view-direction="a*"]').click()
+    assert canvas.evaluate('canvas => canvas.toDataURL()') != a_view
+    page.locator('#inspector [data-view-direction="a-"]').click()
+    expect(canvas).to_have_attribute('data-direction', 'a-')
+    page.locator('#inspector [data-reset-view]').click()
+    expect(canvas).to_have_attribute('data-direction', '')
+    for flow in ['lattices', 'fourfcc', 'coloring', 'rocksalt', 'nias', 'blocks', 'layered', 'iridates']:
+        page.locator('#sourceFlow').select_option(flow)
+        assert page.locator('#nodeLayer .node').count() > 0
+        assert page.locator('#edgeLayer .edge[marker-end]').count() > 0
+        assert page.locator('#nodeLayer [textLength], #nodeLayer [lengthAdjust]').count() == 0
+    page.locator('#sourceFlow').select_option('rocksalt')
+    page.screenshot(path=str(OUT / f'{label}-okamoto-flow.png'), full_page=True)
+    page.locator('[data-family="ion-ox"]').click()
+    title = page.locator('[data-node="nzp"] .nodelabel.title')
+    expect(title).to_have_text('NaZr₂(PO₄)₃ (NZP)')
+    assert title.evaluate("el => getComputedStyle(el).textOverflow") == 'ellipsis'
+    page.screenshot(path=str(OUT / f'{label}-natural-type.png'), full_page=True)
+    page.keyboard.press('Control+k')
+    expect(page.locator('#globalQuery')).to_be_focused()
+    page.keyboard.press('Escape')
+    expect(page.locator('#globalSearch')).not_to_be_visible()
+    expect(page.locator('#globalResults button')).to_have_count(0)
+
+
 def exercise_model_comparison(page, label):
     page.locator('#search').fill('defect fluorite')
     page.locator('[data-searchnode="defectfluorite"]').click()
@@ -157,6 +200,11 @@ def exercise_model_comparison(page, label):
     expect(canvas).to_have_count(2)
     read_pixels = 'canvases => canvases.map(canvas => canvas.toDataURL())'
     initial = canvas.evaluate_all(read_pixels)
+    page.locator('.comparisonmodel').first.locator('[data-view-direction="c*"]').click()
+    for i in range(2):
+        expect(canvas.nth(i)).to_have_attribute('data-direction', 'c*')
+    page.locator('#compareReset').click()
+    assert canvas.evaluate_all(read_pixels) == initial
     canvas.first.press('ArrowRight')
     rotated = canvas.evaluate_all(read_pixels)
     assert all(a != b for a, b in zip(initial, rotated))
@@ -198,12 +246,17 @@ def main():
                 exercise(page, target)
                 exercise_expanded_catalog(page)
                 exercise_framework_comparison(page)
+                exercise_search_axes_and_flows(page, label)
                 exercise_model_comparison(page, label)
                 page.screenshot(path=str(OUT / f'{label}-desktop.png'), full_page=True)
                 page.locator('[data-tab="lab"]').click()
                 page.screenshot(path=str(OUT / f'{label}-lab.png'), full_page=True)
                 page.set_viewport_size({'width': 390, 'height': 844})
                 page.locator('[data-tab="explore"]').click()
+                page.locator('#openSearch').click()
+                expect(page.locator('#globalResults button')).to_have_count(272)
+                assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
+                page.keyboard.press('Escape')
                 exercise_model_comparison(page, f'{label}-mobile')
                 page.screenshot(path=str(OUT / f'{label}-mobile.png'), full_page=True)
                 assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')

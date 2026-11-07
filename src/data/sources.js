@@ -10,7 +10,7 @@ export const sources = {
     "url": "https://repository.kulib.kyoto-u.ac.jp/server/api/core/bitstreams/d67b6cd7-7519-42f6-bc4e-0c26569f8c13/content",
     "filename": "bussei_el_061206.pdf",
     "offset": -155,
-    "coverage": "第2章：格子の貫入、規則配列、NiAs派生、構造ブロック、積層。主に図7の共通記述を採用。"
+    "coverage": "第2章の格子の貫入・規則配列・NiAs派生・ブロック置換・層状シアーと、第3章のIr酸化物の関連構造を図番号別のフローで比較。"
   },
   "M06": {
     "short": "Müller 2006",
@@ -162,5 +162,26 @@ export const sources = {
     "citation": "A. C. Moy et al., “Effects of Al concentration on the structure and conductivity of lithium lanthanum zirconium oxide,” J. Mater. Chem. A 12, 28193–28210 (2024). DOI: 10.1039/D4TA04862H.",
     "article": "https://doi.org/10.1039/D4TA04862H",
     "coverage": "Supporting Information Table S7の220 KにおけるAl置換立方晶LLZOの平均構造。"
+  },
+  "O07": {
+    "short": "Okamoto et al. 2007",
+    "title": "Spin-Liquid State in the S = 1/2 Hyperkagome Antiferromagnet Na₄Ir₃O₈",
+    "citation": "Y. Okamoto, M. Nohara, H. Aruga-Katori and H. Takagi, “Spin-Liquid State in the S = 1/2 Hyperkagome Antiferromagnet Na₄Ir₃O₈,” Phys. Rev. Lett. 99, 137207 (2007). DOI: 10.1103/PhysRevLett.99.137207.",
+    "article": "https://doi.org/10.1103/PhysRevLett.99.137207",
+    "coverage": "室温粉末回折の原子座標とNa部分占有率、Table I。"
+  },
+  "BI14": {
+    "short": "Biffin et al. 2014",
+    "title": "Unconventional magnetic order on the hyperhoneycomb Kitaev lattice in β-Li₂IrO₃",
+    "citation": "A. Biffin et al., “Unconventional magnetic order on the hyperhoneycomb Kitaev lattice in β-Li₂IrO₃: Full solution via magnetic resonant x-ray diffraction,” Phys. Rev. B 90, 205116 (2014). DOI: 10.1103/PhysRevB.90.205116.",
+    "article": "https://doi.org/10.1103/PhysRevB.90.205116",
+    "coverage": "100 Kでの結晶構造、Table III。"
+  },
+  "BH82": {
+    "short": "Brazel–Hoppe 1982",
+    "title": "Über Oxoplumbate(IV). Die Kristallstruktur von TT-Li₂PbO₃",
+    "citation": "B. Brazel and R. Hoppe, “Über Oxoplumbate(IV). Die Kristallstruktur von TT-Li₂PbO₃,” Z. Naturforsch. B 37, 1369–1374 (1982). DOI: 10.1515/znb-1982-1102.",
+    "article": "https://doi.org/10.1515/znb-1982-1102",
+    "coverage": "単結晶回折の格子定数と原子座標、Table II。"
   }
 };

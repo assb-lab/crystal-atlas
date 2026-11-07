@@ -1,5 +1,6 @@
 import { expansionModels } from "./expansion-models.js";
 import { breadthModels } from "./breadth-models.js";
+import { okamotoModels } from "./okamoto-models.js";
 
 /** Unit-cell site orbits in fractional coordinates (boundary images omitted).
  * Provenance belongs to each cell. Lengths are in Å except for schematic cells.
@@ -7,6 +8,7 @@ import { breadthModels } from "./breadth-models.js";
 export const coordinateModels = {
   ...expansionModels,
   ...breadthModels,
+  ...okamotoModels,
   l10: {
     kind: "prototype",
     source: {"label": "AFLOW · AB_tP2_123_a_d-001", "url": "https://www.aflow.org/prototype-encyclopedia/AB_tP2_123_a_d-001/"},

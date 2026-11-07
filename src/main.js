@@ -3,15 +3,17 @@ import { DATA } from "./data/atlas.js";
 import { KINDS, ROUTES, LABPRESETS, OCCPRESETS } from "./data/presets.js";
 import { esc, frac, normalize, shortestPath, sourcePdfPage } from "./utils.js";
 import { CrystalView, modelFor, fourFCC, SITE_COLORS } from "./viewer.js";
-import { modelPanelHTML, mountModelPanel } from "./model-panels.js";
+import { modelPanelHTML, mountModelPanel, viewDirectionControls } from "./model-panels.js";
+import { derivationPositions } from "./flow-layout.js";
 
 'use strict';
 
 const $ = id => document.getElementById(id), N = new Map(DATA.nodes.map(n => [n.id, n])), E = new Map(DATA.edges.map(e => [e.id, e]));
 
-const state = { tab: 'explore', family: 'fcc', selected: 'fcc', edge: null, strict: false, view: 'map', comp: [], lab: 'heusler', subVisible: [true, true, true, true], t: .125, o: .5, occPreset: 'spinel' };
+const state = { tab: 'explore', family: 'fcc', flow: null, selected: 'fcc', edge: null, strict: false, view: 'map', comp: [], lab: 'heusler', subVisible: [true, true, true, true], t: .125, o: .5, occPreset: 'spinel' };
 
 let modelView = null, labView = null, comparisonViews = [], visibleNodes = [], visibleEdges = [], lastFocus = null;
+let graphPositions = new Map();
 
 const PDFS = {};
 
@@ -37,7 +39,7 @@ function tab(id) { state.tab = id; document.querySelectorAll('.tabpage').forEach
     requestAnimationFrame(() => labView.draw());
 } }
 
-function family(id, fit = true) { state.family = id; state.edge = null; const nodes = DATA.nodes.filter(n => id === 'all' || n.family === id); if (!nodes.some(n => n.id === state.selected))
+function family(id, fit = true) { state.flow = null; state.family = id; state.edge = null; const nodes = DATA.nodes.filter(n => id === 'all' || n.family === id); if (!nodes.some(n => n.id === state.selected))
     state.selected = nodes.find(n => n.id === id)?.id || nodes[0]?.id; renderFamily(); renderGraph(); renderInspector(); if (fit)
     requestAnimationFrame(fitMap); }
 
@@ -46,7 +48,8 @@ function selectNode(id, jump = true) { if (!N.has(id))
     state.strict = false;
     $('strictFilter').checked = false;
     toast('この構造の関係を表示するため、絞り込みを解除しました。');
-} state.selected = id; state.edge = null; if (jump && state.family !== 'all' && N.get(id).family !== state.family) {
+} state.selected = id; state.edge = null; if (jump && (state.flow ? !visibleNodes.some(n => n.id === id) : state.family !== 'all' && N.get(id).family !== state.family)) {
+    state.flow = null;
     state.family = N.get(id).family;
     renderFamily();
     renderGraph();
@@ -57,22 +60,42 @@ else
     tab('explore'); if (innerWidth <= 700)
     requestAnimationFrame(() => $('inspector').scrollIntoView({ behavior: 'smooth', block: 'start' })); }
 
-function selectEdge(id) { const e = E.get(id); if (!e)
+function selectEdge(id) { const e = visibleEdges.find(edge => edge.id === id) ?? E.get(id); if (!e)
     return; state.edge = id; renderGraph(); renderEdge(e); }
 
-function renderFamily() { const fs = DATA.families; const all = [['all', { short: 'すべてのファミリー', color: '#93a9ba' }], ...Object.entries(fs)]; $('families').innerHTML = all.map(([id, f]) => `<button class="familybutton ${state.family === id ? 'active' : ''}" data-family="${id}"><i class="dot" style="background:${f.color}"></i><span>${f.short}</span><span class="num">${id === 'all' ? DATA.nodes.length : DATA.nodes.filter(n => n.family === id).length}</span></button>`).join(''); $('familyTitle').textContent = state.family === 'all' ? '構造ファミリーの全体地図' : fs[state.family].name; $('familySubtitle').textContent = state.family === 'all' ? 'ファミリー名から領域を選択。領域間の関係も表示。' : fs[state.family].subtitle; }
+function renderFamily() {
+    const fs = DATA.families;
+    const all = [['all', { short: 'すべてのファミリー', color: '#93a9ba' }], ...Object.entries(fs)];
+    $('families').innerHTML = all.map(([id, f]) => `<button class="familybutton ${!state.flow && state.family === id ? 'active' : ''}" data-family="${id}"><i class="dot" style="background:${f.color}"></i><span>${f.short}</span><span class="num">${id === 'all' ? DATA.nodes.length : DATA.nodes.filter(n => n.family === id).length}</span></button>`).join('');
+    $('sourceFlow').value = state.flow?.id ?? '';
+    if (state.flow) {
+        $('familyTitle').textContent = state.flow.title;
+        $('familySubtitle').innerHTML = `${esc(state.flow.desc)} <span class="refchips">${refHTML(state.flow.refs)}</span>`;
+        return;
+    }
+    $('familyTitle').textContent = state.family === 'all' ? '全構造の派生フロー' : fs[state.family].name;
+    $('familySubtitle').textContent = state.family === 'all' ? '親構造を上段に配置し、ファミリー間の派生も下向きに表示。' : fs[state.family].subtitle;
+}
 
 const SVGNS = 'http://www.w3.org/2000/svg';
 
 function svgEl(tag, attrs = {}, text) { const el = document.createElementNS(SVGNS, tag); Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v)); if (text !== undefined)
     el.textContent = text; return el; }
 
-function pos(n) { const f = DATA.families[n.family]; return { x: n.x + (state.family === 'all' ? f.x : 0), y: n.y + (state.family === 'all' ? f.y : 0) }; }
+function pos(n) { return graphPositions.get(n.id); }
 
-function getVisible() { let nodes = DATA.nodes.filter(n => state.family === 'all' || n.family === state.family); let ids = new Set(nodes.map(n => n.id)); let edges = DATA.edges.filter(e => ids.has(e.a) && ids.has(e.b) && (!state.strict || e.strict)); if (state.strict) {
+function getVisible() {
+    if (state.flow) {
+        const edges = state.flow.edges.map(id => ({ ...E.get(id), undirected: false })).filter(e => !state.strict || e.strict);
+        const ids = new Set(edges.flatMap(e => [e.a, e.b]));
+        return { nodes: [...ids].map(id => N.get(id)), edges };
+    }
+    const nodes = DATA.nodes.filter(n => state.family === 'all' || n.family === state.family);
+    const ids = new Set(nodes.map(n => n.id));
+    const edges = DATA.edges.filter(e => ids.has(e.a) && ids.has(e.b) && (!state.strict || e.strict));
     const linked = new Set(edges.flatMap(e => [e.a, e.b]));
-    nodes = nodes.filter(n => linked.has(n.id));
-} return { nodes, edges }; }
+    return { nodes: state.strict ? nodes.filter(n => linked.has(n.id)) : nodes, edges };
+}
 
 function edgePath(a, b) {
     const w = 220, h = 86;
@@ -110,18 +133,8 @@ function renderGraph() {
     const v = getVisible();
     visibleNodes = v.nodes;
     visibleEdges = v.edges;
+    graphPositions = derivationPositions(v.nodes, v.edges);
     ['clusterLayer', 'edgeLayer', 'nodeLayer', 'edgeLabels'].forEach(id => $(id).replaceChildren());
-    if (state.family === 'all') {
-        for (const [id, f] of Object.entries(DATA.families)) {
-            const g = svgEl('g');
-            const height = Math.max(760, ...DATA.nodes.filter(n => n.family === id).map(n => n.y + 100));
-            g.append(svgEl('rect', { x: f.x + 30, y: f.y - 40, width: 830, height, class: 'clusterbox' }));
-            const title = svgEl('text', { x: f.x + 65, y: f.y + 4, class: 'clustertitle' }, f.name);
-            title.addEventListener('click', () => family(id));
-            g.append(title);
-            $('clusterLayer').append(g);
-        }
-    }
     const connected = new Set([state.selected]);
     visibleEdges.filter(e => e.a === state.selected || e.b === state.selected).forEach(e => { connected.add(e.a); connected.add(e.b); });
     for (const e of visibleEdges) {
@@ -135,7 +148,7 @@ function renderGraph() {
             ev.preventDefault();
             selectEdge(e.id);
         } });
-        const title = svgEl('title', {}, `${N.get(e.a).name} → ${N.get(e.b).name}\n${e.label}`);
+        const title = svgEl('title', {}, `${N.get(e.a).name} ${e.undirected ? '↔' : '→'} ${N.get(e.b).name}\n${e.label}`);
         hit.append(title);
         $('edgeLayer').append(path, hit);
         if (state.edge === e.id) {
@@ -150,15 +163,14 @@ function renderGraph() {
         const g = svgEl('g', { class: `node ${state.selected === n.id && !state.edge ? 'selected' : ''}`, transform: `translate(${p.x - 110},${p.y - 43})`, 'data-node': n.id, tabindex: '0', role: 'button', 'aria-label': `${n.name} ${n.formula}` });
         g.append(svgEl('rect', { width: 220, height: 86, rx: 9, class: 'main' }));
         g.append(svgEl('rect', { x: 0, y: 14, width: 3, height: 24, rx: 1.5, fill: DATA.families[n.family].color, class: 'familystripe' }));
-        const title = svgEl('text', { x: 14, y: 26, class: 'title' }, n.name);
-        if (n.name.length > 15) {
-            title.setAttribute('textLength', '191');
-            title.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+        for (const [kind, text, y, width] of [['title', n.name, 12, state.comp.includes(n.id) ? 179 : 192], ['formula', n.formula, 35, 192], ['sg', n.sg, 57, 192]]) {
+            const box = svgEl('foreignObject', { x: 14, y, width, height: 20 });
+            const label = document.createElement('div');
+            label.className = `nodelabel ${kind}`;
+            label.textContent = text;
+            box.append(label);
+            g.append(box);
         }
-        g.append(title);
-        g.append(svgEl('text', { x: 14, y: 47, class: 'formula' }, n.formula.length > 29 ? n.formula.slice(0, 27) + '…' : n.formula));
-        const sg = svgEl('text', { x: 14, y: 69, class: 'sg' }, n.sg.length > 32 ? n.sg.slice(0, 30) + '…' : n.sg);
-        g.append(sg);
         if (state.comp.includes(n.id)) {
             g.append(svgEl('circle', { cx: 207, cy: 12, r: 7, class: 'comparecircle' }), svgEl('text', { x: 207, y: 15, 'text-anchor': 'middle', fill: '#a7efd7', 'font-size': 9 }, state.comp.indexOf(n.id) + 1));
         }
@@ -172,7 +184,7 @@ function renderGraph() {
         $('nodeLayer').append(g);
     }
     const cross = DATA.edges.filter(e => (e.a === state.selected || e.b === state.selected) && N.get(e.a).family !== N.get(e.b).family && (!state.strict || e.strict)).length;
-    $('graphNote').innerHTML = `${state.strict ? '<span>群–部分群の確認済み関係のみ</span>' : '<span>構造・矢印をクリックして詳細</span>'}${cross && state.family !== 'all' ? `<span>選択構造に領域をまたぐ関係 ${cross} 件 ↗</span>` : ''}`;
+    $('graphNote').innerHTML = `${state.strict ? '<span>群–部分群の確認済み関係のみ</span>' : '<span>上段の親構造から下段の派生へ ↓</span>'}${cross && state.family !== 'all' && !state.flow ? `<span>選択構造に領域をまたぐ関係 ${cross} 件 ↗</span>` : ''}`;
     $('graphStatus').textContent = `表示 ${visibleNodes.length} 構造 / ${visibleEdges.length} 関係`;
     renderList();
 }
@@ -250,22 +262,50 @@ function renderInspector() { modelView?.destroy(); modelView = null; const n = N
 
 function renderEdge(e) { modelView?.destroy(); modelView = null; const a = N.get(e.a), b = N.get(e.b), k = KINDS[e.kind]; $('inspector').innerHTML = `<div class="inspecthead"><div class="eyebrow" style="color:${k.color}">RELATION / ${k.name}</div><h2 style="font-size:19px">${esc(e.label)}</h2><div class="row" style="margin-top:11px"><button class="small" data-jump="${a.id}">${esc(a.name)}</button><span>${e.undirected ? '↔' : '→'}</span><button class="small" data-jump="${b.id}">${esc(b.name)}</button></div></div><div class="inspectbody"><p class="desc">${esc(e.desc)}</p>${e.strict ? `<div class="detailsection"><span class="badge good">文献で確認した群–部分群関係</span></div><div class="detailsection"><div class="facts"><div class="fact"><div class="key">対称性の対応</div><div class="value mono">${esc(a.sg)} → ${esc(b.sg)}</div></div><div class="fact"><div class="key">部分群の種類と指数</div><div class="value mono">${esc(e.index)}</div></div><div class="fact"><div class="key">基底・原点・セル</div><div class="value">${esc(e.basis)}</div></div><div class="fact"><div class="key">サイト・Wyckoff位置の対応</div><div class="value">${esc(e.split)}</div></div></div></div>` : `<div class="detailsection"><div class="note">この線は「${k.name}」を示します。本版では群–部分群指数、基底・原点、全原子位置の変換を検証した矢印としては扱いません。</div></div>`}${e.warning ? `<div class="detailsection"><div class="note warn">${esc(e.warning)}</div></div>` : ''}<div class="detailsection"><div class="note warn">構造の関係と、実際の反応・相転移は別です。矢印の向きは記述上の派生方向であり、実行可能な変換や安定性を保証しません。</div></div><div class="detailsection"><h3>この関係の出典</h3><div class="refchips">${refHTML(e.refs)}</div></div><button class="small" data-comparepair="${a.id},${b.id}" style="margin-top:18px;width:100%">２つの構造を比較する →</button><button class="small flat" data-jump="${state.selected}" style="margin-top:8px;width:100%">構造カードに戻る</button></div>`; $('inspector').scrollTop = 0; }
 
-function search() {
-    const query = normalize($('search').value);
-    const results = $('searchResults');
-    if (!query) {
-        results.replaceChildren();
-        return;
-    }
+function searchMatches(value) {
+    const query = normalize(value);
+    if (!query) return DATA.nodes;
     function priority(node) {
         if ([node.formula, node.name, node.aliases].some(value => normalize(value) === query)) return 2;
         return Number(normalize(node.name).includes(query));
     }
-    const hits = DATA.nodes.filter(node =>
-        normalize([node.name, node.formula, node.aliases, node.sg, node.desc].join(' ')).includes(query))
+    return DATA.nodes.filter(node =>
+        normalize([node.id, node.name, node.formula, node.aliases, node.sg, node.desc].join(' ')).includes(query))
         .sort((a, b) => priority(b) - priority(a));
+}
+
+function renderSearchResults(results, hits) {
     results.innerHTML = hits.map(node => `<button data-searchnode="${node.id}">${esc(node.name)}<small>${esc(node.formula)} · ${esc(DATA.families[node.family].short)}</small></button>`).join('') ||
         '<p class="smalltext muted" style="padding:10px">一致する構造はありません。</p>';
+}
+
+function search() {
+    const value = $('search').value;
+    if (normalize(value)) renderSearchResults($('searchResults'), searchMatches(value));
+    else $('searchResults').replaceChildren();
+}
+
+function globalSearchResults() {
+    const hits = searchMatches($('globalQuery').value);
+    renderSearchResults($('globalResults'), hits);
+    $('globalResults').scrollTop = 0;
+    $('globalCount').textContent = `${hits.length} / ${DATA.nodes.length} 件`;
+}
+
+function openGlobalSearch() {
+    const dialog = $('globalSearch');
+    if (!dialog.open) {
+        $('globalQuery').value = '';
+        globalSearchResults();
+        dialog.showModal();
+    }
+    $('globalQuery').focus();
+    $('globalQuery').select();
+}
+
+function closeGlobalSearch() {
+    $('globalSearch').close();
+    $('globalResults').replaceChildren();
 }
 
 function toggleCompare(id) { if (state.comp.includes(id))
@@ -386,8 +426,14 @@ document.addEventListener('click', ev => { const b = ev.target.closest('button,a
     return; const d = b.dataset; if (d.backmap)
     $('graphStage').scrollIntoView({ behavior: 'smooth', block: 'center' }); if (d.tab)
     tab(d.tab); if (d.family)
-    family(d.family); if (d.searchnode)
-    selectNode(d.searchnode); if (d.listnode)
+    family(d.family); if (d.searchnode) {
+    if (b.closest('#globalSearch')) {
+        closeGlobalSearch();
+        if (!$('modalBackdrop').hidden) closeModal();
+        if (state.family === 'all' && !state.flow) family(N.get(d.searchnode).family);
+    }
+    selectNode(d.searchnode);
+} if (d.listnode)
     selectNode(d.listnode, false); if (d.relation)
     selectEdge(d.relation); if (d.jump)
     selectNode(d.jump); if (d.compare)
@@ -416,8 +462,15 @@ document.addEventListener('click', ev => { const b = ev.target.closest('button,a
 } if (d.occpreset)
     updateOccupancy(d.occpreset); });
 
-document.addEventListener('keydown', ev => { if (ev.key === 'Escape') {
-    closeModal();
+document.addEventListener('keydown', ev => {
+    if ((ev.metaKey || ev.ctrlKey) && !ev.altKey && !ev.shiftKey && ev.key.toLowerCase() === 'k') {
+        ev.preventDefault();
+        openGlobalSearch();
+        return;
+    }
+    if ($('globalSearch').open) return;
+    if (ev.key === 'Escape') {
+    if (!$('modalBackdrop').hidden) closeModal();
     $('searchResults').innerHTML = '';
 } if (ev.target.matches('tr[data-listnode]') && ev.key === 'Enter')
     selectNode(ev.target.dataset.listnode, false); if (!$('modalBackdrop').hidden && ev.key === 'Tab') {
@@ -433,6 +486,47 @@ document.addEventListener('keydown', ev => { if (ev.key === 'Escape') {
 } });
 
 $('search').addEventListener('input', search);
+
+$('openSearch').onclick = openGlobalSearch;
+for (const type of ['cancel', 'submit']) {
+    $('globalSearch').addEventListener(type, event => {
+        event.preventDefault();
+        closeGlobalSearch();
+    });
+}
+$('globalQuery').addEventListener('input', globalSearchResults);
+$('globalSearch').addEventListener('keydown', ev => {
+    const buttons = [...$('globalResults').querySelectorAll('button')];
+    if (!buttons.length) return;
+    const index = buttons.indexOf(document.activeElement);
+    if (ev.key === 'Enter' && ev.target === $('globalQuery')) {
+        ev.preventDefault();
+        buttons[0].click();
+    }
+    if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+        ev.preventDefault();
+        const next = index + (ev.key === 'ArrowDown' ? 1 : -1);
+        if (next < 0) $('globalQuery').focus();
+        else buttons[Math.min(next, buttons.length - 1)].focus();
+    }
+});
+
+$('sourceFlow').addEventListener('change', ev => {
+    const flow = DATA.flows.find(item => item.id === ev.target.value);
+    if (!flow) {
+        family(state.family);
+        return;
+    }
+    state.flow = flow;
+    state.selected = E.get(flow.edges[0]).a;
+    state.edge = null;
+    state.strict = false;
+    $('strictFilter').checked = false;
+    renderFamily();
+    renderGraph();
+    renderInspector();
+    mode('map');
+});
 
 $('search').addEventListener('keydown', ev => { if (ev.key === 'Enter') {
     const b = $('searchResults').querySelector('button');
@@ -474,6 +568,12 @@ $('labLabels').onchange = () => { if (labView) {
     labView.labels = $('labLabels').checked;
     labView.draw();
 } };
+
+$('labAxisControls').innerHTML = viewDirectionControls();
+$('labAxisControls').addEventListener('click', event => {
+    const direction = event.target.closest('button')?.dataset.viewDirection;
+    if (direction) labView?.lookAlong(direction);
+});
 
 $('labReset').onclick = () => labView?.reset();
 
@@ -524,6 +624,8 @@ $('guideSymRefs').innerHTML = refHTML([{ s: 'M06', p: 216, sec: '§18.3' }, { s:
 $('labSelect').innerHTML = LABPRESETS.map(p => `<option value="${p.id}">${p.label} — ${p.formula}</option>`).join('');
 
 initDefs();
+
+$('sourceFlow').append(...DATA.flows.map(flow => new Option(flow.title, flow.id)));
 
 renderSources();
 

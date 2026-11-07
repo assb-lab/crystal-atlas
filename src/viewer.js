@@ -5,7 +5,19 @@ import { coordinateModels } from "./data/models.js";
 // Balls visualize sites, not effective radii.
 export const SITE_COLORS = ['#73d9dd', '#efba77', '#b7a1ed', '#ef91ba'];
 const MODEL_COLORS = [...SITE_COLORS, '#b6d478', '#78aaf5', '#e88b79', '#85d1ac'];
-const DEFAULT_CAMERA = { x: -.34, y: .62, zoom: 1 };
+const DEFAULT_CAMERA = { x: -.34, y: .62, zoom: 1, direction: null };
+const cross = ([ax, ay, az], [bx, by, bz]) => [ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx];
+
+/** Angles for a camera on the selected side of the cell, looking toward its center. */
+export function directionAngles(cell, direction) {
+    const axis = 'abc'.indexOf(direction.at(0));
+    const vector = direction.includes('*')
+        ? cross(cell[(axis + 1) % 3], cell[(axis + 2) % 3])
+        : cell[axis];
+    const scale = (direction.endsWith('-') ? -1 : 1) / Math.hypot(...vector);
+    const [x, y, z] = vector.map(value => value * scale);
+    return { x: Math.atan2(-y, Math.hypot(x, z)), y: Math.atan2(x, -z) };
+}
 const CELL_CORNERS = [
     [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
     [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1],
@@ -131,10 +143,8 @@ export class CrystalView {
                 this.pinch = distance;
                 this.pointer = null;
             } else if (this.pointer) {
-                this.camera.y += (point.x - this.pointer.x) * .008;
-                this.camera.x += (point.y - this.pointer.y) * .008;
+                this.rotate((point.y - this.pointer.y) * .008, (point.x - this.pointer.x) * .008);
                 this.pointer = point;
-                this.cameraChanged();
             }
         }, opt);
         const end = e => {
@@ -152,9 +162,7 @@ export class CrystalView {
             const move = { ArrowLeft: [0, -.15], ArrowRight: [0, .15], ArrowUp: [-.15, 0], ArrowDown: [.15, 0] }[e.key];
             if (!move) return;
             e.preventDefault();
-            this.camera.x += move[0];
-            this.camera.y += move[1];
-            this.cameraChanged();
+            this.rotate(...move);
         }, opt);
         this.ro = new ResizeObserver(() => this.draw());
         this.ro.observe(canvas);
@@ -165,6 +173,18 @@ export class CrystalView {
     }
     changeZoom(factor) {
         this.camera.zoom = Math.max(.6, Math.min(2, this.camera.zoom * factor));
+        this.cameraChanged();
+    }
+    rotate(dx, dy) {
+        if (this.camera.direction) {
+            Object.assign(this.camera, directionAngles(this.model.cell, this.camera.direction), { direction: null });
+        }
+        this.camera.x += dx;
+        this.camera.y += dy;
+        this.cameraChanged();
+    }
+    lookAlong(direction) {
+        this.camera.direction = direction;
         this.cameraChanged();
     }
     cameraChanged() {
@@ -189,7 +209,9 @@ export class CrystalView {
         c.setTransform(dpr, 0, 0, dpr, 0, 0);
         c.clearRect(0, 0, w, h);
         const basis = this.model.cell;
-        const { x: angleX, y: angleY, zoom } = this.camera;
+        const { direction, zoom } = this.camera;
+        const { x: angleX, y: angleY } = direction ? directionAngles(basis, direction) : this.camera;
+        this.canvas.dataset.direction = direction ?? '';
         const centered = f => [0, 1, 2].map(axis =>
             basis.reduce((value, vector, i) => value + (f[i] - .5) * vector[axis], 0));
         const diameter = 2 * Math.max(...CELL_CORNERS.map(f => Math.hypot(...centered(f))));
@@ -202,7 +224,7 @@ export class CrystalView {
             const depth = -cartX * sinY + cartZ * cosY;
             const y = cartY * cosX - depth * sinX;
             const z = cartY * sinX + depth * cosX;
-            const perspective = 3.7 / (3.7 + z / diameter);
+            const perspective = direction ? 1 : 3.7 / (3.7 + z / diameter);
             return { x: w / 2 + x * scale * perspective, y: h / 2 - y * scale * perspective, z, r: perspective };
         };
         // Subtle ground glow (visual only).
