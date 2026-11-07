@@ -1,3 +1,4 @@
+import { classificationModels } from "./classification-models.js";
 import { expansionModels } from "./expansion-models.js";
 import { breadthModels } from "./breadth-models.js";
 import { okamotoModels } from "./okamoto-models.js";
@@ -9,6 +10,7 @@ export const coordinateModels = {
   ...expansionModels,
   ...breadthModels,
   ...okamotoModels,
+  ...classificationModels,
   l10: {
     kind: "prototype",
     source: {"label": "AFLOW · AB_tP2_123_a_d-001", "url": "https://www.aflow.org/prototype-encyclopedia/AB_tP2_123_a_d-001/"},

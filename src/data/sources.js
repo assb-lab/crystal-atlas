@@ -105,7 +105,7 @@ export const sources = {
     "filename": "Structure and Properties of Inorganic Solids (Francis S. Galasso etc).pdf",
     "article": "https://shop.elsevier.com/books/structure-and-properties-of-inorganic-solids/galasso/978-0-08-006873-2",
     "offset": 4,
-    "coverage": "第3–11章のCsCl・岩塩・ZnS・NiAs派生、層状ペロブスカイト、スピネル・ガーネット・黒鉛関連。"
+    "coverage": "第2–11章の基本充填・CsCl・岩塩・ZnS・NiAs派生、層状ペロブスカイト、スピネル・ガーネット・黒鉛関連。"
   },
   "CD": {
     "short": "COD",

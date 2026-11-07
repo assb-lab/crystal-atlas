@@ -10,7 +10,7 @@ import { derivationPositions } from "./flow-layout.js";
 
 const $ = id => document.getElementById(id), N = new Map(DATA.nodes.map(n => [n.id, n])), E = new Map(DATA.edges.map(e => [e.id, e]));
 
-const state = { tab: 'explore', family: 'fcc', flow: null, selected: 'fcc', edge: null, strict: false, view: 'map', comp: [], lab: 'heusler', subVisible: [true, true, true, true], t: .125, o: .5, occPreset: 'spinel' };
+const state = { tab: 'explore', family: 'fcc', flow: null, collection: null, selected: 'fcc', edge: null, strict: false, view: 'map', comp: [], lab: 'heusler', subVisible: [true, true, true, true], t: .125, o: .5, occPreset: 'spinel' };
 
 let modelView = null, labView = null, comparisonViews = [], visibleNodes = [], visibleEdges = [], lastFocus = null;
 let graphPositions = new Map();
@@ -31,7 +31,7 @@ function refHTML(refs) {
 function toast(s) { $('toast').textContent = s; $('toast').hidden = false; clearTimeout(toast.timer); toast.timer = setTimeout(() => $('toast').hidden = true, 3500); }
 
 function tab(id) { state.tab = id; document.querySelectorAll('.tabpage').forEach(p => p.hidden = p.id !== id); document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === id)); if (id === 'explore') {
-    requestAnimationFrame(() => { fitMap(); modelView?.draw(); });
+    requestAnimationFrame(() => { readMap(); modelView?.draw(); });
 } if (id === 'lab') {
     if (!labView)
         labView = new CrystalView($('labcanvas'), true);
@@ -39,38 +39,86 @@ function tab(id) { state.tab = id; document.querySelectorAll('.tabpage').forEach
     requestAnimationFrame(() => labView.draw());
 } }
 
-function family(id, fit = true) { state.flow = null; state.family = id; state.edge = null; const nodes = DATA.nodes.filter(n => id === 'all' || n.family === id); if (!nodes.some(n => n.id === state.selected))
+function family(id, fit = true) { state.flow = null; state.collection = null; state.family = id; state.edge = null; const nodes = DATA.nodes.filter(n => id === 'all' || n.family === id); if (!nodes.some(n => n.id === state.selected))
     state.selected = nodes.find(n => n.id === id)?.id || nodes[0]?.id; renderFamily(); renderGraph(); renderInspector(); if (fit)
-    requestAnimationFrame(fitMap); }
+    requestAnimationFrame(readMap); }
 
 function selectNode(id, jump = true) { if (!N.has(id))
     return; if (state.strict && !DATA.edges.some(e => e.strict && (e.a === id || e.b === id))) {
     state.strict = false;
     $('strictFilter').checked = false;
     toast('この構造の関係を表示するため、絞り込みを解除しました。');
-} state.selected = id; state.edge = null; if (jump && (state.flow ? !visibleNodes.some(n => n.id === id) : state.family !== 'all' && N.get(id).family !== state.family)) {
+} state.selected = id; state.edge = null; if (jump && (state.flow || state.collection ? !visibleNodes.some(n => n.id === id) : state.family !== 'all' && N.get(id).family !== state.family)) {
     state.flow = null;
+    state.collection = null;
     state.family = N.get(id).family;
     renderFamily();
-    renderGraph();
-    requestAnimationFrame(fitMap);
 }
-else
-    renderGraph(); renderInspector(); renderList(); $('searchResults').innerHTML = ''; if (state.tab !== 'explore')
+    renderGraph(); renderInspector(); $('searchResults').innerHTML = ''; if (jump) requestAnimationFrame(readMap); if (state.tab !== 'explore')
     tab('explore'); if (innerWidth <= 700)
     requestAnimationFrame(() => $('inspector').scrollIntoView({ behavior: 'smooth', block: 'start' })); }
 
 function selectEdge(id) { const e = visibleEdges.find(edge => edge.id === id) ?? E.get(id); if (!e)
     return; state.edge = id; renderGraph(); renderEdge(e); }
 
+function openClassification(id) {
+    const collection = DATA.collections.find(item => item.id === id);
+    if (!collection) {
+        family(state.family);
+        return;
+    }
+    document.querySelector('.sidebar').scrollTop = 0;
+    state.collection = collection;
+    state.flow = null;
+    state.selected = collection.ids[0];
+    state.edge = null;
+    state.strict = false;
+    $('strictFilter').checked = false;
+    renderFamily();
+    renderGraph();
+    renderInspector();
+    mode('map');
+}
+
+function renderClassification() {
+    const collection = state.collection;
+    const panel = $('classificationInfo');
+    $('classification').value = collection?.id ?? '';
+    panel.hidden = !collection;
+    if (!collection) {
+        panel.replaceChildren();
+        return;
+    }
+    const children = DATA.collections.filter(item => item.parent === collection.id);
+    const parent = DATA.collections.find(item => item.id === collection.parent);
+    const links = [...(parent ? [parent] : []), ...children];
+    const { table } = collection;
+    panel.innerHTML = `
+        ${links.length ? `<div class="row">${links.map(item => `<button class="small" data-classification="${esc(item.id)}">${esc(item.short ?? item.title)}</button>`).join('')}</div>` : ''}
+        ${table ? `<details><summary>${esc(table.title)}</summary>
+            <div class="tablewrap"><table><thead><tr>${table.headings.map(heading => `<th scope="col">${esc(heading)}</th>`).join('')}<th scope="col">収録例</th></tr></thead>
+            <tbody>${table.rows.map(row => `<tr>${row.cells.map(cell => `<td>${esc(cell)}</td>`).join('')}<td>${row.ids.map(id => `<button class="small flat" data-jump="${esc(id)}">${esc(N.get(id).name)}</button>`).join('') || '—'}</td></tr>`).join('')}</tbody></table></div>
+        </details>` : ''}
+    `;
+    panel.hidden = !links.length && !table;
+}
+
+function classificationFacts(node) {
+    const labels = DATA.structureLabels[node.id];
+    if (!labels?.length) return '';
+    return `<div class="classificationfacts">${labels.map(label => `<p><strong>${esc(label.key)}</strong>　${esc(label.value)}</p>${label.detail ? `<p class="smalltext muted">${esc(label.detail)}</p>` : ''}<div class="refchips">${refHTML(label.refs)}</div>`).join('')}</div>`;
+}
+
 function renderFamily() {
     const fs = DATA.families;
     const all = [['all', { short: 'すべてのファミリー', color: '#93a9ba' }], ...Object.entries(fs)];
-    $('families').innerHTML = all.map(([id, f]) => `<button class="familybutton ${!state.flow && state.family === id ? 'active' : ''}" data-family="${id}"><i class="dot" style="background:${f.color}"></i><span>${f.short}</span><span class="num">${id === 'all' ? DATA.nodes.length : DATA.nodes.filter(n => n.family === id).length}</span></button>`).join('');
+    $('families').innerHTML = all.map(([id, f]) => `<button class="familybutton ${!state.flow && !state.collection && state.family === id ? 'active' : ''}" data-family="${id}"><i class="dot" style="background:${f.color}"></i><span>${f.short}</span><span class="num">${id === 'all' ? DATA.nodes.length : DATA.nodes.filter(n => n.family === id).length}</span></button>`).join('');
     $('sourceFlow').value = state.flow?.id ?? '';
-    if (state.flow) {
-        $('familyTitle').textContent = state.flow.title;
-        $('familySubtitle').innerHTML = `${esc(state.flow.desc)} <span class="refchips">${refHTML(state.flow.refs)}</span>`;
+    renderClassification();
+    const selection = state.flow ?? state.collection;
+    if (selection) {
+        $('familyTitle').textContent = selection.title;
+        $('familySubtitle').innerHTML = `${esc(selection.desc)} <span class="refchips">${refHTML(selection.refs)}</span>`;
         return;
     }
     $('familyTitle').textContent = state.family === 'all' ? '全構造の派生フロー' : fs[state.family].name;
@@ -90,7 +138,9 @@ function getVisible() {
         const ids = new Set(edges.flatMap(e => [e.a, e.b]));
         return { nodes: [...ids].map(id => N.get(id)), edges };
     }
-    const nodes = DATA.nodes.filter(n => state.family === 'all' || n.family === state.family);
+    const nodes = state.collection
+        ? state.collection.ids.map(id => N.get(id))
+        : DATA.nodes.filter(n => state.family === 'all' || n.family === state.family);
     const ids = new Set(nodes.map(n => n.id));
     const edges = DATA.edges.filter(e => ids.has(e.a) && ids.has(e.b) && (!state.strict || e.strict));
     const linked = new Set(edges.flatMap(e => [e.a, e.b]));
@@ -102,6 +152,19 @@ function edgePath(a, b) {
     let p = pos(a), q = pos(b);
     const dx = q.x - p.x, dy = q.y - p.y;
     let sx, sy, ex, ey, c1x, c1y, c2x, c2y;
+    if (Math.abs(dy) > 150) {
+        const sign = Math.sign(dy);
+        const side = (p.x + q.x < 0 ? -1 : 1) * (Math.max(...[...graphPositions.values()].map(point => Math.abs(point.x))) + 150);
+        const fromY = p.y + sign * 60, toY = q.y - sign * 60;
+        return {
+            d: `M${p.x},${p.y + sign * 43} V${fromY} H${side} V${toY} H${q.x} V${q.y - sign * 43}`,
+            mx: side, my: (fromY + toY) / 2,
+        };
+    }
+    if (Math.abs(dy) < 72 && Math.abs(dx) > 300) {
+        const top = p.y - 65;
+        return { d: `M${p.x},${p.y - 43} V${top} H${q.x} V${q.y - 43}`, mx: (p.x + q.x) / 2, my: top };
+    }
     if (Math.abs(dy) < 72) {
         const s = Math.sign(dx) || 1;
         sx = p.x + s * w / 2;
@@ -133,7 +196,8 @@ function renderGraph() {
     const v = getVisible();
     visibleNodes = v.nodes;
     visibleEdges = v.edges;
-    graphPositions = derivationPositions(v.nodes, v.edges);
+    const columns = $('map').clientWidth < 450 ? 1 : $('map').clientWidth < 720 ? 2 : 3;
+    graphPositions = derivationPositions(v.nodes, v.edges, columns);
     ['clusterLayer', 'edgeLayer', 'nodeLayer', 'edgeLabels'].forEach(id => $(id).replaceChildren());
     const connected = new Set([state.selected]);
     visibleEdges.filter(e => e.a === state.selected || e.b === state.selected).forEach(e => { connected.add(e.a); connected.add(e.b); });
@@ -207,8 +271,25 @@ function fitMap() { if (state.tab !== 'explore' || state.view !== 'map')
     cam.k = 1;
     applyCam();
     return;
-} let x1 = Math.min(...points.map(p => p.x)) - 140, x2 = Math.max(...points.map(p => p.x)) + 140, y1 = Math.min(...points.map(p => p.y)) - 90, y2 = Math.max(...points.map(p => p.y)) + 105; if (state.family === 'all')
+} let x1 = Math.min(...points.map(p => p.x)) - 175, x2 = Math.max(...points.map(p => p.x)) + 175, y1 = Math.min(...points.map(p => p.y)) - 90, y2 = Math.max(...points.map(p => p.y)) + 105; if (state.family === 'all')
     y1 -= 50; cam.k = Math.min(r.width / (x2 - x1), r.height / (y2 - y1), 1.25) * .96; cam.x = r.width / 2 - (x1 + x2) / 2 * cam.k; cam.y = r.height / 2 - (y1 + y2) / 2 * cam.k; applyCam(); }
+
+function readMap() {
+    if (state.tab !== 'explore' || state.view !== 'map') return;
+    const rect = $('map').getBoundingClientRect();
+    if (!rect.width || !visibleNodes.length) return;
+    const points = [...graphPositions.values()];
+    const left = Math.min(...points.map(p => p.x)) - 175;
+    const right = Math.max(...points.map(p => p.x)) + 175;
+    cam.k = Math.min(1.05, rect.width / (right - left) * .96);
+    cam.x = rect.width / 2 - (left + right) / 2 * cam.k;
+    const top = Math.min(...points.map(p => p.y)) - 60;
+    const bottom = Math.max(...points.map(p => p.y)) + 60;
+    cam.y = (bottom - top) * cam.k <= rect.height - 130
+        ? (rect.height - 30) / 2 - (top + bottom) / 2 * cam.k
+        : Math.min(60 - top * cam.k, Math.max(rect.height - 90 - bottom * cam.k, 130 - (graphPositions.get(state.selected)?.y ?? top) * cam.k));
+    applyCam();
+}
 
 function zoom(f, cx, cy) { const r = $('map').getBoundingClientRect(); cx ??= r.width / 2; cy ??= r.height / 2; const old = cam.k; cam.k = Math.max(.05, Math.min(3.8, cam.k * f)); cam.x = cx - (cx - cam.x) * cam.k / old; cam.y = cy - (cy - cam.y) * cam.k / old; applyCam(); }
 
@@ -250,13 +331,13 @@ $('map').addEventListener('wheel', ev => { ev.preventDefault(); const r = $('map
 function renderList() { $('listView').innerHTML = `<table class="structuretable"><thead><tr><th>構造・代表組成</th><th>対称性／結晶系</th><th>占有率 T / O</th></tr></thead><tbody>${visibleNodes.map(n => `<tr data-listnode="${n.id}" tabindex="0" class="${state.selected === n.id ? 'selected' : ''}"><td>${esc(n.name)}<small>${esc(n.formula)}</small></td><td>${esc(n.sg)}</td><td class="mono">${n.occ ? n.occ.map(frac).join(' / ') : '—'}</td></tr>`).join('')}</tbody></table>`; }
 
 function mode(view) { state.view = view; $('graphStage').hidden = view !== 'map'; $('listView').hidden = view !== 'list'; $('mapMode').classList.toggle('active', view === 'map'); $('listMode').classList.toggle('active', view === 'list'); if (view === 'map')
-    requestAnimationFrame(fitMap); }
+    requestAnimationFrame(readMap); }
 
 function relationHTML(n) { const list = DATA.edges.filter(e => (e.a === n.id || e.b === n.id) && (!state.strict || e.strict)); if (!list.length)
     return '<p class="smalltext muted">この絞り込みでは接続がありません。</p>'; return list.map(e => { const other = N.get(e.a === n.id ? e.b : e.a), out = e.a === n.id; return `<button class="relationitem" data-relation="${e.id}"><div><span style="color:${KINDS[e.kind].color}">${e.undirected ? '↔' : out ? '→' : '←'}</span> ${esc(other.name)}${other.family !== n.family ? '<span style="color:#8ac0ce"> ↗</span>' : ''}<small>${esc(e.label)}</small></div><span class="relarr">›</span></button>`; }).join(''); }
 
 function renderInspector() { modelView?.destroy(); modelView = null; const n = N.get(state.selected); if (!n)
-    return; const f = DATA.families[n.family]; const model = modelFor(n.model ?? n.id); $('inspector').innerHTML = `<div class="inspecthead"><div class="row"><button class="small flat mobilenavnote" data-backmap="true">地図へ ↑</button><span class="eyebrow" style="color:${f.color}">${esc(f.short)} / STRUCTURE</span><span class="spacer"></span><button class="small flat" data-compare="${n.id}">${state.comp.includes(n.id) ? '比較から外す' : '＋ 比較'}</button></div><h2>${esc(n.name)}</h2><div class="formula">${esc(n.formula)}</div></div><div class="inspectbody"><p class="desc">${esc(n.desc)}</p>${model.atoms.length ? modelPanelHTML(n, model) : ''}<div class="detailsection"><h3>構造を記述する</h3><div class="facts"><div class="fact"><div class="key">空間群・対称性</div><div class="value mono">${esc(n.sg)}</div></div><div class="fact"><div class="key">基準となる骨格</div><div class="value">${esc(n.packing)}</div></div><div class="fact"><div class="key">配位環境</div><div class="value">${esc(n.coord)}</div></div><div class="fact"><div class="key">多面体・部分構造の連結</div><div class="value">${esc(n.link)}</div></div></div></div>${n.occ ? `<div class="detailsection"><h3>全空隙を分母にした占有率</h3><div class="occgrid">${n.occ.map((o, i) => `<div class="occrow"><span>${i ? 'O' : 'T'}孔</span><div class="occbar"><i style="width:${o * 100}%"></i></div><span class="mono">${frac(o)}</span></div>`).join('')}</div><div class="occbase">基準粒子：${esc(n.host)}。T孔2N個・O孔N個を分母に数えます。</div></div>` : ''}${n.note ? `<div class="detailsection"><div class="note">${esc(n.note)}</div></div>` : ''}<div class="detailsection"><h3>つながる構造 <span class="muted">/ 矢印の詳細へ</span></h3><div class="relationlist">${relationHTML(n)}</div></div><div class="detailsection"><h3>参考資料</h3><div class="refchips">${refHTML(n.refs)}</div></div>${LABPRESETS.some(p => p.id === n.id) ? `<button data-openlab="${n.id}" class="small" style="margin-top:18px;width:100%">４副格子の模型で見る ↗</button>` : ''}</div>`; if (model.atoms.length) {
+    return; const f = DATA.families[n.family]; const model = modelFor(n.model ?? n.id); $('inspector').innerHTML = `<div class="inspecthead"><div class="row"><button class="small flat mobilenavnote" data-backmap="true">地図へ ↑</button><span class="eyebrow" style="color:${f.color}">${esc(f.short)} / STRUCTURE</span><span class="spacer"></span><button class="small flat" data-compare="${n.id}">${state.comp.includes(n.id) ? '比較から外す' : '＋ 比較'}</button></div><h2>${esc(n.name)}</h2><div class="formula">${esc(n.formula)}</div></div><div class="inspectbody"><p class="desc">${esc(n.desc)}</p>${classificationFacts(n)}${model.atoms.length ? modelPanelHTML(n, model) : ''}<div class="detailsection"><h3>構造を記述する</h3><div class="facts"><div class="fact"><div class="key">空間群・対称性</div><div class="value mono">${esc(n.sg)}</div></div><div class="fact"><div class="key">基準となる骨格</div><div class="value">${esc(n.packing)}</div></div><div class="fact"><div class="key">配位環境</div><div class="value">${esc(n.coord)}</div></div><div class="fact"><div class="key">多面体・部分構造の連結</div><div class="value">${esc(n.link)}</div></div></div></div>${n.occ ? `<div class="detailsection"><h3>全空隙を分母にした占有率</h3><div class="occgrid">${n.occ.map((o, i) => `<div class="occrow"><span>${i ? 'O' : 'T'}孔</span><div class="occbar"><i style="width:${o * 100}%"></i></div><span class="mono">${frac(o)}</span></div>`).join('')}</div><div class="occbase">基準粒子：${esc(n.host)}。T孔2N個・O孔N個を分母に数えます。</div></div>` : ''}${n.note ? `<div class="detailsection"><div class="note">${esc(n.note)}</div></div>` : ''}<div class="detailsection"><h3>つながる構造 <span class="muted">/ 矢印の詳細へ</span></h3><div class="relationlist">${relationHTML(n)}</div></div><div class="detailsection"><h3>参考資料</h3><div class="refchips">${refHTML(n.refs)}</div></div>${LABPRESETS.some(p => p.id === n.id) ? `<button data-openlab="${n.id}" class="small" style="margin-top:18px;width:100%">４副格子の模型で見る ↗</button>` : ''}</div>`; if (model.atoms.length) {
     modelView = mountModelPanel($('inspector').querySelector('.crystalpanel'), model);
 } }
 
@@ -270,7 +351,7 @@ function searchMatches(value) {
         return Number(normalize(node.name).includes(query));
     }
     return DATA.nodes.filter(node =>
-        normalize([node.id, node.name, node.formula, node.aliases, node.sg, node.desc].join(' ')).includes(query))
+        normalize([node.id, node.name, node.formula, node.aliases, node.sg, node.desc, ...(DATA.structureLabels[node.id] ?? []).map(label => label.value)].join(' ')).includes(query))
         .sort((a, b) => priority(b) - priority(a));
 }
 
@@ -426,11 +507,11 @@ document.addEventListener('click', ev => { const b = ev.target.closest('button,a
     return; const d = b.dataset; if (d.backmap)
     $('graphStage').scrollIntoView({ behavior: 'smooth', block: 'center' }); if (d.tab)
     tab(d.tab); if (d.family)
-    family(d.family); if (d.searchnode) {
+    family(d.family); if (d.classification) openClassification(d.classification); if (d.searchnode) {
     if (b.closest('#globalSearch')) {
         closeGlobalSearch();
         if (!$('modalBackdrop').hidden) closeModal();
-        if (state.family === 'all' && !state.flow) family(N.get(d.searchnode).family);
+        if (state.family === 'all' && !state.flow && !state.collection) family(N.get(d.searchnode).family);
     }
     selectNode(d.searchnode);
 } if (d.listnode)
@@ -518,6 +599,7 @@ $('sourceFlow').addEventListener('change', ev => {
         return;
     }
     state.flow = flow;
+    state.collection = null;
     state.selected = E.get(flow.edges[0]).a;
     state.edge = null;
     state.strict = false;
@@ -528,19 +610,28 @@ $('sourceFlow').addEventListener('change', ev => {
     mode('map');
 });
 
+$('classification').addEventListener('change', ev => openClassification(ev.target.value));
+
 $('search').addEventListener('keydown', ev => { if (ev.key === 'Enter') {
     const b = $('searchResults').querySelector('button');
     if (b)
         b.click();
 } });
 
-$('strictFilter').addEventListener('change', ev => { state.strict = ev.target.checked; state.edge = null; renderGraph(); renderInspector(); requestAnimationFrame(fitMap); });
+$('strictFilter').addEventListener('change', ev => { state.strict = ev.target.checked; state.edge = null; renderGraph(); renderInspector(); requestAnimationFrame(readMap); });
 
 $('zoomIn').onclick = () => zoom(1.25);
 
 $('zoomOut').onclick = () => zoom(.8);
 
 $('fitMap').onclick = fitMap;
+$('readMap').onclick = readMap;
+for (const [id, sign] of [['mapUp', 1], ['mapDown', -1]]) {
+    $(id).onclick = () => {
+        cam.y += sign * $('map').clientHeight * .65;
+        applyCam();
+    };
+}
 
 $('mapMode').onclick = () => mode('map');
 
@@ -626,6 +717,13 @@ $('labSelect').innerHTML = LABPRESETS.map(p => `<option value="${p.id}">${p.labe
 initDefs();
 
 $('sourceFlow').append(...DATA.flows.map(flow => new Option(flow.title, flow.id)));
+for (const group of new Set(DATA.collections.map(collection => collection.group))) {
+    const options = document.createElement('optgroup');
+    options.label = group;
+    options.append(...DATA.collections.filter(collection => collection.group === group)
+        .map(collection => new Option(collection.title, collection.id)));
+    $('classification').append(options);
+}
 
 renderSources();
 
@@ -637,10 +735,14 @@ renderInspector();
 
 updateOccupancy('spinel');
 
-new ResizeObserver(() => { if (state.tab === 'explore' && state.view === 'map')
-    requestAnimationFrame(fitMap); }).observe($('graphStage'));
+new ResizeObserver(() => {
+    if (state.tab === 'explore' && state.view === 'map') requestAnimationFrame(() => {
+        renderGraph();
+        readMap();
+    });
+}).observe($('graphStage'));
 
-requestAnimationFrame(fitMap);
+requestAnimationFrame(readMap);
 
 // Expose only read-only diagnostics useful for validating the embedded dataset.
-window.atlasDiagnostics = () => ({ nodes: DATA.nodes.length, edges: DATA.edges.length, strict: DATA.edges.filter(e => e.strict).length, shownNodes: visibleNodes.length, shownEdges: visibleEdges.length, selected: state.selected, family: state.family, tab: state.tab, models: DATA.nodes.filter(n => n.model || Object.hasOwn(DATA.models, n.id)).length });
+window.atlasDiagnostics = () => ({ nodes: DATA.nodes.length, edges: DATA.edges.length, strict: DATA.edges.filter(e => e.strict).length, shownNodes: visibleNodes.length, shownEdges: visibleEdges.length, collection: state.collection?.id ?? null, selected: state.selected, family: state.family, tab: state.tab, models: DATA.nodes.filter(n => n.model || Object.hasOwn(DATA.models, n.id)).length });

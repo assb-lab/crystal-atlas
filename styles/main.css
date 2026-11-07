@@ -353,6 +353,27 @@ main {
 }
 .axiscontrols button { padding: 3px 6px; }
 #labAxisControls { margin: 10px 18px; }
+.classificationinfo {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  max-height: 290px;
+  overflow: auto;
+  font-size: 12px;
+}
+.classificationinfo p { margin: 0 0 8px; }
+.classificationinfo .row { flex-wrap: wrap; gap: 5px; }
+.classificationinfo table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+.classificationinfo th, .classificationinfo td {
+  border-bottom: 1px solid var(--line);
+  padding: 7px;
+  text-align: left;
+}
+.classificationinfo details { margin-top: 8px; }
+.classificationinfo summary { cursor: pointer; color: var(--sub); }
+.classificationinfo .tablewrap { overflow-x: auto; }
+.classificationfacts { padding: 10px 12px; border: 1px solid var(--line); border-radius: 7px; margin-bottom: 14px; }
+.classificationfacts p { margin: 4px 0; }
+.graphcontrols { flex-wrap: wrap; max-width: calc(100% - 24px); }
 .label {
   font-size: 10px;
   letter-spacing: .08em;
@@ -2033,4 +2054,14 @@ main {
   .panel,.inspector {
     break-inside: avoid
   }
+}
+
+.graphbar > div:first-child { min-width: 0; }
+.graphbar .segmented { flex-shrink: 0; }
+.graphbar .segmented button { white-space: nowrap; }
+.classificationinfo { flex-shrink: 0; }
+
+@media (max-width: 700px) {
+  .graphpanel { height: auto; min-height: 520px; }
+  .graphstage { flex: none; height: 430px; }
 }

@@ -15,11 +15,11 @@ test('the serialized dataset matches the curated snapshot', async () => {
   assert.equal(createHash('sha256').update(JSON.stringify(DATA)).digest('hex'), expected);
 });
 
-test('the atlas has 272 structures, 342 relations, 14 strict relations', () => {
-  assert.equal(DATA.nodes.length, 272);
-  assert.equal(DATA.edges.length, 342);
+test('the atlas has 291 structures, 365 relations, 14 strict relations', () => {
+  assert.equal(DATA.nodes.length, 291);
+  assert.equal(DATA.edges.length, 365);
   assert.equal(DATA.edges.filter(e => e.strict).length, 14);
-  assert.equal(Object.keys(DATA.sources).length, 21);
+  assert.equal(Object.keys(DATA.sources).length, 32);
   assert.equal(Object.keys(DATA.families).length, 26);
 });
 
@@ -225,4 +225,74 @@ test('four-fcc models retain atom counts after periodic wrapping', () => {
 test('boundary expansion deduplicates and creates eight corners from an origin', () => {
   const atom = { f: [0, 0, 0], el: 'X', site: 0 };
   assert.equal(expanded([atom, atom]).length, 8);
+});
+
+test('classification membership, hierarchy, tables, labels and references resolve', () => {
+  const collectionIds = new Set(DATA.collections.map(c => c.id));
+  assert.equal(collectionIds.size, DATA.collections.length);
+  for (const item of [...DATA.collections, ...Object.values(DATA.structureLabels).flat()]) {
+    assert.ok(item.refs.length);
+    for (const ref of item.refs) assert.ok(DATA.sources[ref.s], ref.s);
+  }
+  for (const c of DATA.collections) {
+    assert.ok(c.ids.length, c.id);
+    assert.equal(c.ids.length, new Set(c.ids).size, c.id);
+    if (c.parent) assert.ok(collectionIds.has(c.parent), c.id);
+    for (const id of c.ids) assert.ok(ids.has(id), c.id + ': ' + id);
+    for (const row of c.table?.rows ?? []) {
+      assert.equal(row.cells.length, c.table.headings.length, c.id);
+      for (const id of row.ids) assert.ok(c.ids.includes(id), c.id + ': ' + id);
+    }
+  }
+  for (const id of Object.keys(DATA.structureLabels)) assert.ok(ids.has(id), id);
+});
+
+test('wide ranks wrap into bounded columns while every arrow still flows down', () => {
+  for (const columns of [1,2,3]) {
+    for (const c of DATA.collections) {
+      const nodes = c.ids.map(id => DATA.nodes.find(n => n.id === id));
+      const edges = DATA.edges.filter(e => c.ids.includes(e.a) && c.ids.includes(e.b));
+      const positions = derivationPositions(nodes, edges, columns);
+      const rows = new Map();
+      for (const pos of positions.values()) {
+        rows.set(pos.y, (rows.get(pos.y) ?? 0) + 1);
+        assert.ok(Math.abs(pos.x) <= (columns - 1) * 255 / 2);
+      }
+      for (const count of rows.values()) assert.ok(count <= columns);
+      for (const e of edges.filter(e => !e.undirected)) assert.ok(positions.get(e.a).y < positions.get(e.b).y, e.id);
+    }
+  }
+});
+
+test('Glazer, Delmas, honeycomb, pyrochlore and all Galasso chapters are represented', () => {
+  const byId = new Map(DATA.collections.map(c => [c.id,c]));
+  assert.equal(byId.get('glazer').table.rows.length,15);
+  assert.ok(byId.get('perov-a-order').ids.includes('ccto'));
+  assert.ok(byId.get('perov-a-order').ids.includes('camntio6'));
+  const stacking = byId.get('delmas').table.rows;
+  for(const type of ['O1','O2','O3','O4','P2','P3','OP4','T#2']) {
+    assert.ok(stacking.find(row => row.cells[0] === type).ids.length,type);
+  }
+  for(const type of ['O6','OPP9']) assert.equal(stacking.find(row => row.cells[0] === type).ids.length,0);
+  for(const id of ['li2mno3','na2iro3','na2co2teo6','na3co2sbo6']) assert.ok(byId.get('honeycomb').ids.includes(id));
+  for(const id of ['y2ti2o7','la2zr2o7','cd2re2o7','kos2o6','rbos2o6']) assert.ok(byId.get('pyrochlores').ids.includes(id));
+  for(let chapter=2;chapter<=11;chapter++) assert.ok(byId.has('galasso-' + chapter));
+});
+
+test('new diffraction models retain partial occupancies and CaMnTi2O6 stoichiometry', () => {
+  const totals = id => {
+    const total = {};
+    for(const g of DATA.models[id].groups) for(const [element,occ] of Object.entries(g.occupants)) total[element]=(total[element]??0)+occ*g.positions.length;
+    return total;
+  };
+  for(const id of ['camntio6','camntio6-ht']) assert.deepEqual(totals(id),{Ca:4,Mn:4,Ti:8,O:24});
+  assert.equal(DATA.models['camntio6'].spaceGroup,105);
+  assert.equal(DATA.models['camntio6-ht'].spaceGroup,137);
+  assert.equal(DATA.models['camntio6-ht'].groups.find(g=>g.wyckoff==='4c').occupants.Mn,0.5);
+  const op4=totals('linacoo2-op4');
+  assert.equal(op4.Li,1.48);
+  assert.equal(op4.Na,1.24);
+  assert.ok(Math.abs(totals('nacoo2-p2').Na-1.218)<1e-12);
+  for(const id of ['li2mno3','y2ti2o7','na2co2teo6']) assert.equal(DATA.models[id].kind,'average');
+  assert.equal(DATA.models['coo2-o1'].kind,'schematic');
 });

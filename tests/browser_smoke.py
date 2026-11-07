@@ -49,8 +49,8 @@ def exercise(page, url):
     else:
         page.goto(url)
     page.wait_for_function('typeof window.atlasDiagnostics === "function"')
-    assert page.evaluate('window.atlasDiagnostics().nodes') == 272
-    assert page.evaluate('window.atlasDiagnostics().models') == 272
+    assert page.evaluate('window.atlasDiagnostics().nodes') == 291
+    assert page.evaluate('window.atlasDiagnostics().models') == 291
     expect(page.locator('#nodeLayer .node')).to_have_count(16)
     page.locator('#search').fill('L21')
     page.locator('[data-searchnode="heusler"]').click()
@@ -93,11 +93,11 @@ def exercise(page, url):
     expect(page.locator('.routecard')).to_have_count(16)
     page.locator('#closeModal').click()
     page.locator('[data-tab="guide"]').click()
-    expect(page.locator('.sourcecard')).to_have_count(21)
+    expect(page.locator('.sourcecard')).to_have_count(32)
     with page.expect_download() as result:
         page.locator('#exportBtn').click()
     exported = json.loads(Path(result.value.path()).read_text())
-    assert len(exported['nodes']) == 272 and len(exported['edges']) == 342
+    assert len(exported['nodes']) == 291 and len(exported['edges']) == 365
     assert exported['models']['defectfluorite']['kind'] == 'average'
     page.locator('[data-tab="explore"]').click()
     page.locator('[data-family="fcc"]').click()
@@ -152,7 +152,7 @@ def exercise_search_axes_and_flows(page, label):
     page.locator('[data-tab="guide"]').click()
     page.keyboard.press('Meta+k')
     expect(page.locator('#globalSearch')).to_be_visible()
-    expect(page.locator('#globalResults button')).to_have_count(272)
+    expect(page.locator('#globalResults button')).to_have_count(291)
     page.locator('#globalQuery').fill('Li2PbO3')
     expect(page.locator('#globalResults button').first).to_contain_text('Li₂PbO₃')
     page.keyboard.press('ArrowDown')
@@ -186,6 +186,58 @@ def exercise_search_axes_and_flows(page, label):
     page.keyboard.press('Escape')
     expect(page.locator('#globalSearch')).not_to_be_visible()
     expect(page.locator('#globalResults button')).to_have_count(0)
+
+
+
+def exercise_classifications(page, label):
+    page.locator('[data-tab="explore"]').click()
+    page.locator('#classification').select_option('perov-a-order')
+    assert page.evaluate('window.atlasDiagnostics().collection') == 'perov-a-order'
+    expect(page.locator('#nodeLayer [data-node="camntio6"]')).to_have_count(1)
+    page.locator('#nodeLayer [data-node="camntio6"]').dispatch_event('click')
+    expect(page.locator('#inspector')).to_contain_text('1:1')
+    expect(page.locator('#inspector')).to_contain_text('a⁺a⁺c⁻')
+    expect(page.locator('#inspector .modelcaption').last).to_contain_text('293 K')
+    page.screenshot(path=str(OUT / f'{label}-a-site-order.png'), full_page=True)
+    page.locator('#classification').select_option('glazer')
+    page.locator('#classificationInfo summary').click()
+    expect(page.locator('#classificationInfo tbody tr')).to_have_count(15)
+    expect(page.locator('#classificationInfo')).to_contain_text('P4₂/nmc')
+    assert page.locator('#graphStage').bounding_box()['height'] >= 300
+    page.screenshot(path=str(OUT / f'{label}-glazer.png'), full_page=True)
+    page.locator('#classification').select_option('delmas')
+    page.locator('#classificationInfo summary').click()
+    expect(page.locator('#classificationInfo tbody tr')).to_have_count(10)
+    page.locator('#classificationInfo [data-jump="licoo2-o4"]').click()
+    assert page.evaluate('window.atlasDiagnostics().collection') == 'delmas'
+    expect(page.locator('#inspector h2')).to_have_text('O4 · LiCoO₂')
+    expect(page.locator('#inspector')).to_contain_text('プロトタイプ')
+    page.screenshot(path=str(OUT / f'{label}-delmas.png'), full_page=True)
+    for collection in ['honeycomb','honey-lithium','pyrochlores','pyro-beta','galasso','galasso-11']:
+        page.locator('#classification').select_option(collection)
+        assert page.evaluate('window.atlasDiagnostics().collection') == collection
+        assert page.locator('#nodeLayer .node').count() > 0
+        assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
+    page.screenshot(path=str(OUT / f'{label}-galasso.png'), full_page=True)
+    page.locator('#classification').select_option('perovskites')
+    positions=page.locator('#nodeLayer .node').evaluate_all(
+        "nodes => nodes.map(n => { const m=n.transform.baseVal.consolidate().matrix; return [m.e,m.f]; })")
+    rows={}
+    for x,y in positions:
+        rows.setdefault(y,[]).append(x)
+    assert max(map(len,rows.values())) <= 3
+    assert max(x for x,y in positions)-min(x for x,y in positions) <= 510
+    page.locator('#readMap').click()
+    assert float(page.locator('#zoomText').inner_text().strip('%')) >= 60
+    page.locator('#mapDown').click()
+    page.locator('#mapUp').click()
+    page.locator('#fitMap').click()
+    page.locator('#readMap').click()
+    page.screenshot(path=str(OUT / f'{label}-bounded-map.png'), full_page=True)
+    page.keyboard.press('Meta+k')
+    page.locator('#globalQuery').fill('CaMnTi2O6')
+    expect(page.locator('#globalResults button')).to_have_count(2)
+    page.keyboard.press('Escape')
 
 
 def exercise_model_comparison(page, label):
@@ -243,10 +295,13 @@ def main():
             browser = p.chromium.launch(headless=True, **({'executable_path': executable} if executable else {}))
             for label, target in [('modular', URL), ('standalone', (ROOT / 'dist/crystal-atlas.html').as_uri())]:
                 page = browser.new_page(viewport={'width': 1440, 'height': 1050}, accept_downloads=True)
+                page_errors = []
+                page.on('pageerror', lambda e: page_errors.append(str(e)))
                 exercise(page, target)
                 exercise_expanded_catalog(page)
                 exercise_framework_comparison(page)
                 exercise_search_axes_and_flows(page, label)
+                exercise_classifications(page, label)
                 exercise_model_comparison(page, label)
                 page.screenshot(path=str(OUT / f'{label}-desktop.png'), full_page=True)
                 page.locator('[data-tab="lab"]').click()
@@ -254,12 +309,14 @@ def main():
                 page.set_viewport_size({'width': 390, 'height': 844})
                 page.locator('[data-tab="explore"]').click()
                 page.locator('#openSearch').click()
-                expect(page.locator('#globalResults button')).to_have_count(272)
+                expect(page.locator('#globalResults button')).to_have_count(291)
                 assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
                 page.keyboard.press('Escape')
+                exercise_classifications(page, f'{label}-mobile')
                 exercise_model_comparison(page, f'{label}-mobile')
                 page.screenshot(path=str(OUT / f'{label}-mobile.png'), full_page=True)
                 assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
+                assert not page_errors, page_errors
                 page.close()
                 print(f'{label}: desktop/mobile interactions passed')
             browser.close()

@@ -1,5 +1,5 @@
 /** Rank the arrows by derivation depth. Comparisons without arrows do not set a rank. */
-export function derivationPositions(nodes, edges) {
+export function derivationPositions(nodes, edges, columns = 3) {
     const indegree = new Map(nodes.map(node => [node.id, 0]));
     const children = new Map(nodes.map(node => [node.id, []]));
     for (const edge of edges) {
@@ -27,18 +27,20 @@ export function derivationPositions(nodes, edges) {
         if (!rows.has(rank)) rows.set(rank, []);
         rows.get(rank).push(node);
     }
-    if (!rows.size) return new Map(nodes.map(node => [node.id, { x: node.x, y: node.y }]));
-    const last = Math.max(...rows.keys());
-    for (let i = 0; i < isolated.length; i += 4) {
-        rows.set(last + 1 + i / 4, isolated.slice(i, i + 4));
-    }
+    const last = rows.size ? Math.max(...rows.keys()) : -1;
+    if (isolated.length) rows.set(last + 1, isolated);
     const positions = new Map();
-    for (const [rank, row] of rows) {
+    let top = 0;
+    for (const [, row] of [...rows].sort(([a], [b]) => a - b)) {
         row.sort((a, b) => a.x - b.x);
-        row.forEach((node, i) => positions.set(node.id, {
-            x: (i - (row.length - 1) / 2) * 255,
-            y: rank * 144,
-        }));
+        for (let start = 0; start < row.length; start += columns) {
+            const chunk = row.slice(start, start + columns);
+            chunk.forEach((node, i) => positions.set(node.id, {
+                x: (i - (chunk.length - 1) / 2) * 255,
+                y: top,
+            }));
+            top += 144;
+        }
     }
     return positions;
 }
