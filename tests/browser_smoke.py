@@ -49,8 +49,8 @@ def exercise(page, url):
     else:
         page.goto(url)
     page.wait_for_function('typeof window.atlasDiagnostics === "function"')
-    assert page.evaluate('window.atlasDiagnostics().nodes') == 185
-    assert page.evaluate('window.atlasDiagnostics().models') == 185
+    assert page.evaluate('window.atlasDiagnostics().nodes') == 249
+    assert page.evaluate('window.atlasDiagnostics().models') == 249
     expect(page.locator('#nodeLayer .node')).to_have_count(11)
     page.locator('#search').fill('L21')
     page.locator('[data-searchnode="heusler"]').click()
@@ -87,14 +87,14 @@ def exercise(page, url):
     page.keyboard.press('Escape')
     expect(page.locator('#modalBackdrop')).to_be_hidden()
     page.locator('#routesBtn').click()
-    expect(page.locator('.routecard')).to_have_count(11)
+    expect(page.locator('.routecard')).to_have_count(16)
     page.locator('#closeModal').click()
     page.locator('[data-tab="guide"]').click()
-    expect(page.locator('.sourcecard')).to_have_count(11)
+    expect(page.locator('.sourcecard')).to_have_count(18)
     with page.expect_download() as result:
         page.locator('#exportBtn').click()
     exported = json.loads(Path(result.value.path()).read_text())
-    assert len(exported['nodes']) == 185 and len(exported['edges']) == 199
+    assert len(exported['nodes']) == 249 and len(exported['edges']) == 273
     assert exported['models']['defectfluorite']['kind'] == 'average'
     page.locator('[data-tab="explore"]').click()
     page.locator('[data-family="fcc"]').click()
@@ -126,6 +126,23 @@ def exercise_expanded_catalog(page):
     expect(page.locator('#sourcePage-GI')).to_contain_text('PDF 111ページ')
     expect(page.locator('#source-GI h3')).to_contain_text('Structure and Properties of Inorganic Solids')
     page.locator('[data-tab="explore"]').click()
+
+
+def exercise_framework_comparison(page):
+    page.locator('#search').fill('Li6PS5Cl')
+    page.locator('[data-searchnode="argy-cl"]').click()
+    expect(page.locator('#inspector .modelcaption').first).to_contain_text('平均構造')
+    page.locator('#inspector .modeldetails summary').click()
+    expect(page.locator('#inspector .modelsites')).to_contain_text('48h')
+    expect(page.locator('#inspector .modelsites')).to_contain_text('Li 1/2 / 空孔 1/2')
+    page.locator('#search').fill('FAU')
+    page.locator('[data-searchnode="zeo-fau"]').click()
+    expect(page.locator('#inspector')).to_contain_text('IZA-SCの理想化SiO₂骨格')
+    page.locator('#inspector [data-relation="breadth-zeo-lta-zeo-fau"]').click()
+    page.locator('[data-comparepair="zeo-lta,zeo-fau"]').click()
+    expect(page.locator('.comparisonmodel canvas')).to_have_count(2)
+    expect(page.locator('.comparisonrelations article').first).to_contain_text('LTAの8員環とFAUの12員環')
+    page.keyboard.press('Escape')
 
 
 def exercise_model_comparison(page, label):
@@ -180,6 +197,7 @@ def main():
                 page = browser.new_page(viewport={'width': 1440, 'height': 1050}, accept_downloads=True)
                 exercise(page, target)
                 exercise_expanded_catalog(page)
+                exercise_framework_comparison(page)
                 exercise_model_comparison(page, label)
                 page.screenshot(path=str(OUT / f'{label}-desktop.png'), full_page=True)
                 page.locator('[data-tab="lab"]').click()

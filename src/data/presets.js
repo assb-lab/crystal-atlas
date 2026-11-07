@@ -132,6 +132,31 @@ export const ROUTES = [
     "title": "11　蛍石のサイトを置き換える",
     "desc": "Galasso の配置比較から、孤立八面体・規則化・酸素変位を見分ける。",
     "ids": ["fluorite", "k2ptcl6", "scheelite", "zro2-c", "zro2-t", "zro2-m"]
+  },
+  {
+    "title": "12　Liが入るガーネットとNASICON",
+    "desc": "正方晶・立方晶LLZOとLTPで、骨格とLi占有を比較する。",
+    "ids": ["yag", "llzo-tet", "llzo-cubic", "ltp", "nzp", "nasicon-monoclinic"]
+  },
+  {
+    "title": "13　チオリン酸塩からアルジロダイトへ",
+    "desc": "PS₄の並び、Ge/PとS/Clの混合占有を比べる。",
+    "ids": ["lipo4-beta", "lps-gamma", "lps-beta", "lgps", "argy-cl", "ag8ges6"]
+  },
+  {
+    "title": "14　Al₂SiO₅で変わるAlの配位",
+    "desc": "藍晶石・紅柱石・珪線石で6、5、4配位のAlを見分ける。",
+    "ids": ["kyanite", "andalusite", "sillimanite"]
+  },
+  {
+    "title": "15　ゼオライトの窓とケージ",
+    "desc": "ソーダライトケージを出発点に、二重環と開口をたどる。",
+    "ids": ["zeo-sod", "zeo-lta", "zeo-fau", "zeo-cha", "zeo-mfi"]
+  },
+  {
+    "title": "16　MnO₂のトンネル断面",
+    "desc": "ルチル型の単鎖から、複鎖がつくる1×2・2×2トンネルへ。",
+    "ids": ["rutile", "pyrolusite", "ramsdellite", "hollandite-type"]
   }
 ];
 

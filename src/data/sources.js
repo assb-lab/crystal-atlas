@@ -43,7 +43,7 @@ export const sources = {
     "edition": "Second edition, Wiley",
     "filename": "solid-state-chemistry-and-its-applications.pdf",
     "offset": 28,
-    "coverage": "§1.9–1.17：充填、スピネル・オリビン、蛍石関連、ペロブスカイトと積層構造。添付版は2022年版。"
+    "coverage": "充填、スピネル・オリビン、ペロブスカイトと積層、結晶学的シアー、ゼオライト、β-アルミナ、NASICON、Li₃N。"
   },
   "SP": {
     "short": "Seidel–Pöttgen 2021",
@@ -78,7 +78,7 @@ export const sources = {
     "edition": "Fourth edition, Clarendon Press",
     "filename": "StructuralInorganicChemistry.pdf",
     "offset": 30,
-    "coverage": "硫化物、炭素、SiCポリタイプ、金属間化合物とラーベス相。"
+    "coverage": "MnO₂のトンネル構造、アパタイト、硫化物、ケイ酸塩、SiCポリタイプ、金属間化合物とラーベス相。"
   },
   "AF": {
     "short": "AFLOW Prototype Library",
@@ -113,5 +113,54 @@ export const sources = {
     "citation": "S. Gražulis et al., “Crystallography Open Database (COD): an open-access collection of crystal structures and platform for world-wide collaboration,” Nucleic Acids Res. 40, D420–D427 (2012). DOI: 10.1093/nar/gkr900.",
     "article": "https://www.crystallography.net/cod/",
     "coverage": "回折精密化などの構造記録。座標に使用した個別記録は単位胞の出典に表示。"
+  },
+  "IZA": {
+    "short": "IZA-SC",
+    "title": "Database of Zeolite Structures",
+    "citation": "C. Baerlocher and L. B. McCusker, Database of Zeolite Structures (International Zeolite Association, Structure Commission).",
+    "article": "https://www.iza-structure.org/databases/",
+    "coverage": "SOD、LTA、FAU、CHA、MFIの理想化SiO₂骨格、ケージとチャネル。"
+  },
+  "LG": {
+    "short": "Kuhn et al. 2013",
+    "title": "Single-crystal X-ray structure analysis of the superionic conductor Li₁₀GeP₂S₁₂",
+    "citation": "A. Kuhn, J. Köhler and B. V. Lotsch, “Single-crystal X-ray structure analysis of the superionic conductor Li₁₀GeP₂S₁₂,” Phys. Chem. Chem. Phys. 15, 11620–11622 (2013). DOI: 10.1039/C3CP51985F.",
+    "article": "https://doi.org/10.1039/C3CP51985F",
+    "coverage": "LGPSの298 K単結晶構造、Ge/P混合サイトと四種類のLiサイト。"
+  },
+  "LP": {
+    "short": "Homma et al. 2011",
+    "title": "Crystal structure and phase transitions of the lithium ionic conductor Li₃PS₄",
+    "citation": "K. Homma, M. Yonemura, T. Kobayashi, M. Nagao, M. Hirayama and R. Kanno, “Crystal structure and phase transitions of the lithium ionic conductor Li₃PS₄,” Solid State Ionics 182, 53–58 (2011). DOI: 10.1016/j.ssi.2010.10.001.",
+    "article": "https://doi.org/10.1016/j.ssi.2010.10.001",
+    "coverage": "γ・β-Li₃PS₄の斜方晶構造、Li占有とβ-Li₃PO₄型との対応。"
+  },
+  "AR": {
+    "short": "Dewald et al. 2019",
+    "title": "Experimental Assessment of the Practical Oxidative Stability of Lithium Thiophosphate Solid Electrolytes",
+    "citation": "G. F. Dewald et al., “Experimental Assessment of the Practical Oxidative Stability of Lithium Thiophosphate Solid Electrolytes,” Chem. Mater. 31, 8328–8337 (2019). DOI: 10.1021/acs.chemmater.9b01550.",
+    "article": "https://doi.org/10.1021/acs.chemmater.9b01550",
+    "coverage": "Supporting Information Table S2のLi₆PS₅Clの平均構造。"
+  },
+  "LY": {
+    "short": "Ito et al. 2021",
+    "title": "Kinetically Stabilized Cation Arrangement in Li₃YCl₆ Superionic Conductor during Solid-State Reaction",
+    "citation": "H. Ito et al., “Kinetically Stabilized Cation Arrangement in Li₃YCl₆ Superionic Conductor during Solid-State Reaction,” Adv. Sci. 8, 2101413 (2021). DOI: 10.1002/advs.202101413.",
+    "article": "https://doi.org/10.1002/advs.202101413",
+    "coverage": "Table 1のβ-Li₃YCl₆の室温中性子回折モデルと陽イオン占有率。"
+  },
+  "LT": {
+    "short": "Awaka et al. 2009",
+    "title": "Synthesis and structure analysis of tetragonal Li₇La₃Zr₂O₁₂ with the garnet-related type structure",
+    "citation": "J. Awaka, N. Kijima, H. Hayakawa and J. Akimoto, “Synthesis and structure analysis of tetragonal Li₇La₃Zr₂O₁₂ with the garnet-related type structure,” J. Solid State Chem. 182, 2046–2052 (2009). DOI: 10.1016/j.jssc.2009.05.020.",
+    "article": "https://doi.org/10.1016/j.jssc.2009.05.020",
+    "coverage": "Tables 1–2の正方晶LLZOの格子定数と単結晶X線回折構造。"
+  },
+  "LC": {
+    "short": "Moy et al. 2024",
+    "title": "Effects of Al concentration on the structure and conductivity of lithium lanthanum zirconium oxide",
+    "citation": "A. C. Moy et al., “Effects of Al concentration on the structure and conductivity of lithium lanthanum zirconium oxide,” J. Mater. Chem. A 12, 28193–28210 (2024). DOI: 10.1039/D4TA04862H.",
+    "article": "https://doi.org/10.1039/D4TA04862H",
+    "coverage": "Supporting Information Table S7の220 KにおけるAl置換立方晶LLZOの平均構造。"
   }
 };

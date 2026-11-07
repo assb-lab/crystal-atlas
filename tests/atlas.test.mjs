@@ -14,12 +14,12 @@ test('the serialized dataset matches the curated snapshot', async () => {
   assert.equal(createHash('sha256').update(JSON.stringify(DATA)).digest('hex'), expected);
 });
 
-test('the atlas has 185 structures, 199 relations, 14 strict relations', () => {
-  assert.equal(DATA.nodes.length, 185);
-  assert.equal(DATA.edges.length, 199);
+test('the atlas has 249 structures, 273 relations, 14 strict relations', () => {
+  assert.equal(DATA.nodes.length, 249);
+  assert.equal(DATA.edges.length, 273);
   assert.equal(DATA.edges.filter(e => e.strict).length, 14);
-  assert.equal(Object.keys(DATA.sources).length, 11);
-  assert.equal(Object.keys(DATA.families).length, 18);
+  assert.equal(Object.keys(DATA.sources).length, 18);
+  assert.equal(Object.keys(DATA.families).length, 26);
 });
 
 test('structure and relationship IDs are unique', () => {
@@ -151,6 +151,18 @@ test('coordinate models preserve Wyckoff multiplicities and occupancy', () => {
   const oxygen = DATA.models.defectfluorite.groups.find(group => group.occupants.O);
   assert.equal(oxygen.positions.length * oxygen.occupants.O, 7);
   assert.deepEqual(DATA.models.inverse.groups.find(group => group.wyckoff === '16c').occupants, { Mg: 0.5, Al: 0.5 });
+});
+
+test('experimental disorder and idealized zeolite cells retain their provenance', () => {
+  const { lgps, 'argy-cl': argy, 'zeo-fau': fau } = DATA.models;
+  assert.equal(lgps.kind, 'average');
+  assert.deepEqual(lgps.groups.find(g => g.occupants.Ge).occupants, { Ge: 0.5, P: 0.5 });
+  assert.equal(argy.kind, 'average');
+  assert.equal(argy.groups.find(g => g.wyckoff === '48h').occupants.Li, 0.5);
+  assert.deepEqual(argy.groups.find(g => g.wyckoff === '4a').occupants, { Cl: 0.385, S: 0.615 });
+  assert.equal(fau.kind, 'prototype');
+  assert.match(fau.source.url, /iza-structure\.org/);
+  assert.equal(fau.groups.reduce((count, g) => count + g.positions.length, 0), 576);
 });
 
 test('four-fcc models retain atom counts after periodic wrapping', () => {

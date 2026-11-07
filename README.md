@@ -29,12 +29,12 @@ npm run build
 
 ## 機能
 
-- **関係を探索**：構造名・組成・Strukturbericht記号の検索、18ファミリーの切替、SVGグラフの拡大／移動、構造・関係の詳細、一覧表示。
+- **関係を探索**：構造名・組成・Strukturbericht記号の検索、26ファミリーの切替、SVGグラフの拡大／移動、構造・関係の詳細、一覧表示。
 - **比較と学習**：2つの単位胞を同期回転・ズームし、格子定数、Wyckoff位置、サイト占有、構造間の直接の関係を比較。地図内の接続経路と11の学習ルート。
 - **構造ラボ**：4つのfcc副格子の表示切替、12種類のプリセット、Canvasによる回転模型、T/O空隙占有率の数え上げ。
 - **出典**：構造・関係ごとの文献箇所、印刷ページとPDFページの対応、手元のPDFのローカル関連付け、JSONデータ書き出し。
 
-v1.2 は**185構造、199関係、11資料**を収録し、全構造に回転できる単位胞を用意しています。うち**14関係**は文献確認済みの群–部分群関係です。Galasso の2冊を軸に、ペロブスカイトの多形・規則化・積層と、蛍石・硫化物・ホウ化物・金属間化合物の比較を拡充しました。
+v1.3 は**249構造、273関係、18資料**を収録し、全構造に回転できる単位胞を用意しています。うち**14関係**は文献確認済みの群–部分群関係です。Galasso の2冊で扱う構造に加え、LLZO・NASICON・LGPSなどの固体電解質、リン酸塩、鎖状・層状ケイ酸塩、ゼオライト、トンネル・シアー酸化物、混合アニオン化合物を収録しています。
 
 ## ソース構成
 
@@ -52,6 +52,8 @@ src/
     models.js               格子定数・Wyckoff位置・分率座標・座標の出典
     expansion.js            拡充した構造と構造間の関係
     expansion-models.js     拡充した構造の単位胞座標
+    breadth.js              電解質・ケイ酸塩・開放骨格などの構造と比較
+    breadth-models.js       回折精密化とIZA-SCの理想化骨格による単位胞座標
     relationships.js        構造間の関係
     families.js             ファミリー情報・地図配置
     sources.js              参考資料・ページ対応
@@ -77,9 +79,8 @@ npm run check   # テストとビルド
 ブラウザ操作テストを実行する場合のみ、PythonとPlaywrightを用意します。
 
 ```sh
-python -m pip install playwright
-python -m playwright install chromium
-python tests/browser_smoke.py
+uv run --no-project --with playwright -- python -m playwright install chromium
+uv run --no-project --with playwright -- python tests/browser_smoke.py
 ```
 
 `CHROMIUM_PATH` で既存のChromium実行ファイルを指定できます。URLナビゲーションが許可されない検証環境では `ATLAS_TEST_IN_MEMORY=1` により、分割版をネイティブES ModulesのBlob URL、単一HTML版をメモリ上のHTMLとして検証します。これはHTTP配信・`file://`ナビゲーション自体の検証とは区別してください。スクリーンショットは `test-results/` に保存されます。

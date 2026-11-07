@@ -21,5 +21,12 @@
 
 - **[CD]** S. Gražulis et al., “Crystallography Open Database (COD): an open-access collection of crystal structures and platform for world-wide collaboration,” *Nucleic Acids Res.* **40**, D420–D427 (2012). 採用した CIF の番号と、得られる場合は測定温度を各単位胞に表示します。 [DOI](https://doi.org/10.1093/nar/gkr900) · [COD](https://www.crystallography.net/cod/)
 - **[AF]** *AFLOW Library of Crystallographic Prototypes*, Parts 1–4. 格子定数、Wyckoff軌道と分率座標を代表セルに使用しています。各単位胞から採用した項目を参照できます。 [索引](https://aflow.org/p/prototype_index.html) · [Part 1](https://doi.org/10.1016/j.commatsci.2017.01.017) · [Part 2](https://doi.org/10.1016/j.commatsci.2019.03.001) · [Part 3](https://doi.org/10.1016/j.commatsci.2021.110450) · [Part 4](https://doi.org/10.1016/j.commatsci.2024.112988)
+- **[IZA]** C. Baerlocher and L. B. McCusker, *Database of Zeolite Structures* (International Zeolite Association, Structure Commission). SOD・LTA・FAU・CHA・MFIは理想化SiO₂骨格です。 [IZA-SC](https://www.iza-structure.org/databases/)
+- **[LG]** A. Kuhn, J. Köhler and B. V. Lotsch, “Single-crystal X-ray structure analysis of the superionic conductor Li₁₀GeP₂S₁₂,” *Phys. Chem. Chem. Phys.* **15**, 11620–11622 (2013). Table 2の298 Kモデル。 [DOI](https://doi.org/10.1039/C3CP51985F)
+- **[LP]** K. Homma et al., “Crystal structure and phase transitions of the lithium ionic conductor Li₃PS₄,” *Solid State Ionics* **182**, 53–58 (2011). γ・β相の回折モデル。 [DOI](https://doi.org/10.1016/j.ssi.2010.10.001)
+- **[AR]** G. F. Dewald et al., “Experimental Assessment of the Practical Oxidative Stability of Lithium Thiophosphate Solid Electrolytes,” *Chem. Mater.* **31**, 8328–8337 (2019). Table S2のLi₆PS₅Cl。 [DOI](https://doi.org/10.1021/acs.chemmater.9b01550)
+- **[LY]** H. Ito et al., “Kinetically Stabilized Cation Arrangement in Li₃YCl₆ Superionic Conductor during Solid-State Reaction,” *Adv. Sci.* **8**, 2101413 (2021). Table 1のβ-Li₃YCl₆。 [DOI](https://doi.org/10.1002/advs.202101413)
+- **[LT]** J. Awaka et al., “Synthesis and structure analysis of tetragonal Li₇La₃Zr₂O₁₂ with the garnet-related type structure,” *J. Solid State Chem.* **182**, 2046–2052 (2009). Tables 1–2の正方晶LLZO。 [DOI](https://doi.org/10.1016/j.jssc.2009.05.020)
+- **[LC]** A. C. Moy et al., “Effects of Al concentration on the structure and conductivity of lithium lanthanum zirconium oxide,” *J. Mater. Chem. A* **12**, 28193–28210 (2024). Table S7のAl置換立方晶LLZO。 [DOI](https://doi.org/10.1039/D4TA04862H)
 
 PDF は版に合わせて画面からローカルで関連付けられます。別版を用いる場合は印刷ページと PDF ページの対応を確認してください。

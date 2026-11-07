@@ -2,7 +2,7 @@
 
 `src/data/atlas.js` が各データモジュールを統合し、UI・JSON書き出し・テスト・単一HTMLビルドに同じデータを供給します。
 
-追加資料に基づく構造・関係は `expansion.js`、単位胞の座標は `expansion-models.js` に格納します。両者は共通の構造IDで対応します。
+Galassoと関連資料からの拡充分は `expansion.js` と `expansion-models.js`、固体電解質・開放骨格などの拡充分は `breadth.js` と `breadth-models.js` に格納します。それぞれ構造IDで構造カードと単位胞座標を対応させます。
 
 ## 構造ノード: `structures.js`
 

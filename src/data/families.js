@@ -143,5 +143,69 @@ export const families = {
     "subtitle": "酸化物・フッ化物・水素化物と、逆ReO₃の位置交換",
     "x": 2120,
     "y": 4500
+  },
+  "ion-ox": {
+    "name": "ガーネット・NASICONと酸化物系イオン伝導体",
+    "short": "LLZO・NASICON",
+    "color": "#83d4a0",
+    "subtitle": "骨格の空隙、層間サイトとLi・Naの占有",
+    "x": 0,
+    "y": 5400
+  },
+  "ion-sulf": {
+    "name": "チオリン酸塩とアルジロダイト",
+    "short": "LGPS・アルジロダイト",
+    "color": "#e5c37a",
+    "subtitle": "孤立・架橋四面体と、Li・Ag・アニオンの部分占有",
+    "x": 1060,
+    "y": 5400
+  },
+  "ion-hal": {
+    "name": "ヨウ化物・塩化物イオン伝導体",
+    "short": "AgI・Li₃MCl₆",
+    "color": "#bc9ddd",
+    "subtitle": "アニオンの積層、Agの部分占有、Liと三価金属の八面体孔",
+    "x": 2120,
+    "y": 5400
+  },
+  "phosphates": {
+    "name": "リン酸塩の孤立四面体と陽イオン配列",
+    "short": "オリビン・アパタイト",
+    "color": "#e1aa81",
+    "subtitle": "オリビンとマリサイト、チャネル置換、希土類の配位数",
+    "x": 0,
+    "y": 6300
+  },
+  "silicates": {
+    "name": "ケイ酸塩の鎖・環・層・三次元網",
+    "short": "輝石・雲母・長石",
+    "color": "#80cbb2",
+    "subtitle": "SiO₄の頂点共有数と周期、Al₂SiO₅三多形のAl配位",
+    "x": 1060,
+    "y": 6300
+  },
+  "zeolite": {
+    "name": "ゼオライトのケージとチャネル",
+    "short": "SOD・LTA・FAU",
+    "color": "#8bbff1",
+    "subtitle": "IZA-SCの理想化骨格で、連結単位と開口の環サイズを比較",
+    "x": 2120,
+    "y": 6300
+  },
+  "shear": {
+    "name": "酸化物のトンネルと結晶学的シアー",
+    "short": "MnO₂・シアー構造",
+    "color": "#d1cc7d",
+    "subtitle": "MnO₂のトンネル断面、マグネリ相、Wadsley–Roth型ブロック",
+    "x": 0,
+    "y": 7200
+  },
+  "mixed": {
+    "name": "窒化物・混合アニオン・MAX/MAB相",
+    "short": "混合アニオン・積層",
+    "color": "#db9eb2",
+    "subtitle": "四面体網、酸ハロゲン化物・酸窒化物、炭化物とホウ化物の層",
+    "x": 1060,
+    "y": 7200
   }
 };
