@@ -1,31 +1,38 @@
 # Crystal Atlas — 結晶構造の関係地図
 
-結晶構造を、**空隙占有・原子の規則化・歪み・積層・群–部分群関係**から探索するインタラクティブアトラスです。単一HTML版 v1.0 を、データ・UI・描画・CSSに分割しました。フレームワークや外部CDNへの依存はありません。
+結晶構造を、**空隙占有・原子の規則化・歪み・積層・群–部分群関係**から探索するインタラクティブアトラスです。React + TypeScript で実装し、[Vite+](https://viteplus.dev/)（`vp`）でビルド・テスト・整形・lint を行います。
+
+## 必要なもの
+
+| ツール  | バージョン                                                      |
+| ------- | --------------------------------------------------------------- |
+| Node.js | 26 以上                                                         |
+| pnpm    | 12（`package.json` の `devEngines` で固定。違う版なら自動取得） |
+| Chrome  | E2Eテストのみ。インストール済みの Google Chrome を使用します    |
 
 ## 起動
-
-Node.js 22以上を使用します。依存パッケージのインストールは不要です。
 
 ```sh
 git clone https://github.com/assb-lab/crystal-atlas.git
 cd crystal-atlas
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-`http://127.0.0.1:4173` をブラウザで開いてください。ポート変更は `npm run dev -- --port 8080` です。分割版はES Modulesを使用するため、`index.html` の直接ダブルクリックではなくHTTPサーバー経由で開きます。
+`http://localhost:4173` をブラウザで開いてください。
 
 ## ビルド・オフライン版
 
 ```sh
-npm run build
+pnpm build
 ```
 
-| 出力 | 用途 |
-| --- | --- |
-| `dist/index.html` と `dist/src/`・`dist/styles/` | 静的Webサーバーに配置する分割版 |
-| `dist/crystal-atlas.html` | データ・JS・CSSを内蔵した単一HTML。ダブルクリックでオフライン利用可能 |
+| 出力                                | 用途                                                                  |
+| ----------------------------------- | --------------------------------------------------------------------- |
+| `dist/index.html` と `dist/assets/` | 静的Webサーバーに配置する版。相対パスなので任意のサブパスに置けます   |
+| `dist/crystal-atlas.html`           | データ・JS・CSSを内蔵した単一HTML。ダブルクリックでオフライン利用可能 |
 
-`dist/` は生成物です。編集するのはルートの `index.html`、`src/`、`styles/` です。GitHub Pages等へのデプロイやリポジトリ設定の変更は、この初期登録には含めていません。
+`pnpm preview` でビルド結果を確認できます。`dist/` は生成物です。単一HTMLは `vp build --mode standalone` で、`vite.config.ts` の `standaloneHtml` プラグインが生成します。
 
 ## 機能
 
@@ -43,53 +50,49 @@ v1.5 は**291構造、365関係、32資料**を収録し、全構造に回転で
 ## ソース構成
 
 ```text
-index.html                  画面のHTML
-styles/main.css             レイアウト・配色・レスポンシブ対応
+index.html                    Viteのエントリーページ
+vite.config.ts                Vite+ 設定（ビルド・テスト・整形・lint・単一HTML生成）
+playwright.config.ts          E2Eテスト設定
 src/
-  main.js                   UI、2D関係グラフ、検索、比較、出典、イベント
-  viewer.js                 単位胞の展開とCanvas回転ビューア
-  model-panels.js            サイト凡例と比較用モデルパネル
-  utils.js                  表示形式、検索文字列正規化、接続経路探索
-  data/
-    atlas.js                データセットの統合・バージョン
-    structures.js           構造ノード
-    models.js               格子定数・Wyckoff位置・分率座標・座標の出典
-    expansion.js            拡充した構造と構造間の関係
-    expansion-models.js     拡充した構造の単位胞座標
-    breadth.js              電解質・ケイ酸塩・開放骨格などの構造と比較
-    breadth-models.js       回折精密化とIZA-SCの理想化骨格による単位胞座標
-    okamoto.js              岡本の図別派生フローと追加構造・関係
-    okamoto-models.js       岡本の派生図で比較する単位胞の代表座標
-    relationships.js        構造間の関係
-    families.js             ファミリー情報・地図配置
-    sources.js              参考資料・ページ対応
-    presets.js              関係の種類、学習ルート、ラボのプリセット
-scripts/
-  serve.mjs                 ローカル開発サーバー
-  build.mjs                 静的配布版・単一HTMLの生成
+  main.tsx                    Reactの起動
+  App.tsx                     画面全体、サイドバー設定の保存、⌘K・Escape、診断API
+  state.ts                    画面状態と遷移（純粋なreducer）。選択・分類・探索・サイドバーの規則
+  store.ts                    状態のContextと共通フック
+  types.ts                    データの型
+  components/
+    explore/                  関係を探索（ツールバー、サイドバー、地図、詳細、比較トレイ）
+    lab/Lab.tsx               構造ラボ
+    guide/Guide.tsx           読み方・出典
+    GlobalSearch.tsx          ⌘K 全件検索
+    Modal.tsx                 比較（単位胞の同期回転）・学習ルートのダイアログ
+    ModelPanel.tsx            単位胞パネル（投影方向・サイト表示・座標の出典）
+    RefChips.tsx              出典ボタン
+  lib/
+    atlas.ts                  表示範囲（ファミリー・分類・派生図）、検索、関係の照会
+    flow-layout.ts            派生の階層配置、系統の抽出、枝の折り畳み、接続曲線
+    viewer.ts                 単位胞の展開とCanvas回転ビューア
+    model-info.ts             座標の種類、サイト行、占有率表記
+    format.ts                 分数表記、検索文字列正規化、PDFページ、接続経路探索
+  data/                       構造・関係・単位胞座標・分類・出典（型付きデータ）
+  styles/main.css             レイアウト・配色・レスポンシブ対応
 tests/
-  atlas.test.mjs            データ整合性・検索・幾何模型のテスト
-  dataset.sha256             現行データの検証用ハッシュ
-  browser_smoke.py           任意実行のブラウザ操作テスト
+  unit/                       データ整合性・配置・reducerのテスト（Vitest）と現行データのハッシュ
+  e2e/smoke.spec.ts           配信版と単一HTMLのブラウザ操作テスト（Playwright）
 ```
 
 データ追加の項目は [データモデル](docs/DATA_MODEL.md)、参考資料は [出典一覧](docs/SOURCES.md) を参照してください。
 
-## テスト
+## 開発コマンド
 
 ```sh
-npm test        # Node.js標準テストランナー。追加依存なし
-npm run check   # テストとビルド
+pnpm check     # 整形・lint（型情報を使うルールを含む）・型チェック。自動修正は pnpm exec vp check --fix
+pnpm test      # ユニットテスト（vp test run）
+pnpm build     # 型チェック後に配信版と単一HTMLを生成
+pnpm e2e       # ビルド済みの dist/ に対するE2Eテスト
+pnpm verify    # 上記すべてを順に実行
 ```
 
-ブラウザ操作テストを実行する場合のみ、PythonとPlaywrightを用意します。
-
-```sh
-uv run --no-project --with playwright -- python -m playwright install chromium
-uv run --no-project --with playwright -- python tests/browser_smoke.py
-```
-
-`CHROMIUM_PATH` で既存のChromium実行ファイルを指定できます。URLナビゲーションが許可されない検証環境では `ATLAS_TEST_IN_MEMORY=1` により、分割版をネイティブES ModulesのBlob URL、単一HTML版をメモリ上のHTMLとして検証します。これはHTTP配信・`file://`ナビゲーション自体の検証とは区別してください。スクリーンショットは `test-results/` に保存されます。
+E2Eテストはインストール済みの Google Chrome を使います（ブラウザのダウンロード不要）。別のブラウザを使う場合は `PLAYWRIGHT_CHANNEL` を指定するか、`pnpm exec playwright install chromium` の後に `PLAYWRIGHT_CHANNEL=chromium` を指定してください。スクリーンショットは `test-results/` に保存されます。
 
 ## 読み方と限界
 
