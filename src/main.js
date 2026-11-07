@@ -1,8 +1,9 @@
 /** Atlas UI: graph interaction, inspectors, comparison, sources, and controls. */
 import { DATA } from "./data/atlas.js";
 import { KINDS, ROUTES, LABPRESETS, OCCPRESETS } from "./data/presets.js";
-import { esc, frac, normalize, shortestPath } from "./utils.js";
+import { esc, frac, normalize, shortestPath, sourcePdfPage } from "./utils.js";
 import { CrystalView, modelFor, fourFCC, SITE_COLORS } from "./viewer.js";
+import { modelPanelHTML, mountModelPanel } from "./model-panels.js";
 
 'use strict';
 
@@ -10,11 +11,20 @@ const $ = id => document.getElementById(id), N = new Map(DATA.nodes.map(n => [n.
 
 const state = { tab: 'explore', family: 'fcc', selected: 'fcc', edge: null, strict: false, view: 'map', comp: [], lab: 'heusler', subVisible: [true, true, true, true], t: .125, o: .5, occPreset: 'spinel' };
 
-let modelView = null, labView = null, visibleNodes = [], visibleEdges = [], lastFocus = null;
+let modelView = null, labView = null, comparisonViews = [], visibleNodes = [], visibleEdges = [], lastFocus = null;
 
 const PDFS = {};
 
-function refHTML(refs) { return refs.map(r => `<button class="refchip" data-source="${r.s}" data-page="${r.p}" title="${esc(DATA.sources[r.s].title)}">${esc(DATA.sources[r.s].short)} · p.${r.p}<span>${esc(r.sec)} / PDF ${r.p + DATA.sources[r.s].offset}</span></button>`).join(''); }
+function refHTML(refs) {
+    return refs.map(ref => {
+        const source = DATA.sources[ref.s];
+        if (ref.p === undefined) {
+            return `<a class="refchip" href="${esc(ref.url ?? source.article)}" target="_blank" rel="noopener" title="${esc(source.citation ?? source.title)}">${esc(source.short)} ↗<span>${esc(ref.sec)}</span></a>`;
+        }
+        const page = sourcePdfPage(source, ref);
+        return `<button class="refchip" data-source="${ref.s}" data-page="${ref.p}" data-pdfpage="${page}" title="${esc(source.citation ?? source.title)}">${esc(source.short)} · p.${ref.p}<span>${esc(ref.sec)} / PDF ${page}</span></button>`;
+    }).join('');
+}
 
 function toast(s) { $('toast').textContent = s; $('toast').hidden = false; clearTimeout(toast.timer); toast.timer = setTimeout(() => $('toast').hidden = true, 3500); }
 
@@ -50,7 +60,7 @@ else
 function selectEdge(id) { const e = E.get(id); if (!e)
     return; state.edge = id; renderGraph(); renderEdge(e); }
 
-function renderFamily() { const fs = DATA.families; const all = [['all', { short: 'すべてのファミリー', color: '#93a9ba' }], ...Object.entries(fs)]; $('families').innerHTML = all.map(([id, f]) => `<button class="familybutton ${state.family === id ? 'active' : ''}" data-family="${id}"><i class="dot" style="background:${f.color}"></i><span>${f.short}</span><span class="num">${id === 'all' ? DATA.nodes.length : DATA.nodes.filter(n => n.family === id).length}</span></button>`).join(''); $('familyTitle').textContent = state.family === 'all' ? '構造ファミリーの全体地図' : fs[state.family].name; $('familySubtitle').textContent = state.family === 'all' ? '６つの領域をクリックして拡大。領域間の線も表示。' : fs[state.family].subtitle; }
+function renderFamily() { const fs = DATA.families; const all = [['all', { short: 'すべてのファミリー', color: '#93a9ba' }], ...Object.entries(fs)]; $('families').innerHTML = all.map(([id, f]) => `<button class="familybutton ${state.family === id ? 'active' : ''}" data-family="${id}"><i class="dot" style="background:${f.color}"></i><span>${f.short}</span><span class="num">${id === 'all' ? DATA.nodes.length : DATA.nodes.filter(n => n.family === id).length}</span></button>`).join(''); $('familyTitle').textContent = state.family === 'all' ? '構造ファミリーの全体地図' : fs[state.family].name; $('familySubtitle').textContent = state.family === 'all' ? 'ファミリー名から領域を選択。領域間の関係も表示。' : fs[state.family].subtitle; }
 
 const SVGNS = 'http://www.w3.org/2000/svg';
 
@@ -104,7 +114,8 @@ function renderGraph() {
     if (state.family === 'all') {
         for (const [id, f] of Object.entries(DATA.families)) {
             const g = svgEl('g');
-            g.append(svgEl('rect', { x: f.x + 30, y: f.y - 40, width: 830, height: 760, class: 'clusterbox' }));
+            const height = Math.max(760, ...DATA.nodes.filter(n => n.family === id).map(n => n.y + 100));
+            g.append(svgEl('rect', { x: f.x + 30, y: f.y - 40, width: 830, height, class: 'clusterbox' }));
             const title = svgEl('text', { x: f.x + 65, y: f.y + 4, class: 'clustertitle' }, f.name);
             title.addEventListener('click', () => family(id));
             g.append(title);
@@ -187,7 +198,7 @@ function fitMap() { if (state.tab !== 'explore' || state.view !== 'map')
 } let x1 = Math.min(...points.map(p => p.x)) - 140, x2 = Math.max(...points.map(p => p.x)) + 140, y1 = Math.min(...points.map(p => p.y)) - 90, y2 = Math.max(...points.map(p => p.y)) + 105; if (state.family === 'all')
     y1 -= 50; cam.k = Math.min(r.width / (x2 - x1), r.height / (y2 - y1), 1.25) * .96; cam.x = r.width / 2 - (x1 + x2) / 2 * cam.k; cam.y = r.height / 2 - (y1 + y2) / 2 * cam.k; applyCam(); }
 
-function zoom(f, cx, cy) { const r = $('map').getBoundingClientRect(); cx ??= r.width / 2; cy ??= r.height / 2; const old = cam.k; cam.k = Math.max(.13, Math.min(3.8, cam.k * f)); cam.x = cx - (cx - cam.x) * cam.k / old; cam.y = cy - (cy - cam.y) * cam.k / old; applyCam(); }
+function zoom(f, cx, cy) { const r = $('map').getBoundingClientRect(); cx ??= r.width / 2; cy ??= r.height / 2; const old = cam.k; cam.k = Math.max(.05, Math.min(3.8, cam.k * f)); cam.x = cx - (cx - cam.x) * cam.k / old; cam.y = cy - (cy - cam.y) * cam.k / old; applyCam(); }
 
 let pointers = new Map(), panStart = null, panMoved = false, pinch = null;
 
@@ -233,17 +244,29 @@ function relationHTML(n) { const list = DATA.edges.filter(e => (e.a === n.id || 
     return '<p class="smalltext muted">この絞り込みでは接続がありません。</p>'; return list.map(e => { const other = N.get(e.a === n.id ? e.b : e.a), out = e.a === n.id; return `<button class="relationitem" data-relation="${e.id}"><div><span style="color:${KINDS[e.kind].color}">${e.undirected ? '↔' : out ? '→' : '←'}</span> ${esc(other.name)}${other.family !== n.family ? '<span style="color:#8ac0ce"> ↗</span>' : ''}<small>${esc(e.label)}</small></div><span class="relarr">›</span></button>`; }).join(''); }
 
 function renderInspector() { modelView?.destroy(); modelView = null; const n = N.get(state.selected); if (!n)
-    return; const f = DATA.families[n.family]; $('inspector').innerHTML = `<div class="inspecthead"><div class="row"><button class="small flat mobilenavnote" data-backmap="true">地図へ ↑</button><span class="eyebrow" style="color:${f.color}">${esc(f.short)} / STRUCTURE</span><span class="spacer"></span><button class="small flat" data-compare="${n.id}">${state.comp.includes(n.id) ? '比較から外す' : '＋ 比較'}</button></div><h2>${esc(n.name)}</h2><div class="formula">${esc(n.formula)}</div></div><div class="inspectbody"><p class="desc">${esc(n.desc)}</p>${n.model ? '<div class="inspectmodel"><canvas id="miniCanvas"></canvas></div><div class="modelcaption">ドラッグで回転 / 理想化したサイト模型。CIF・実測値ではありません。</div>' : ''}<div class="detailsection"><h3>構造を記述する</h3><div class="facts"><div class="fact"><div class="key">空間群・対称性</div><div class="value mono">${esc(n.sg)}</div></div><div class="fact"><div class="key">基準となる骨格</div><div class="value">${esc(n.packing)}</div></div><div class="fact"><div class="key">配位環境</div><div class="value">${esc(n.coord)}</div></div><div class="fact"><div class="key">多面体・部分構造の連結</div><div class="value">${esc(n.link)}</div></div></div></div>${n.occ ? `<div class="detailsection"><h3>全空隙を分母にした占有率</h3><div class="occgrid">${n.occ.map((o, i) => `<div class="occrow"><span>${i ? 'O' : 'T'}孔</span><div class="occbar"><i style="width:${o * 100}%"></i></div><span class="mono">${frac(o)}</span></div>`).join('')}</div><div class="occbase">基準粒子：${esc(n.host)}。T孔2N個・O孔N個を分母に数えます。</div></div>` : ''}${n.note ? `<div class="detailsection"><div class="note">${esc(n.note)}</div></div>` : ''}<div class="detailsection"><h3>つながる構造 <span class="muted">/ 矢印の詳細へ</span></h3><div class="relationlist">${relationHTML(n)}</div></div><div class="detailsection"><h3>参考資料</h3><div class="refchips">${refHTML(n.refs)}</div></div>${LABPRESETS.some(p => p.id === n.id) ? `<button data-openlab="${n.id}" class="small" style="margin-top:18px;width:100%">４副格子の模型で見る ↗</button>` : ''}</div>`; if (n.model) {
-    modelView = new CrystalView($('miniCanvas'));
-    modelView.set(modelFor(n.model));
+    return; const f = DATA.families[n.family]; const model = modelFor(n.model ?? n.id); $('inspector').innerHTML = `<div class="inspecthead"><div class="row"><button class="small flat mobilenavnote" data-backmap="true">地図へ ↑</button><span class="eyebrow" style="color:${f.color}">${esc(f.short)} / STRUCTURE</span><span class="spacer"></span><button class="small flat" data-compare="${n.id}">${state.comp.includes(n.id) ? '比較から外す' : '＋ 比較'}</button></div><h2>${esc(n.name)}</h2><div class="formula">${esc(n.formula)}</div></div><div class="inspectbody"><p class="desc">${esc(n.desc)}</p>${model.atoms.length ? modelPanelHTML(n, model) : ''}<div class="detailsection"><h3>構造を記述する</h3><div class="facts"><div class="fact"><div class="key">空間群・対称性</div><div class="value mono">${esc(n.sg)}</div></div><div class="fact"><div class="key">基準となる骨格</div><div class="value">${esc(n.packing)}</div></div><div class="fact"><div class="key">配位環境</div><div class="value">${esc(n.coord)}</div></div><div class="fact"><div class="key">多面体・部分構造の連結</div><div class="value">${esc(n.link)}</div></div></div></div>${n.occ ? `<div class="detailsection"><h3>全空隙を分母にした占有率</h3><div class="occgrid">${n.occ.map((o, i) => `<div class="occrow"><span>${i ? 'O' : 'T'}孔</span><div class="occbar"><i style="width:${o * 100}%"></i></div><span class="mono">${frac(o)}</span></div>`).join('')}</div><div class="occbase">基準粒子：${esc(n.host)}。T孔2N個・O孔N個を分母に数えます。</div></div>` : ''}${n.note ? `<div class="detailsection"><div class="note">${esc(n.note)}</div></div>` : ''}<div class="detailsection"><h3>つながる構造 <span class="muted">/ 矢印の詳細へ</span></h3><div class="relationlist">${relationHTML(n)}</div></div><div class="detailsection"><h3>参考資料</h3><div class="refchips">${refHTML(n.refs)}</div></div>${LABPRESETS.some(p => p.id === n.id) ? `<button data-openlab="${n.id}" class="small" style="margin-top:18px;width:100%">４副格子の模型で見る ↗</button>` : ''}</div>`; if (model.atoms.length) {
+    modelView = mountModelPanel($('inspector').querySelector('.crystalpanel'), model);
 } }
 
 function renderEdge(e) { modelView?.destroy(); modelView = null; const a = N.get(e.a), b = N.get(e.b), k = KINDS[e.kind]; $('inspector').innerHTML = `<div class="inspecthead"><div class="eyebrow" style="color:${k.color}">RELATION / ${k.name}</div><h2 style="font-size:19px">${esc(e.label)}</h2><div class="row" style="margin-top:11px"><button class="small" data-jump="${a.id}">${esc(a.name)}</button><span>${e.undirected ? '↔' : '→'}</span><button class="small" data-jump="${b.id}">${esc(b.name)}</button></div></div><div class="inspectbody"><p class="desc">${esc(e.desc)}</p>${e.strict ? `<div class="detailsection"><span class="badge good">文献で確認した群–部分群関係</span></div><div class="detailsection"><div class="facts"><div class="fact"><div class="key">対称性の対応</div><div class="value mono">${esc(a.sg)} → ${esc(b.sg)}</div></div><div class="fact"><div class="key">部分群の種類と指数</div><div class="value mono">${esc(e.index)}</div></div><div class="fact"><div class="key">基底・原点・セル</div><div class="value">${esc(e.basis)}</div></div><div class="fact"><div class="key">サイト・Wyckoff位置の対応</div><div class="value">${esc(e.split)}</div></div></div></div>` : `<div class="detailsection"><div class="note">この線は「${k.name}」を示します。本版では群–部分群指数、基底・原点、全原子位置の変換を検証した矢印としては扱いません。</div></div>`}${e.warning ? `<div class="detailsection"><div class="note warn">${esc(e.warning)}</div></div>` : ''}<div class="detailsection"><div class="note warn">構造の関係と、実際の反応・相転移は別です。矢印の向きは記述上の派生方向であり、実行可能な変換や安定性を保証しません。</div></div><div class="detailsection"><h3>この関係の出典</h3><div class="refchips">${refHTML(e.refs)}</div></div><button class="small" data-comparepair="${a.id},${b.id}" style="margin-top:18px;width:100%">２つの構造を比較する →</button><button class="small flat" data-jump="${state.selected}" style="margin-top:8px;width:100%">構造カードに戻る</button></div>`; $('inspector').scrollTop = 0; }
 
-function search() { const q = normalize($('search').value); if (!q) {
-    $('searchResults').innerHTML = '';
-    return;
-} const hits = DATA.nodes.filter(n => normalize([n.name, n.formula, n.aliases, n.sg, n.desc].join(' ')).includes(q)).sort((a, b) => (normalize(b.name).includes(q) ? 1 : 0) - (normalize(a.name).includes(q) ? 1 : 0)); $('searchResults').innerHTML = hits.slice(0, 14).map(n => `<button data-searchnode="${n.id}">${esc(n.name)}<small>${esc(n.formula)} · ${esc(DATA.families[n.family].short)}</small></button>`).join('') || '<p class="smalltext muted" style="padding:10px">一致する構造はありません。</p>'; }
+function search() {
+    const query = normalize($('search').value);
+    const results = $('searchResults');
+    if (!query) {
+        results.replaceChildren();
+        return;
+    }
+    function priority(node) {
+        if ([node.formula, node.name, node.aliases].some(value => normalize(value) === query)) return 2;
+        return Number(normalize(node.name).includes(query));
+    }
+    const hits = DATA.nodes.filter(node =>
+        normalize([node.name, node.formula, node.aliases, node.sg, node.desc].join(' ')).includes(query))
+        .sort((a, b) => priority(b) - priority(a));
+    results.innerHTML = hits.map(node => `<button data-searchnode="${node.id}">${esc(node.name)}<small>${esc(node.formula)} · ${esc(DATA.families[node.family].short)}</small></button>`).join('') ||
+        '<p class="smalltext muted" style="padding:10px">一致する構造はありません。</p>';
+}
 
 function toggleCompare(id) { if (state.comp.includes(id))
     state.comp = state.comp.filter(i => i !== id);
@@ -261,19 +284,84 @@ function renderTray() { $('compareTray').hidden = !state.comp.length; $('trayIte
 
 function shortest(a, b) { return shortestPath(DATA.edges, a, b, state.strict); }
 
-function openModal(title, html) { lastFocus = document.activeElement; $('modalTitle').textContent = title; $('modalBody').innerHTML = html; $('modalBackdrop').hidden = false; document.body.style.overflow = 'hidden'; $('closeModal').focus(); }
+function clearComparisonViews() {
+    comparisonViews.forEach(view => view.destroy());
+    comparisonViews = [];
+}
 
-function closeModal() { $('modalBackdrop').hidden = true; document.body.style.overflow = ''; lastFocus?.focus(); }
+function openModal(title, html) { clearComparisonViews(); lastFocus = document.activeElement; $('modalTitle').textContent = title; $('modalBody').innerHTML = html; $('modalBackdrop').hidden = false; $('modalBody').parentElement.scrollTop = 0; document.body.style.overflow = 'hidden'; $('closeModal').focus(); }
 
-function compare() { if (state.comp.length !== 2)
-    return; const [a, b] = state.comp.map(id => N.get(id)); const rows = [['対称性', 'sg'], ['骨格', 'packing'], ['配位環境', 'coord'], ['連結', 'link'], ['要点', 'desc']]; let path = shortest(a.id, b.id); openModal('構造を並べて比較', `<table class="comparetable"><tbody><tr><th>構造</th>${[a, b].map(n => `<td><div class="comptitle">${esc(n.name)}</div><div class="mono muted">${esc(n.formula)}</div></td>`).join('')}</tr>${rows.map(([label, key]) => `<tr><th>${label}</th><td>${esc(a[key])}</td><td>${esc(b[key])}</td></tr>`).join('')}<tr><th>T / O孔<br>占有率</th>${[a, b].map(n => `<td>${n.occ ? `<b class="mono">${n.occ.map(frac).join(' / ')}</b><br><span class="muted">基準：${esc(n.host)}</span>` : 'この記述では未設定'}</td>`).join('')}</tr><tr><th>出典</th>${[a, b].map(n => `<td><div class="refchips">${refHTML(n.refs)}</div></td>`).join('')}</tr></tbody></table><div style="margin-top:22px"><h3>地図上の接続経路 ${state.strict ? '<span class="badge">群–部分群のみ</span>' : ''}</h3><div class="pathsteps">${path ? path.map((id, i) => `${i ? '<span class="arrow">—</span>' : ''}<button data-pathnode="${id}">${esc(N.get(id).name)}</button>`).join('') : 'このデータと絞り込み条件では接続経路がありません。'}</div><p class="note">関係の向きを問わず、このアトラス内の最短接続列を探しています。相転移経路、共通のaristotype、実際の原子移動を示すものではありません。</p></div>`); }
+function closeModal() { clearComparisonViews(); $('modalBackdrop').hidden = true; document.body.style.overflow = ''; lastFocus?.focus(); }
 
-function routes() { openModal('構造をたどる６つの学習ルート', `<p class="muted smalltext" style="margin-bottom:17px">各構造名からカードへ移動します。学習の順番であって、連続した相転移の順番ではありません。</p><div class="routecards">${ROUTES.map(r => `<div class="routecard"><h3>${r.title}</h3><p>${r.desc}</p><div class="row">${r.ids.map(id => `<button data-pathnode="${id}">${esc(N.get(id).name)} ↗</button>`).join('')}</div></div>`).join('')}</div>`); }
+function compare() {
+    if (state.comp.length !== 2) return;
+    const pair = state.comp.map(id => N.get(id));
+    const [a, b] = pair;
+    const models = pair.map(n => modelFor(n.model ?? n.id));
+    const rows = [['対称性', 'sg'], ['骨格', 'packing'], ['配位環境', 'coord'], ['連結', 'link'], ['要点', 'desc']];
+    const path = shortest(a.id, b.id);
+    const direct = DATA.edges.filter(e =>
+        ((e.a === a.id && e.b === b.id) || (e.a === b.id && e.b === a.id)) && (!state.strict || e.strict));
+    openModal('構造を並べて比較', `
+        <div class="comparisoncontrols">
+            <div><h3>単位胞を比較</h3><p class="muted smalltext">回転・ズームを同期。表示倍率とサイトの色は単位胞ごとに設定しています。</p></div>
+            <button class="small" id="compareReset">視点を戻す</button>
+        </div>
+        <div class="comparisonmodels">${pair.map((n, i) => modelPanelHTML(n, models[i], true)).join('')}</div>
+        <table class="comparetable"><tbody>
+            <tr><th scope="row">構造</th>${pair.map(n => `<td><div class="comptitle">${esc(n.name)}</div><div class="mono muted">${esc(n.formula)}</div></td>`).join('')}</tr>
+            ${rows.map(([label, key]) => `<tr><th scope="row">${label}</th><td>${esc(a[key])}</td><td>${esc(b[key])}</td></tr>`).join('')}
+            <tr><th scope="row">T / O孔<br>占有率</th>${pair.map(n => `<td>${n.occ ? `<b class="mono">${n.occ.map(frac).join(' / ')}</b><br><span class="muted">基準：${esc(n.host)}</span>` : 'この記述では未設定'}</td>`).join('')}</tr>
+            <tr><th scope="row">出典</th>${pair.map(n => `<td><div class="refchips">${refHTML(n.refs)}</div></td>`).join('')}</tr>
+        </tbody></table>
+        ${direct.length ? `<section class="comparisonrelations"><h3>直接の関係</h3>
+            ${direct.map(e => `<article><span class="badge">${KINDS[e.kind].name}</span>
+                <h4>${esc(N.get(e.a).name)} ${e.undirected ? '↔' : '→'} ${esc(N.get(e.b).name)}</h4>
+                <p>${esc(e.desc)}</p>${e.strict ? `<p class="smalltext muted">${esc(e.index)} · ${esc(e.split)}</p>` : ''}
+                <div class="refchips">${refHTML(e.refs)}</div></article>`).join('')}
+        </section>` : ''}
+        <section class="comparisonrelations">
+            <h3>地図上の接続経路 ${state.strict ? '<span class="badge">群–部分群のみ</span>' : ''}</h3>
+            <div class="pathsteps">${path ? path.map((id, i) => `${i ? '<span class="arrow">—</span>' : ''}<button data-pathnode="${id}">${esc(N.get(id).name)}</button>`).join('') : 'このデータと絞り込み条件では接続経路がありません。'}</div>
+            <p class="note">接続列は矢印の向きを問わない地図上の最短経路です。各関係の結晶学的な意味は、矢印の詳細に記載しています。</p>
+        </section>`);
+    function redrawPeer(changed) {
+        comparisonViews.filter(view => view !== changed).forEach(view => view.draw());
+    }
+    const panels = $('modalBody').querySelectorAll('.comparisonmodel');
+    comparisonViews = [];
+    panels.forEach((panel, i) => {
+        comparisonViews.push(mountModelPanel(panel, models[i], {
+            camera: comparisonViews[0]?.camera,
+            onCameraChange: redrawPeer,
+        }));
+    });
+    $('compareReset').onclick = () => comparisonViews[0]?.reset();
+}
 
-function renderSources() { $('sources').innerHTML = Object.entries(DATA.sources).map(([id, s]) => `<article class="sourcecard" id="source-${id}"><div class="sourceid">[${id}]</div><div><h3>${esc(s.title)}</h3><p>${esc(s.author)} · ${s.year}<br>${esc(s.edition)}</p><p>${esc(s.coverage)}</p>${s.filename ? `<div class="filehint">${esc(s.filename)}</div>` : ''}<div id="sourcePage-${id}" class="sourcepage" hidden></div></div><div class="sourceactions">${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">公開PDFを開く ↗</a>` : `<button data-pdf="${id}">お手元のPDFを関連付ける</button><input type="file" accept="application/pdf,.pdf" id="pdf-${id}" data-pdffile="${id}" hidden><span id="pdfStatus-${id}" class="muted smalltext">未関連付け · ローカル処理</span>`}</div></article>`).join(''); }
+function routes() { openModal(`構造をたどる${ROUTES.length}の学習ルート`, `<p class="muted smalltext" style="margin-bottom:17px">各構造名からカードへ移動します。学習の順番であって、連続した相転移の順番ではありません。</p><div class="routecards">${ROUTES.map(r => `<div class="routecard"><h3>${r.title}</h3><p>${r.desc}</p><div class="row">${r.ids.map(id => `<button data-pathnode="${id}">${esc(N.get(id).name)} ↗</button>`).join('')}</div></div>`).join('')}</div>`); }
 
-function openSource(id, p) { const s = DATA.sources[id]; if (!s)
-    return; const page = Number(p) + s.offset; if (s.url || PDFS[id]) {
+function renderSources() {
+    $('sources').innerHTML = Object.entries(DATA.sources).map(([id, source]) => `
+        <article class="sourcecard" id="source-${id}">
+            <div class="sourceid">[${id}]</div>
+            <div><h3>${esc(source.citation ?? source.title)}</h3>
+                ${source.citation ? '' : `<p>${esc(source.author)} · ${esc(source.year)}<br>${esc(source.edition)}</p>`}
+                <p>${esc(source.coverage)}</p>
+                <div id="sourcePage-${id}" class="sourcepage" hidden></div>
+            </div>
+            <div class="sourceactions">
+                ${source.article ? `<a href="${esc(source.article)}" target="_blank" rel="noopener">ウェブ資料 ↗</a>` : ''}
+                ${source.url ? `<a href="${esc(source.url)}" target="_blank" rel="noopener">公開PDFを開く ↗</a>` : ''}
+                ${source.filename ? `<button data-pdf="${id}">お手元のPDFを関連付ける</button>
+                    <input type="file" accept="application/pdf,.pdf" id="pdf-${id}" data-pdffile="${id}" hidden>
+                    <span id="pdfStatus-${id}" class="muted smalltext">未関連付け · ローカル処理</span>` : ''}
+            </div>
+        </article>`).join('');
+}
+
+function openSource(id, p, page) { const s = DATA.sources[id]; if (!s)
+    return; if (s.url || PDFS[id]) {
     window.open((PDFS[id] || s.url).split('#')[0] + '#page=' + page, '_blank', 'noopener');
     return;
 } if (!$('modalBackdrop').hidden)
@@ -316,7 +404,7 @@ document.addEventListener('click', ev => { const b = ev.target.closest('button,a
     family(N.get(d.pathnode).family);
     selectNode(d.pathnode, false);
 } if (d.source)
-    openSource(d.source, Number(d.page)); if (d.pdf)
+    openSource(d.source, Number(d.page), Number(d.pdfpage)); if (d.pdf)
     $('pdf-' + d.pdf).click(); if (d.openlab) {
     state.lab = d.openlab;
     state.subVisible = [true, true, true, true];
@@ -417,11 +505,13 @@ document.addEventListener('change', ev => { if (ev.target.dataset.sub !== undefi
 
 ['tetraSlider', 'octaSlider'].forEach(id => $(id).addEventListener('input', () => { state.t = Number($('tetraSlider').value); state.o = Number($('octaSlider').value); state.occPreset = null; updateOccupancy(); }));
 
-$('exportBtn').onclick = () => { const blob = new Blob([JSON.stringify(DATA, null, 2)], { type: 'application/json;charset=utf-8' }), u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = 'crystal-atlas-data-v1.json'; a.click(); setTimeout(() => URL.revokeObjectURL(u), 1500); toast('出典を含む構造・関係データを書き出しました。'); };
+$('exportBtn').onclick = () => { const blob = new Blob([JSON.stringify(DATA, null, 2)], { type: 'application/json;charset=utf-8' }), u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = `crystal-atlas-data-v${DATA.version}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(u), 1500); toast('出典を含む構造・関係データを書き出しました。'); };
 
 $('nodeCount').textContent = DATA.nodes.length;
 
 $('edgeCount').textContent = DATA.edges.length;
+
+$('sourceCount').textContent = Object.keys(DATA.sources).length;
 
 $('strictCount').textContent = DATA.edges.filter(e => e.strict).length;
 
@@ -451,4 +541,4 @@ new ResizeObserver(() => { if (state.tab === 'explore' && state.view === 'map')
 requestAnimationFrame(fitMap);
 
 // Expose only read-only diagnostics useful for validating the embedded dataset.
-window.atlasDiagnostics = () => ({ nodes: DATA.nodes.length, edges: DATA.edges.length, strict: DATA.edges.filter(e => e.strict).length, shownNodes: visibleNodes.length, shownEdges: visibleEdges.length, selected: state.selected, family: state.family, tab: state.tab, models: DATA.nodes.filter(n => n.model).length });
+window.atlasDiagnostics = () => ({ nodes: DATA.nodes.length, edges: DATA.edges.length, strict: DATA.edges.filter(e => e.strict).length, shownNodes: visibleNodes.length, shownEdges: visibleEdges.length, selected: state.selected, family: state.family, tab: state.tab, models: DATA.nodes.filter(n => n.model || Object.hasOwn(DATA.models, n.id)).length });

@@ -1076,5 +1076,103 @@ export const edges = [
       }
     ],
     "undirected": true
+  },
+  {
+    "id": "e63",
+    "a": "nacl",
+    "b": "pyrite",
+    "kind": "analogy",
+    "label": "S₂ 対を点として見る",
+    "desc": "S₂ ダンベルの中点を一つのサイトとして数えると、Fe と中点は岩塩型の二つの副格子に対応します。",
+    "refs": [
+      {
+        "s": "BS",
+        "p": 294,
+        "sec": "Fig. 3j"
+      },
+      {
+        "s": "AW",
+        "p": 613,
+        "sec": "第17章"
+      }
+    ]
+  },
+  {
+    "id": "e64",
+    "a": "pyrite",
+    "b": "marcasite",
+    "kind": "analogy",
+    "label": "FeS₂ の二つの多形",
+    "desc": "どちらも FeS₆ 八面体と S₂ 対を持ちます。黄鉄鉱の頂点共有に対し、白鉄鉱には稜共有の八面体鎖があります。",
+    "refs": [
+      {
+        "s": "AW",
+        "p": 614,
+        "sec": "Fig. 17.4"
+      }
+    ],
+    "undirected": true
+  },
+  {
+    "id": "e65",
+    "a": "nias",
+    "b": "ni2in",
+    "kind": "occupation",
+    "label": "金属サイトの追加",
+    "desc": "NiAs 型に相当する In の AB 積層と Ni の八面体占有に加え、In 層内の三角孔を Ni が占有します。",
+    "refs": [
+      {
+        "s": "BS",
+        "p": 296,
+        "sec": "Fig. 4e"
+      }
+    ]
+  },
+  {
+    "id": "e66",
+    "a": "baal4",
+    "b": "thcr2si2",
+    "kind": "ordering",
+    "label": "4d と 4e の元素を分ける",
+    "desc": "BaAl₄ の 4d・4e を Cr・Si が占有します。どちらも I4/mmm で、二つのサイトは親構造ですでに独立しています。",
+    "refs": [
+      {
+        "s": "SP",
+        "sec": "§3 · BaAl₄ の規則化"
+      },
+      {
+        "s": "AF",
+        "sec": "BaAl₄ 型と三元派生型"
+      }
+    ]
+  },
+  {
+    "id": "e67",
+    "a": "baal4",
+    "b": "cabe2ge2",
+    "kind": "ordering",
+    "label": "Be–Ge 層を交互に配列",
+    "desc": "CaBe₂Ge₂ では四面体中心の元素が異なる二種類の配位層が現れ、空間群は P4/nmm です。",
+    "refs": [
+      {
+        "s": "AF",
+        "sec": "BaAl₄ 型と三元派生型"
+      }
+    ]
+  },
+  {
+    "id": "e68",
+    "a": "thcr2si2",
+    "b": "cabe2ge2",
+    "kind": "stacking",
+    "label": "122型の層配列を比較",
+    "desc": "ThCr₂Si₂ 型では同じ種類の配位層が繰り返されます。CaBe₂Ge₂ 型では四面体中心の元素が層ごとに変わります。",
+    "refs": [
+      {
+        "s": "AF",
+        "sec": "BaAl₄ 型と三元派生型"
+      }
+    ],
+    "undirected": true
   }
 ];

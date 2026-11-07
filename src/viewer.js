@@ -1,8 +1,38 @@
-/** Canvas crystal viewer; models are idealized sites, not experimental CIFs. */
+/** Canvas crystal viewer for schematic and source-derived unit cells. */
 import { LABPRESETS } from "./data/presets.js";
+import { coordinateModels } from "./data/models.js";
 
 // Balls visualize sites, not effective radii.
 export const SITE_COLORS = ['#73d9dd', '#efba77', '#b7a1ed', '#ef91ba'];
+const MODEL_COLORS = [...SITE_COLORS, '#b6d478', '#78aaf5', '#e88b79', '#85d1ac'];
+const DEFAULT_CAMERA = { x: -.34, y: .62, zoom: 1 };
+const CELL_CORNERS = [
+    [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
+    [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1],
+];
+const CELL_EDGES = [
+    [0, 1], [0, 2], [0, 4], [1, 3], [1, 5], [2, 3],
+    [2, 6], [3, 7], [4, 5], [4, 6], [5, 7], [6, 7],
+];
+
+function modelFromCoordinates(model) {
+    const [a, b, c, alpha, beta, gamma] = model.parameters;
+    const [ca, cb, cg] = [alpha, beta, gamma].map(angle => Math.cos(angle * Math.PI / 180));
+    const sg = Math.sin(gamma * Math.PI / 180);
+    const cy = (ca - cb * cg) / sg;
+    const cell = [[a, 0, 0], [b * cg, b * sg, 0], [c * cb, c * cy, c * Math.sqrt(1 - cb * cb - cy * cy)]];
+    const atoms = model.groups.flatMap(({ occupants, positions }, site) => {
+        const el = Object.keys(occupants).join('/');
+        const occupancy = Object.values(occupants).reduce((sum, value) => sum + value, 0);
+        return positions.map(f => ({ f, el, site, occupancy }));
+    });
+    let colors;
+    if (model.groups.length > MODEL_COLORS.length) {
+        const species = [...new Set(model.groups.map(group => Object.keys(group.occupants).join('/')))];
+        colors = model.groups.map(group => modelColor(species.indexOf(Object.keys(group.occupants).join('/'))));
+    }
+    return { ...model, cell, atoms: expanded(atoms), colors };
+}
 
 const FTRANS = [[0, 0, 0], [0, .5, .5], [.5, 0, .5], [.5, .5, 0]];
 
@@ -25,7 +55,8 @@ export function fourFCC(p, showVacancy = false) { const ats = []; p.els.forEach(
     return; for (const t of FTRANS)
     ats.push({ f: ORIGINS[i].map((v, j) => (v + t[j]) % 1), el: el || '□', site: i, vacant: !el }); }); return { atoms: expanded(ats), cell: [[1, 0, 0], [0, 1, 0], [0, 0, 1]], caption: p.label }; }
 
-export function modelFor(id) { const preset = LABPRESETS.find(p => p.id === id); if (preset && id !== 'bcc' && id !== 'b2')
+export function modelFor(id) { if (Object.hasOwn(coordinateModels, id))
+    return modelFromCoordinates(coordinateModels[id]); const preset = LABPRESETS.find(p => p.id === id); if (preset && id !== 'bcc' && id !== 'b2')
     return fourFCC(preset); let cell = [[1, 0, 0], [0, 1, 0], [0, 0, 1]], ats = []; const atom = (f, el, site) => ats.push({ f, el, site }); if (id === 'bcc' || id === 'b2') {
     atom([0, 0, 0], id === 'bcc' ? 'W' : 'Cs', 0);
     atom([.5, .5, .5], id === 'bcc' ? 'W' : 'Cl', id === 'bcc' ? 0 : 1);
@@ -65,24 +96,83 @@ else if (id === 'rutile') {
     [[u, u, 0], [1 - u, 1 - u, 0], [.5 + u, .5 - u, .5], [.5 - u, .5 + u, .5]].forEach(f => atom(f, 'O', 1));
 } return { atoms: expanded(ats), cell }; }
 
+export function modelColor(site, model) {
+    return model?.colors?.[site] ?? MODEL_COLORS[site % MODEL_COLORS.length];
+}
+
 export class CrystalView {
-    constructor(canvas, large = false) { this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.large = large; this.angleX = -.34; this.angleY = .62; this.zoom = 1; this.model = null; this.visible = [true, true, true, true]; this.labels = false; this.pointer = null; this.touches = new Map(); this.pinch = null; this.abort = new AbortController(); const opt = { signal: this.abort.signal }; canvas.addEventListener('pointerdown', e => { canvas.setPointerCapture(e.pointerId); this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY }); this.pointer = { x: e.clientX, y: e.clientY }; if (this.touches.size === 2) {
-        const [a, b] = [...this.touches.values()];
-        this.pinch = Math.hypot(a.x - b.x, a.y - b.y);
-    } }, opt); canvas.addEventListener('pointermove', e => { if (!this.touches.has(e.pointerId))
-        return; this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY }); if (this.touches.size === 2) {
-        const [a, b] = [...this.touches.values()];
-        let d = Math.hypot(a.x - b.x, a.y - b.y);
-        if (this.pinch)
-            this.zoom = Math.max(.6, Math.min(2, this.zoom * d / this.pinch));
-        this.pinch = d;
+    constructor(canvas, large = false, { camera = { ...DEFAULT_CAMERA }, onCameraChange } = {}) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.large = large;
+        this.camera = camera;
+        this.onCameraChange = onCameraChange;
+        this.model = null;
+        this.visible = [true, true, true, true];
+        this.labels = false;
         this.pointer = null;
+        this.touches = new Map();
+        this.pinch = null;
+        this.abort = new AbortController();
+        const opt = { signal: this.abort.signal };
+        canvas.addEventListener('pointerdown', e => {
+            canvas.setPointerCapture(e.pointerId);
+            this.pointer = { x: e.clientX, y: e.clientY };
+            this.touches.set(e.pointerId, this.pointer);
+            if (this.touches.size === 2) this.pinch = this.touchDistance();
+        }, opt);
+        canvas.addEventListener('pointermove', e => {
+            if (!this.touches.has(e.pointerId)) return;
+            const point = { x: e.clientX, y: e.clientY };
+            this.touches.set(e.pointerId, point);
+            if (this.touches.size === 2) {
+                const distance = this.touchDistance();
+                if (this.pinch) this.changeZoom(distance / this.pinch);
+                this.pinch = distance;
+                this.pointer = null;
+            } else if (this.pointer) {
+                this.camera.y += (point.x - this.pointer.x) * .008;
+                this.camera.x += (point.y - this.pointer.y) * .008;
+                this.pointer = point;
+                this.cameraChanged();
+            }
+        }, opt);
+        const end = e => {
+            this.touches.delete(e.pointerId);
+            this.pointer = this.touches.values().next().value ?? null;
+            this.pinch = null;
+        };
+        canvas.addEventListener('pointerup', end, opt);
+        canvas.addEventListener('pointercancel', end, opt);
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            this.changeZoom(Math.exp(-e.deltaY * .001));
+        }, { ...opt, passive: false });
+        canvas.addEventListener('keydown', e => {
+            const move = { ArrowLeft: [0, -.15], ArrowRight: [0, .15], ArrowUp: [-.15, 0], ArrowDown: [.15, 0] }[e.key];
+            if (!move) return;
+            e.preventDefault();
+            this.camera.x += move[0];
+            this.camera.y += move[1];
+            this.cameraChanged();
+        }, opt);
+        this.ro = new ResizeObserver(() => this.draw());
+        this.ro.observe(canvas);
+    }
+    touchDistance() {
+        const [a, b] = this.touches.values();
+        return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+    changeZoom(factor) {
+        this.camera.zoom = Math.max(.6, Math.min(2, this.camera.zoom * factor));
+        this.cameraChanged();
+    }
+    cameraChanged() {
         this.draw();
-        return;
-    } if (!this.pointer)
-        return; this.angleY += (e.clientX - this.pointer.x) * .008; this.angleX += (e.clientY - this.pointer.y) * .008; this.pointer = { x: e.clientX, y: e.clientY }; this.draw(); }, opt); const end = e => { this.touches.delete(e.pointerId); this.pointer = null; this.pinch = null; }; canvas.addEventListener('pointerup', end, opt); canvas.addEventListener('pointercancel', end, opt); canvas.addEventListener('wheel', e => { e.preventDefault(); this.zoom = Math.max(.6, Math.min(2, this.zoom * Math.exp(-e.deltaY * .001))); this.draw(); }, { ...opt, passive: false }); this.ro = new ResizeObserver(() => this.draw()); this.ro.observe(canvas); }
+        this.onCameraChange?.(this);
+    }
     set(model) { this.model = model; this.draw(); }
-    reset() { this.angleX = -.34; this.angleY = .62; this.zoom = 1; this.draw(); }
+    reset() { Object.assign(this.camera, DEFAULT_CAMERA); this.cameraChanged(); }
     destroy() { this.abort.abort(); this.ro.disconnect(); }
     draw() {
         if (!this.model || !this.ctx)
@@ -99,37 +189,46 @@ export class CrystalView {
         c.setTransform(dpr, 0, 0, dpr, 0, 0);
         c.clearRect(0, 0, w, h);
         const basis = this.model.cell;
-        const extent = Math.max(...basis.map(v => Math.hypot(...v)));
-        const scale = Math.min(w * .49, h * .42) * this.zoom / extent;
-        const cy = h * .52;
-        const project = f => { let v = [0, 0, 0]; for (let i = 0; i < 3; i++)
-            for (let j = 0; j < 3; j++)
-                v[j] += (f[i] - .5) * basis[i][j]; const ca = Math.cos(this.angleY), sa = Math.sin(this.angleY), cb = Math.cos(this.angleX), sb = Math.sin(this.angleX); const x = v[0] * ca + v[2] * sa, z = -v[0] * sa + v[2] * ca, y = v[1] * cb - z * sb, zz = v[1] * sb + z * cb; const persp = 3.7 / (3.7 + zz / extent); return { x: w / 2 + x * scale * persp, y: cy - y * scale * persp, z: zz, r: persp }; };
+        const { x: angleX, y: angleY, zoom } = this.camera;
+        const centered = f => [0, 1, 2].map(axis =>
+            basis.reduce((value, vector, i) => value + (f[i] - .5) * vector[axis], 0));
+        const diameter = 2 * Math.max(...CELL_CORNERS.map(f => Math.hypot(...centered(f))));
+        const scale = .85 * Math.min(w, h) * zoom / diameter;
+        const cosY = Math.cos(angleY), sinY = Math.sin(angleY);
+        const cosX = Math.cos(angleX), sinX = Math.sin(angleX);
+        const project = f => {
+            const [cartX, cartY, cartZ] = centered(f);
+            const x = cartX * cosY + cartZ * sinY;
+            const depth = -cartX * sinY + cartZ * cosY;
+            const y = cartY * cosX - depth * sinX;
+            const z = cartY * sinX + depth * cosX;
+            const perspective = 3.7 / (3.7 + z / diameter);
+            return { x: w / 2 + x * scale * perspective, y: h / 2 - y * scale * perspective, z, r: perspective };
+        };
         // Subtle ground glow (visual only).
         let grd = c.createRadialGradient(w / 2, h * .76, 3, w / 2, h * .76, w * .35);
         grd.addColorStop(0, 'rgba(75,154,167,.09)');
         grd.addColorStop(1, 'rgba(0,0,0,0)');
         c.fillStyle = grd;
         c.fillRect(0, 0, w, h);
-        const corners = [];
-        for (let x = 0; x < 2; x++)
-            for (let y = 0; y < 2; y++)
-                for (let z = 0; z < 2; z++)
-                    corners.push([x, y, z]);
-        const segs = [];
-        for (let i = 0; i < 8; i++)
-            for (let j = i + 1; j < 8; j++)
-                if (corners[i].reduce((s, v, k) => s + Math.abs(v - corners[j][k]), 0) === 1)
-                    segs.push([project(corners[i]), project(corners[j])]);
+        const corners = CELL_CORNERS.map(project);
         c.strokeStyle = '#58798b';
         c.lineWidth = 1;
         c.globalAlpha = .7;
-        segs.forEach(([a, b]) => { c.beginPath(); c.moveTo(a.x, a.y); c.lineTo(b.x, b.y); c.stroke(); });
+        c.beginPath();
+        for (const [start, end] of CELL_EDGES) {
+            const a = corners[start], b = corners[end];
+            c.moveTo(a.x, a.y);
+            c.lineTo(b.x, b.y);
+        }
+        c.stroke();
         c.globalAlpha = 1;
         const atoms = this.model.atoms.filter(a => this.visible[a.site] !== false).map(a => ({ ...a, p: project(a.f) })).sort((a, b) => b.p.z - a.p.z);
+        const maxRadius = this.large ? 9.6 : 6.5;
+        const radius = Math.max(2.8, Math.min(maxRadius, Math.min(w, h) / (4 * Math.sqrt(this.model.atoms.length))));
         for (const a of atoms) {
-            const p = a.p, rad = (a.vacant ? 3.6 : (this.large ? 9.6 : 6.5)) * p.r * this.zoom;
-            const color = SITE_COLORS[a.site % 4];
+            const p = a.p, rad = (a.vacant ? 3.6 : radius) * p.r * zoom;
+            const color = modelColor(a.site, this.model);
             if (a.vacant) {
                 c.globalAlpha = .27;
                 c.strokeStyle = color;
@@ -145,6 +244,7 @@ export class CrystalView {
             g.addColorStop(.28, color);
             g.addColorStop(1, '#1a3a50');
             c.fillStyle = g;
+            c.globalAlpha = a.occupancy ?? 1;
             c.beginPath();
             c.arc(p.x, p.y, rad, 0, Math.PI * 2);
             c.fill();

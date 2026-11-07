@@ -49,8 +49,9 @@ def exercise(page, url):
     else:
         page.goto(url)
     page.wait_for_function('typeof window.atlasDiagnostics === "function"')
-    assert page.evaluate('window.atlasDiagnostics().nodes') == 56
-    expect(page.locator('#nodeLayer .node')).to_have_count(10)
+    assert page.evaluate('window.atlasDiagnostics().nodes') == 185
+    assert page.evaluate('window.atlasDiagnostics().models') == 185
+    expect(page.locator('#nodeLayer .node')).to_have_count(11)
     page.locator('#search').fill('L21')
     page.locator('[data-searchnode="heusler"]').click()
     assert page.evaluate('window.atlasDiagnostics().selected') == 'heusler'
@@ -82,21 +83,79 @@ def exercise(page, url):
     page.locator('[data-compare="half"]').click()
     page.locator('#compareOpen').click()
     expect(page.locator('.comparetable')).to_be_visible()
+    expect(page.locator('.comparisonmodel canvas')).to_have_count(2)
     page.keyboard.press('Escape')
     expect(page.locator('#modalBackdrop')).to_be_hidden()
     page.locator('#routesBtn').click()
-    expect(page.locator('.routecard')).to_have_count(6)
+    expect(page.locator('.routecard')).to_have_count(11)
     page.locator('#closeModal').click()
     page.locator('[data-tab="guide"]').click()
-    expect(page.locator('.sourcecard')).to_have_count(5)
+    expect(page.locator('.sourcecard')).to_have_count(11)
     with page.expect_download() as result:
         page.locator('#exportBtn').click()
     exported = json.loads(Path(result.value.path()).read_text())
-    assert len(exported['nodes']) == 56 and len(exported['edges']) == 62
+    assert len(exported['nodes']) == 185 and len(exported['edges']) == 199
+    assert exported['models']['defectfluorite']['kind'] == 'average'
     page.locator('[data-tab="explore"]').click()
     page.locator('[data-family="fcc"]').click()
     expect(page.locator('#map')).to_be_visible()
+    page.locator('#search').fill('BaAl4')
+    page.locator('[data-searchnode="baal4"]').click()
+    page.locator('#inspector [data-relation="e66"]').click()
+    expect(page.locator('#inspector a.refchip').first).to_have_attribute('href', 'https://doi.org/10.1515/znb-2021-0022')
+    page.locator('[data-comparepair="baal4,thcr2si2"]').click()
+    expect(page.locator('.comparisonrelations article').first).to_contain_text('4d・4e')
+    page.keyboard.press('Escape')
     assert not errors, errors
+
+
+def exercise_expanded_catalog(page):
+    page.locator('#search').fill('Ba3SrTa2O9')
+    page.locator('[data-searchnode="bast"]').click()
+    expect(page.locator('#inspector canvas')).to_be_visible()
+    expect(page.locator('#inspector h2')).to_contain_text('1:2 規則型')
+    page.locator('#search').fill('KMgF3')
+    page.locator('[data-searchnode="kmgf3"]').click()
+    page.locator('#inspector [data-source="G"][data-page="185"]').click()
+    expect(page.locator('#sourcePage-G')).to_contain_text('PDF 196ページ')
+    expect(page.locator('#source-G h3')).to_contain_text('Pergamon Press, Oxford, 1969')
+    page.locator('[data-tab="explore"]').click()
+    page.locator('#search').fill('CaWO4')
+    page.locator('[data-searchnode="scheelite"]').click()
+    page.locator('#inspector [data-source="GI"][data-page="107"]').click()
+    expect(page.locator('#sourcePage-GI')).to_contain_text('PDF 111ページ')
+    expect(page.locator('#source-GI h3')).to_contain_text('Structure and Properties of Inorganic Solids')
+    page.locator('[data-tab="explore"]').click()
+
+
+def exercise_model_comparison(page, label):
+    page.locator('#search').fill('defect fluorite')
+    page.locator('[data-searchnode="defectfluorite"]').click()
+    expect(page.locator('#inspector .modelcaption').first).to_contain_text('平均構造')
+    page.locator('#inspector .modeldetails summary').click()
+    expect(page.locator('#inspector .modelsites')).to_contain_text('O 7/8 / 空孔 1/8')
+    page.locator('#inspector [data-relation="e37"]').click()
+    page.locator('[data-comparepair="pyrochlore,defectfluorite"]').click()
+    canvas = page.locator('.comparisonmodel canvas')
+    expect(canvas).to_have_count(2)
+    read_pixels = 'canvases => canvases.map(canvas => canvas.toDataURL())'
+    initial = canvas.evaluate_all(read_pixels)
+    canvas.first.press('ArrowRight')
+    rotated = canvas.evaluate_all(read_pixels)
+    assert all(a != b for a, b in zip(initial, rotated))
+    page.locator('#compareReset').click()
+    assert canvas.evaluate_all(read_pixels) == initial
+    expect(page.locator('.comparisonrelations article').first).to_contain_text('局所の配列を平均化')
+    page.locator('.comparisonmodel').last.locator('summary').click()
+    initial = canvas.last.evaluate('canvas => canvas.toDataURL()')
+    page.locator('.comparisonmodel').last.get_by_label('8c O 7/8 / 空孔 1/8').uncheck()
+    assert canvas.last.evaluate('canvas => canvas.toDataURL()') != initial
+    page.locator('.comparisonmodel').last.get_by_label('8c O 7/8 / 空孔 1/8').check()
+    expect(page.locator('#toast')).to_be_hidden()
+    page.locator('.modal').evaluate('element => { element.scrollTop = 0; }')
+    page.screenshot(path=str(OUT / f'{label}-comparison.png'))
+    page.keyboard.press('Escape')
+    expect(page.locator('#modalBackdrop')).to_be_hidden()
 
 
 def main():
@@ -120,11 +179,14 @@ def main():
             for label, target in [('modular', URL), ('standalone', (ROOT / 'dist/crystal-atlas.html').as_uri())]:
                 page = browser.new_page(viewport={'width': 1440, 'height': 1050}, accept_downloads=True)
                 exercise(page, target)
+                exercise_expanded_catalog(page)
+                exercise_model_comparison(page, label)
                 page.screenshot(path=str(OUT / f'{label}-desktop.png'), full_page=True)
                 page.locator('[data-tab="lab"]').click()
                 page.screenshot(path=str(OUT / f'{label}-lab.png'), full_page=True)
                 page.set_viewport_size({'width': 390, 'height': 844})
                 page.locator('[data-tab="explore"]').click()
+                exercise_model_comparison(page, f'{label}-mobile')
                 page.screenshot(path=str(OUT / f'{label}-mobile.png'), full_page=True)
                 assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
                 page.close()

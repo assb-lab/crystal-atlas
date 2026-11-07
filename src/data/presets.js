@@ -107,6 +107,31 @@ export const ROUTES = [
       "doubleperov",
       "rp1"
     ]
+  },
+  {
+    "title": "07　BaTiO₃ の4つの多形",
+    "desc": "立方晶から、極性変位の方向が違う正方・斜方・菱面体晶へ。",
+    "ids": ["bt-cubic", "batio3", "bt-ortho", "bt-rhombo"]
+  },
+  {
+    "title": "08　Bサイトを1:1と1:2に並べる",
+    "desc": "Galasso の複合ペロブスカイトを、B層の繰り返しで比較する。",
+    "ids": ["doubleperov", "bamgwo6", "bast", "bamt", "elpasolite"]
+  },
+  {
+    "title": "09　同じ三層でも異なる層間",
+    "desc": "RP、Dion–Jacobson、Aurivilliusで三層ブロックの境界を比べる。",
+    "ids": ["rp1", "rp2", "rp3", "rbca2nb3o10", "bi4ti3o12"]
+  },
+  {
+    "title": "10　硫化物の層とCuの占有",
+    "desc": "高温・低温カルコサイトとジゲナイトで、部分占有と長周期を見る。",
+    "ids": ["chalcocite-high", "chalcocite-low", "digenite", "covellite"]
+  },
+  {
+    "title": "11　蛍石のサイトを置き換える",
+    "desc": "Galasso の配置比較から、孤立八面体・規則化・酸素変位を見分ける。",
+    "ids": ["fluorite", "k2ptcl6", "scheelite", "zro2-c", "zro2-t", "zro2-m"]
   }
 ];
 

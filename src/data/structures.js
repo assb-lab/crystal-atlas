@@ -1497,5 +1497,120 @@ export const nodes = [
     "host": "Cl / アニオン",
     "aliases": "CdCl2 cadmium chloride",
     "note": "表示上は「連結の比較」領域に置いた。ルチルから派生するという意味ではない。"
+  },
+  {
+    "id": "pyrite",
+    "name": "黄鉄鉱型",
+    "formula": "FeS₂ · C2",
+    "family": "fcc",
+    "sg": "Pa−3 · 205",
+    "desc": "Fe と S₂ ダンベルの中心が、岩塩型と同じ位置関係をつくります。",
+    "packing": "Fe と S₂ の岩塩型配列",
+    "coord": "Fe: S₆ 八面体",
+    "link": "FeS₆ の頂点共有。S–S 対を含む。",
+    "refs": [
+      {
+        "s": "BS",
+        "p": 294,
+        "sec": "Fig. 3j"
+      },
+      {
+        "s": "AW",
+        "p": 614,
+        "sec": "Fig. 17.4a"
+      }
+    ],
+    "x": 440,
+    "y": 585,
+    "aliases": "FeS2 pyrite パイライト 黄鉄鉱"
+  },
+  {
+    "id": "ni2in",
+    "name": "Ni₂In型",
+    "formula": "Ni₂In · B8₂",
+    "family": "hcp",
+    "sg": "P6₃/mmc · 194",
+    "desc": "NiAs 型の八面体サイトを埋めた配置に加えて、In 層内の三角孔にも Ni が入ります。",
+    "packing": "In の AB 積層",
+    "coord": "八面体サイトの Ni と層内の Ni",
+    "link": "NiAs 型に独立した金属サイトを追加。",
+    "refs": [
+      {
+        "s": "BS",
+        "p": 296,
+        "sec": "Fig. 4e"
+      }
+    ],
+    "x": 180,
+    "y": 95,
+    "aliases": "Ni2In B82"
+  },
+  {
+    "id": "baal4",
+    "name": "BaAl₄型",
+    "formula": "BaAl₄ · D1₃",
+    "family": "bcc",
+    "sg": "I4/mmm · 139",
+    "desc": "体心正方晶の親構造。Al が二つの独立したサイト 4d と 4e を占めます。",
+    "packing": "体心正方晶 tI10",
+    "coord": "Ba 2a / Al 4d・4e",
+    "link": "Al の二つのサイトを異なる元素に割り当てると三元規則型につながる。",
+    "refs": [
+      {
+        "s": "SP",
+        "sec": "§3 · BaAl₄ の規則化"
+      },
+      {
+        "s": "AF",
+        "sec": "BaAl₄ 型と三元派生型"
+      }
+    ],
+    "x": 440,
+    "y": 735,
+    "aliases": "BaAl4 barium aluminide"
+  },
+  {
+    "id": "thcr2si2",
+    "name": "ThCr₂Si₂型",
+    "formula": "ThCr₂Si₂ · 122",
+    "family": "bcc",
+    "sg": "I4/mmm · 139",
+    "desc": "BaAl₄ 型の 4d と 4e をそれぞれ Cr と Si が占める三元規則型です。",
+    "packing": "Th 層と Cr–Si 層",
+    "coord": "Th 2a / Cr 4d / Si 4e",
+    "link": "CrSi₄ 四面体が稜を共有する層。",
+    "refs": [
+      {
+        "s": "SP",
+        "sec": "§3 · BaAl₄ の規則化"
+      },
+      {
+        "s": "AF",
+        "sec": "BaAl₄ 型と三元派生型"
+      }
+    ],
+    "x": 180,
+    "y": 735,
+    "aliases": "ThCr2Si2 122"
+  },
+  {
+    "id": "cabe2ge2",
+    "name": "CaBe₂Ge₂型",
+    "formula": "CaBe₂Ge₂ · 122",
+    "family": "bcc",
+    "sg": "P4/nmm · 129",
+    "desc": "Be が中心の層と Ge が中心の層が交互に並ぶ、BaAl₄ 型に関連する三元構造です。",
+    "packing": "Ca 層を挟む二種類の Be–Ge 層",
+    "coord": "Be と Ge がそれぞれ二つの独立サイトを占める。",
+    "link": "四面体の中心と頂点を交替した層が積層。",
+    "refs": [
+      {
+        "s": "AF",
+        "sec": "BaAl₄ 型と三元派生型"
+      }
+    ],
+    "x": 700,
+    "y": 735,
+    "aliases": "CaBe2Ge2 122"
   }
 ];

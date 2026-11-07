@@ -20,7 +20,7 @@ const server = createServer(async (req, res) => {
   try {
     const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
     const parts = pathname.split('/');
-    if (parts.some(p => p.startsWith('.') || ['node_modules', 'scripts', 'tests'].includes(p))) {
+    if (parts.some(p => p.startsWith('.') || ['node_modules', 'refs', 'scripts', 'tests'].includes(p))) {
       return reply(403, 'Forbidden');
     }
     const filename = await realpath(resolve(root, '.' + (pathname.endsWith('/') ? pathname + 'index.html' : pathname)));
