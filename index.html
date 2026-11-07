@@ -54,8 +54,20 @@
 </section>
 <main>
 <section id="explore" class="tabpage">
-<div class="workspace">
-<aside class="sidebar" aria-label="構造の検索と絞り込み">
+<div class="workspacetools">
+<button id="toggleSidebar" class="small" aria-controls="structureSidebar" aria-expanded="true">分類・検索</button>
+<div class="segmented" aria-label="マップの範囲">
+<button id="focusGraph" class="active" aria-pressed="true">周辺を探索</button>
+<button id="overviewGraph" aria-pressed="false">全体図</button>
+</div>
+<button id="exploreBack" class="small" disabled aria-label="前の探索の中心に戻る">← 戻る</button>
+<button id="exploreSelection" class="small">選択構造から探索</button>
+<span class="spacer"></span>
+<button id="toggleInspector" class="small" aria-controls="inspectorPanel" aria-expanded="false">構造の詳細</button>
+</div>
+<div class="workspace" id="workspace">
+<button id="sidebarBackdrop" class="sidebarbackdrop" aria-label="サイドバーを閉じる" hidden></button>
+<aside class="sidebar" id="structureSidebar" aria-label="構造の検索と絞り込み">
 <div class="searchzone">
 <div class="label">構造を探す</div>
 <div class="searchbox">
@@ -94,6 +106,7 @@
 <p>矢印は構造の記述上の関係です。実際の反応・相転移経路とは限りません。</p>
 </div>
 </aside>
+<div id="leftResize" class="sidebarresize" role="separator" tabindex="0" aria-label="分類サイドバーの幅" aria-orientation="vertical" aria-valuemin="170" aria-valuemax="320" aria-valuenow="205" aria-controls="structureSidebar"></div>
 <section class="graphpanel" aria-label="結晶構造関係グラフ">
 <div class="graphbar">
 <div>
@@ -109,6 +122,8 @@
 <button id="listMode">一覧</button>
 </div>
 </div>
+<div class="explorationbar" id="explorationBar"><span id="explorationTitle"></span><button id="collapseGroups" class="small" hidden>枝をまとめる</button></div>
+<div id="explorationGroups" class="explorationgroups" hidden></div>
 <div id="classificationInfo" class="classificationinfo" hidden></div>
 <div class="graphstage" id="graphStage">
 <div class="graphtopnote" id="graphNote">
@@ -132,9 +147,11 @@
 <span class="zoomtext" id="zoomText">100%</span>
 <button id="zoomOut" aria-label="縮小">−</button>
 <button id="fitMap">全体に合わせる</button>
-<button id="readMap">読みやすい幅</button>
+<button id="readMap">選択位置へ</button>
+<button id="mapLeft" aria-label="左の構造へ">←</button>
 <button id="mapUp" aria-label="上の構造へ">↑</button>
 <button id="mapDown" aria-label="下の構造へ">↓</button>
+<button id="mapRight" aria-label="右の構造へ">→</button>
 </div>
 <div class="maphint">ドラッグで移動 · ホイール／ピンチで拡縮</div>
 </div>
@@ -146,8 +163,12 @@
 <span class="second">分類は一つの見方。横断的な関係は詳細からたどれます。</span>
 </div>
 </section>
+<div id="rightResize" class="sidebarresize" role="separator" tabindex="0" aria-label="詳細サイドバーの幅" aria-orientation="vertical" aria-valuemin="280" aria-valuemax="480" aria-valuenow="320" aria-controls="inspectorPanel" hidden></div>
+<section id="inspectorPanel" class="inspectorpanel" hidden>
+<div class="inspectorbar"><span>構造・関係の詳細</span><button id="closeInspector" class="small flat" aria-label="詳細を閉じる">閉じる ×</button></div>
 <aside class="inspector" id="inspector" aria-label="選択した構造の詳細" aria-live="polite">
 </aside>
+</section>
 </div>
 <div class="comparetray" id="compareTray" hidden>
 <span>比較する構造</span>

@@ -4,7 +4,7 @@ import { KINDS, ROUTES, LABPRESETS, OCCPRESETS } from "./data/presets.js";
 import { esc, frac, normalize, shortestPath, sourcePdfPage } from "./utils.js";
 import { CrystalView, modelFor, fourFCC, SITE_COLORS } from "./viewer.js";
 import { modelPanelHTML, mountModelPanel, viewDirectionControls } from "./model-panels.js";
-import { derivationPositions } from "./flow-layout.js";
+import { derivationPositions, neighborhoodGraph, relationshipCurve } from "./flow-layout.js";
 
 'use strict';
 
@@ -13,7 +13,89 @@ const $ = id => document.getElementById(id), N = new Map(DATA.nodes.map(n => [n.
 const state = { tab: 'explore', family: 'fcc', flow: null, collection: null, selected: 'fcc', edge: null, strict: false, view: 'map', comp: [], lab: 'heusler', subVisible: [true, true, true, true], t: .125, o: .5, occPreset: 'spinel' };
 
 let modelView = null, labView = null, comparisonViews = [], visibleNodes = [], visibleEdges = [], lastFocus = null;
-let graphPositions = new Map();
+let graphPositions = new Map(), graphGroups = [];
+const exploration = { mode: 'focus', anchor: 'fcc', expanded: new Set(), history: [] };
+const sidebarState = { left: innerWidth > 900, right: false, leftWidth: 205, rightWidth: 320 };
+try {
+    const saved = JSON.parse(localStorage.getItem('atlas-workspace') ?? '{}');
+    for (const [key, min, max] of [['leftWidth', 170, 320], ['rightWidth', 280, 480]]) {
+        if (Number.isFinite(saved[key])) sidebarState[key] = Math.max(min, Math.min(max, saved[key]));
+    }
+    if (innerWidth > 900) for (const side of ['left', 'right']) if (typeof saved[side] === 'boolean') sidebarState[side] = saved[side];
+} catch { /* Storage is optional, including file:// and private browsing. */ }
+
+function updateSidebars() {
+    const narrow = innerWidth <= 900;
+    $('structureSidebar').hidden = !sidebarState.left;
+    $('inspectorPanel').hidden = !sidebarState.right;
+    $('leftResize').hidden = !sidebarState.left || narrow;
+    $('rightResize').hidden = !sidebarState.right || narrow;
+    $('sidebarBackdrop').hidden = !narrow || !(sidebarState.left || sidebarState.right);
+    document.querySelector('.graphpanel').inert = narrow && (sidebarState.left || sidebarState.right);
+    $('workspace').style.setProperty('--sidebar-width', `${sidebarState.leftWidth}px`);
+    $('workspace').style.setProperty('--inspector-width', `${sidebarState.rightWidth}px`);
+    for (const [side, id] of [['left', 'toggleSidebar'], ['right', 'toggleInspector']]) {
+        $(id).setAttribute('aria-expanded', String(sidebarState[side]));
+        $(id).classList.toggle('active', sidebarState[side]);
+        $(side + 'Resize').setAttribute('aria-valuenow', sidebarState[side + 'Width']);
+    }
+    try { localStorage.setItem('atlas-workspace', JSON.stringify(sidebarState)); } catch { /* Optional preference. */ }
+    if (sidebarState.right) requestAnimationFrame(() => modelView?.draw());
+}
+
+function setSidebar(side, open) {
+    sidebarState[side] = open;
+    if (open && innerWidth <= 900) sidebarState[side === 'left' ? 'right' : 'left'] = false;
+    updateSidebars();
+}
+
+function initWorkspace() {
+    updateSidebars();
+    $('toggleSidebar').onclick = () => setSidebar('left', !sidebarState.left);
+    $('toggleInspector').onclick = () => setSidebar('right', !sidebarState.right);
+    const close = () => {
+        const toggle = sidebarState.right ? 'toggleInspector' : 'toggleSidebar';
+        sidebarState.left = sidebarState.right = false; updateSidebars(); $(toggle).focus();
+    };
+    $('sidebarBackdrop').onclick = close;
+    $('closeInspector').onclick = () => { setSidebar('right', false); $('toggleInspector').focus(); };
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && innerWidth <= 900 && !$('globalSearch').open && $('modalBackdrop').hidden) close();
+    });
+    let wasNarrow = innerWidth <= 900;
+    window.addEventListener('resize', () => {
+        const narrow = innerWidth <= 900;
+        if (narrow !== wasNarrow) {
+            if (narrow) sidebarState.left = sidebarState.right = false;
+            wasNarrow = narrow; updateSidebars(); requestAnimationFrame(readMap);
+        }
+        requestAnimationFrame(readMap);
+    });
+    for (const [side, min, max, sign] of [['left', 170, 320, 1], ['right', 280, 480, -1]]) {
+        const handle = $(side + 'Resize');
+        let drag = null;
+        const resize = value => { sidebarState[side + 'Width'] = Math.max(min, Math.min(max, value)); updateSidebars(); };
+        handle.addEventListener('pointerdown', event => {
+            if (event.button !== 0) return;
+            drag = { x: event.clientX, width: sidebarState[side + 'Width'] };
+            handle.setPointerCapture(event.pointerId); event.preventDefault();
+        });
+        handle.addEventListener('pointermove', event => { if (drag) resize(drag.width + sign * (event.clientX - drag.x)); });
+        for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) handle.addEventListener(event, () => { drag = null; });
+        handle.addEventListener('keydown', event => {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+            resize(event.key === 'Home' ? min : event.key === 'End' ? max : sidebarState[side + 'Width'] + (event.key === 'ArrowRight' ? 20 : -20) * sign);
+        });
+    }
+}
+
+function resetExploration(mode = 'focus') {
+    exploration.mode = mode;
+    exploration.anchor = state.selected;
+    exploration.expanded.clear();
+    exploration.history = [];
+}
 
 const PDFS = {};
 
@@ -40,7 +122,7 @@ function tab(id) { state.tab = id; document.querySelectorAll('.tabpage').forEach
 } }
 
 function family(id, fit = true) { state.flow = null; state.collection = null; state.family = id; state.edge = null; const nodes = DATA.nodes.filter(n => id === 'all' || n.family === id); if (!nodes.some(n => n.id === state.selected))
-    state.selected = nodes.find(n => n.id === id)?.id || nodes[0]?.id; renderFamily(); renderGraph(); renderInspector(); if (fit)
+    state.selected = nodes.find(n => n.id === id)?.id || nodes[0]?.id; resetExploration(); renderFamily(); renderGraph(); renderInspector(); if (fit)
     requestAnimationFrame(readMap); }
 
 function selectNode(id, jump = true) { if (!N.has(id))
@@ -48,18 +130,19 @@ function selectNode(id, jump = true) { if (!N.has(id))
     state.strict = false;
     $('strictFilter').checked = false;
     toast('この構造の関係を表示するため、絞り込みを解除しました。');
-} state.selected = id; state.edge = null; if (jump && (state.flow || state.collection ? !visibleNodes.some(n => n.id === id) : state.family !== 'all' && N.get(id).family !== state.family)) {
+} state.selected = id; state.edge = null; if (jump && (state.flow || state.collection ? !getVisible().nodes.some(n => n.id === id) : state.family !== 'all' && N.get(id).family !== state.family)) {
     state.flow = null;
     state.collection = null;
     state.family = N.get(id).family;
     renderFamily();
 }
+    if (jump) resetExploration(exploration.mode);
     renderGraph(); renderInspector(); $('searchResults').innerHTML = ''; if (jump) requestAnimationFrame(readMap); if (state.tab !== 'explore')
-    tab('explore'); if (innerWidth <= 700)
-    requestAnimationFrame(() => $('inspector').scrollIntoView({ behavior: 'smooth', block: 'start' })); }
+    tab('explore'); if (innerWidth <= 900)
+    setSidebar('right', true); }
 
 function selectEdge(id) { const e = visibleEdges.find(edge => edge.id === id) ?? E.get(id); if (!e)
-    return; state.edge = id; renderGraph(); renderEdge(e); }
+    return; state.edge = id; renderGraph(); renderEdge(e); setSidebar('right', true); }
 
 function openClassification(id) {
     const collection = DATA.collections.find(item => item.id === id);
@@ -71,6 +154,7 @@ function openClassification(id) {
     state.collection = collection;
     state.flow = null;
     state.selected = collection.ids[0];
+    resetExploration();
     state.edge = null;
     state.strict = false;
     $('strictFilter').checked = false;
@@ -94,7 +178,7 @@ function renderClassification() {
     const links = [...(parent ? [parent] : []), ...children];
     const { table } = collection;
     panel.innerHTML = `
-        ${links.length ? `<div class="row">${links.map(item => `<button class="small" data-classification="${esc(item.id)}">${esc(item.short ?? item.title)}</button>`).join('')}</div>` : ''}
+        ${links.length ? `<details class="classificationnavigation"><summary>関連する分類（${links.length}）</summary><div class="row">${links.map(item => `<button class="small" data-classification="${esc(item.id)}">${esc(item.short ?? item.title)}</button>`).join('')}</div></details>` : ''}
         ${table ? `<details><summary>${esc(table.title)}</summary>
             <div class="tablewrap"><table><thead><tr>${table.headings.map(heading => `<th scope="col">${esc(heading)}</th>`).join('')}<th scope="col">収録例</th></tr></thead>
             <tbody>${table.rows.map(row => `<tr>${row.cells.map(cell => `<td>${esc(cell)}</td>`).join('')}<td>${row.ids.map(id => `<button class="small flat" data-jump="${esc(id)}">${esc(N.get(id).name)}</button>`).join('') || '—'}</td></tr>`).join('')}</tbody></table></div>
@@ -118,7 +202,7 @@ function renderFamily() {
     const selection = state.flow ?? state.collection;
     if (selection) {
         $('familyTitle').textContent = selection.title;
-        $('familySubtitle').innerHTML = `${esc(selection.desc)} <span class="refchips">${refHTML(selection.refs)}</span>`;
+        $('familySubtitle').innerHTML = `<details class="scopedescription"><summary>説明・出典</summary>${esc(selection.desc)} <span class="refchips">${refHTML(selection.refs)}</span></details>`;
         return;
     }
     $('familyTitle').textContent = state.family === 'all' ? '全構造の派生フロー' : fs[state.family].name;
@@ -147,62 +231,56 @@ function getVisible() {
     return { nodes: state.strict ? nodes.filter(n => linked.has(n.id)) : nodes, edges };
 }
 
-function edgePath(a, b) {
-    const w = 220, h = 86;
-    let p = pos(a), q = pos(b);
-    const dx = q.x - p.x, dy = q.y - p.y;
-    let sx, sy, ex, ey, c1x, c1y, c2x, c2y;
-    if (Math.abs(dy) > 150) {
-        const sign = Math.sign(dy);
-        const side = (p.x + q.x < 0 ? -1 : 1) * (Math.max(...[...graphPositions.values()].map(point => Math.abs(point.x))) + 150);
-        const fromY = p.y + sign * 60, toY = q.y - sign * 60;
-        return {
-            d: `M${p.x},${p.y + sign * 43} V${fromY} H${side} V${toY} H${q.x} V${q.y - sign * 43}`,
-            mx: side, my: (fromY + toY) / 2,
-        };
+function edgePath(a, b, lane = 0) {
+    return relationshipCurve(pos(a), pos(b), graphPositions, lane, exploration.mode === 'focus');
+}
+
+function openGroup(key) {
+    // Other branches remain accessible as chips, without stretching the open branch.
+    exploration.expanded.clear();
+    exploration.expanded.add(key);
+    renderGraph();
+    requestAnimationFrame(readMap);
+    requestAnimationFrame(() => $('collapseGroups').focus());
+}
+
+function renderGroups() {
+    const directionNames = { in: '親側', out: '派生側', compare: '比較・無方向' };
+    for (const group of graphGroups) {
+        if (!graphPositions.has(group.id)) continue;
+        const point = graphPositions.get(group.id), anchor = graphPositions.get(exploration.anchor);
+        const curve = relationshipCurve(anchor, point, graphPositions, 0, true);
+        $('clusterLayer').append(svgEl('path', { d: curve.d, class: 'groupconnector' }));
+        const g = svgEl('g', { class: 'node groupnode', transform: `translate(${point.x - 110},${point.y - 43})`,
+            'data-group': group.key, tabindex: '0', role: 'button',
+            'aria-label': `${directionNames[group.direction]}・${KINDS[group.kind].name}、${group.count}構造・${group.edges.length}関係を展開` });
+        g.append(svgEl('rect', { width: 220, height: 86, rx: 12, class: 'main' }));
+        for (const [text, y, cls] of [[KINDS[group.kind].name, 14, 'title'], [`${directionNames[group.direction]} · ${group.count}構造 / ${group.edges.length}関係`, 39, 'formula'], ['枝を開く ＋', 61, 'sg']]) {
+            const box = svgEl('foreignObject', { x: 14, y, width: 192, height: 20 });
+            const label = document.createElement('div'); label.className = `nodelabel ${cls}`; label.textContent = text;
+            box.append(label); g.append(box);
+        }
+        g.addEventListener('click', () => { if (!panMoved) openGroup(group.key); });
+        g.addEventListener('keydown', event => { if (['Enter', ' '].includes(event.key)) { event.preventDefault(); openGroup(group.key); } });
+        $('nodeLayer').append(g);
     }
-    if (Math.abs(dy) < 72 && Math.abs(dx) > 300) {
-        const top = p.y - 65;
-        return { d: `M${p.x},${p.y - 43} V${top} H${q.x} V${q.y - 43}`, mx: (p.x + q.x) / 2, my: top };
-    }
-    if (Math.abs(dy) < 72) {
-        const s = Math.sign(dx) || 1;
-        sx = p.x + s * w / 2;
-        sy = p.y;
-        ex = q.x - s * w / 2;
-        ey = q.y;
-        const bend = Math.max(28, Math.abs(dx) * .18);
-        c1x = sx + s * bend;
-        c2x = ex - s * bend;
-        c1y = sy;
-        c2y = ey;
-    }
-    else {
-        const s = Math.sign(dy);
-        sx = p.x;
-        sy = p.y + s * h / 2;
-        ex = q.x;
-        ey = q.y - s * h / 2;
-        const k = Math.max(35, Math.abs(ey - sy) * .5);
-        c1x = sx;
-        c1y = sy + s * k;
-        c2x = ex;
-        c2y = ey - s * k;
-    }
-    return { d: `M${sx},${sy} C${c1x},${c1y} ${c2x},${c2y} ${ex},${ey}`, mx: (sx + 3 * c1x + 3 * c2x + ex) / 8, my: (sy + 3 * c1y + 3 * c2y + ey) / 8 };
 }
 
 function renderGraph() {
-    const v = getVisible();
+    const focusedNode = document.activeElement?.dataset.node;
+    const focusedEdge = document.activeElement?.dataset.edge;
+    const scope = getVisible();
+    if (!scope.nodes.some(node => node.id === exploration.anchor)) exploration.anchor = scope.nodes[0]?.id;
+    const v = exploration.mode === 'focus'
+        ? neighborhoodGraph(scope.nodes, scope.edges, exploration.anchor, exploration.expanded) : scope;
+    graphGroups = v.groups ?? [];
     visibleNodes = v.nodes;
     visibleEdges = v.edges;
-    const columns = $('map').clientWidth < 450 ? 1 : $('map').clientWidth < 720 ? 2 : 3;
-    graphPositions = derivationPositions(v.nodes, v.edges, columns);
+    graphPositions = v.positions ?? derivationPositions(v.nodes, v.edges);
     ['clusterLayer', 'edgeLayer', 'nodeLayer', 'edgeLabels'].forEach(id => $(id).replaceChildren());
-    const connected = new Set([state.selected]);
-    visibleEdges.filter(e => e.a === state.selected || e.b === state.selected).forEach(e => { connected.add(e.a); connected.add(e.b); });
-    for (const e of visibleEdges) {
-        const p = edgePath(N.get(e.a), N.get(e.b));
+    renderGroups();
+    for (const [lane, e] of visibleEdges.entries()) {
+        const p = edgePath(N.get(e.a), N.get(e.b), lane % 9);
         const hi = state.edge ? state.edge === e.id : (e.a === state.selected || e.b === state.selected);
         const k = KINDS[e.kind];
         const path = svgEl('path', { d: p.d, class: `edge ${hi ? 'highlight' : ''} ${state.edge === e.id ? 'selected' : ''}`, stroke: k.color, 'stroke-dasharray': k.dash, ...(!e.undirected ? { 'marker-end': `url(#arrow-${e.kind})` } : {}) });
@@ -224,7 +302,7 @@ function renderGraph() {
     }
     for (const n of visibleNodes) {
         const p = pos(n);
-        const g = svgEl('g', { class: `node ${state.selected === n.id && !state.edge ? 'selected' : ''}`, transform: `translate(${p.x - 110},${p.y - 43})`, 'data-node': n.id, tabindex: '0', role: 'button', 'aria-label': `${n.name} ${n.formula}` });
+        const g = svgEl('g', { class: `node ${state.selected === n.id && !state.edge ? 'selected' : ''} ${exploration.mode === 'focus' && exploration.anchor === n.id ? 'anchor' : ''}`, transform: `translate(${p.x - 110},${p.y - 43})`, 'data-node': n.id, tabindex: '0', role: 'button', 'aria-label': `${n.name} ${n.formula}` });
         g.append(svgEl('rect', { width: 220, height: 86, rx: 9, class: 'main' }));
         g.append(svgEl('rect', { x: 0, y: 14, width: 3, height: 24, rx: 1.5, fill: DATA.families[n.family].color, class: 'familystripe' }));
         for (const [kind, text, y, width] of [['title', n.name, 12, state.comp.includes(n.id) ? 179 : 192], ['formula', n.formula, 35, 192], ['sg', n.sg, 57, 192]]) {
@@ -248,9 +326,30 @@ function renderGraph() {
         $('nodeLayer').append(g);
     }
     const cross = DATA.edges.filter(e => (e.a === state.selected || e.b === state.selected) && N.get(e.a).family !== N.get(e.b).family && (!state.strict || e.strict)).length;
-    $('graphNote').innerHTML = `${state.strict ? '<span>群–部分群の確認済み関係のみ</span>' : '<span>上段の親構造から下段の派生へ ↓</span>'}${cross && state.family !== 'all' && !state.flow ? `<span>選択構造に領域をまたぐ関係 ${cross} 件 ↗</span>` : ''}`;
-    $('graphStatus').textContent = `表示 ${visibleNodes.length} 構造 / ${visibleEdges.length} 関係`;
+    const focus = exploration.mode === 'focus';
+    $('graphNote').innerHTML = `<span>${focus && exploration.expanded.has('compare:analogy') ? '比較・無方向の関係（矢印なし）' : focus ? '左：親側 → 中心 → 右：派生側 ／ 下：比較' : '上段の親構造から下段の派生へ ↓'}</span>${state.strict ? '<span>確認済みの群–部分群関係のみ</span>' : ''}${cross && state.family !== 'all' && !state.flow ? `<span>領域をまたぐ関係 ${cross} 件 ↗ 詳細から探索</span>` : ''}`;
+    $('graphStatus').textContent = `表示 ${visibleNodes.length} 構造 / ${visibleEdges.length} 関係${graphGroups.length ? ` ＋ ${graphGroups.length} まとまり` : ''} · 範囲内 ${scope.nodes.length} 構造`;
+    $('explorationTitle').textContent = focus ? `${N.get(exploration.anchor)?.name ?? '該当構造なし'} の周辺` : '派生段階を保った全体図';
+    $('explorationGroups').replaceChildren();
+    if (focus && exploration.expanded.size) for (const group of graphGroups) {
+        const button = document.createElement('button'); button.className = 'small';
+        button.textContent = `${group.direction === 'in' ? '親側・' : ''}${KINDS[group.kind].name} ${group.count}`;
+        button.dataset.branch = group.key; button.onclick = () => openGroup(group.key);
+        $('explorationGroups').append(button);
+    }
+    $('explorationGroups').hidden = !focus || !exploration.expanded.size;
+    $('collapseGroups').hidden = !exploration.expanded.size || !focus;
+    $('exploreBack').disabled = !exploration.history.length;
+    $('exploreSelection').disabled = !state.selected || !scope.nodes.some(node => node.id === state.selected);
+    for (const [id, active] of [['focusGraph', focus], ['overviewGraph', !focus]]) {
+        $(id).classList.toggle('active', active); $(id).setAttribute('aria-pressed', String(active));
+    }
     renderList();
+    if (focusedNode || focusedEdge) {
+        const focused = [...$('viewport').querySelectorAll('[data-node], [data-edge]')]
+            .find(el => focusedNode ? el.dataset.node === focusedNode : el.dataset.edge === focusedEdge);
+        focused?.focus({ preventScroll: true });
+    }
 }
 
 function initDefs() { for (const [key, k] of Object.entries(KINDS)) {
@@ -265,24 +364,40 @@ function applyCam() { $('viewport').setAttribute('transform', `translate(${cam.x
 
 function fitMap() { if (state.tab !== 'explore' || state.view !== 'map')
     return; const r = $('map').getBoundingClientRect(); if (!r.width || !r.height)
-    return; let points = visibleNodes.map(pos); if (!points.length) {
+    return; let points = [...graphPositions.values()]; if (!points.length) {
     cam.x = r.width / 2;
     cam.y = r.height / 2;
     cam.k = 1;
     applyCam();
     return;
-} let x1 = Math.min(...points.map(p => p.x)) - 175, x2 = Math.max(...points.map(p => p.x)) + 175, y1 = Math.min(...points.map(p => p.y)) - 90, y2 = Math.max(...points.map(p => p.y)) + 105; if (state.family === 'all')
-    y1 -= 50; cam.k = Math.min(r.width / (x2 - x1), r.height / (y2 - y1), 1.25) * .96; cam.x = r.width / 2 - (x1 + x2) / 2 * cam.k; cam.y = r.height / 2 - (y1 + y2) / 2 * cam.k; applyCam(); }
+} const bounds = $('viewport').getBBox();
+    const x1 = bounds.x - 25, x2 = bounds.x + bounds.width + 25;
+    const y1 = bounds.y - 55, y2 = bounds.y + bounds.height + 85;
+    cam.k = Math.min(r.width / (x2 - x1), r.height / (y2 - y1), 1.25) * .96;
+    cam.x = r.width / 2 - (x1 + x2) / 2 * cam.k;
+    cam.y = r.height / 2 - (y1 + y2) / 2 * cam.k;
+    applyCam(); }
+
 
 function readMap() {
     if (state.tab !== 'explore' || state.view !== 'map') return;
     const rect = $('map').getBoundingClientRect();
     if (!rect.width || !visibleNodes.length) return;
     const points = [...graphPositions.values()];
+    if (exploration.mode === 'focus') {
+        const x1 = Math.min(...points.map(p => p.x)) - 130, x2 = Math.max(...points.map(p => p.x)) + 130;
+        const y1 = Math.min(...points.map(p => p.y)) - 65, y2 = Math.max(...points.map(p => p.y)) + 65;
+        cam.k = Math.max(.7, Math.min(1.05, (rect.width - 40) / (x2 - x1), (rect.height - 110) / (y2 - y1)));
+        const anchor = graphPositions.get(exploration.anchor);
+        cam.x = rect.width / 2 - ((x2 - x1) * cam.k <= rect.width - 20 ? (x1 + x2) / 2 : anchor.x) * cam.k;
+        cam.y = (rect.height - 20) / 2 - ((y2 - y1) * cam.k <= rect.height - 90 ? (y1 + y2) / 2 : anchor.y) * cam.k;
+        applyCam(); return;
+    }
     const left = Math.min(...points.map(p => p.x)) - 175;
     const right = Math.max(...points.map(p => p.x)) + 175;
-    cam.k = Math.min(1.05, rect.width / (right - left) * .96);
-    cam.x = rect.width / 2 - (left + right) / 2 * cam.k;
+    cam.k = Math.max(.7, Math.min(1.05, rect.width / (right - left) * .96));
+    const center = graphPositions.get(state.selected) ?? graphPositions.get(exploration.anchor);
+    cam.x = rect.width / 2 - (center?.x ?? (left + right) / 2) * cam.k;
     const top = Math.min(...points.map(p => p.y)) - 60;
     const bottom = Math.max(...points.map(p => p.y)) + 60;
     cam.y = (bottom - top) * cam.k <= rect.height - 130
@@ -328,7 +443,7 @@ $('map').addEventListener('pointercancel', endPointer);
 
 $('map').addEventListener('wheel', ev => { ev.preventDefault(); const r = $('map').getBoundingClientRect(); zoom(Math.exp(-ev.deltaY * .0013), ev.clientX - r.left, ev.clientY - r.top); }, { passive: false });
 
-function renderList() { $('listView').innerHTML = `<table class="structuretable"><thead><tr><th>構造・代表組成</th><th>対称性／結晶系</th><th>占有率 T / O</th></tr></thead><tbody>${visibleNodes.map(n => `<tr data-listnode="${n.id}" tabindex="0" class="${state.selected === n.id ? 'selected' : ''}"><td>${esc(n.name)}<small>${esc(n.formula)}</small></td><td>${esc(n.sg)}</td><td class="mono">${n.occ ? n.occ.map(frac).join(' / ') : '—'}</td></tr>`).join('')}</tbody></table>`; }
+function renderList() { $('listView').innerHTML = `<table class="structuretable"><thead><tr><th>構造・代表組成</th><th>対称性／結晶系</th><th>占有率 T / O</th></tr></thead><tbody>${getVisible().nodes.map(n => `<tr data-listnode="${n.id}" tabindex="0" class="${state.selected === n.id ? 'selected' : ''}"><td>${esc(n.name)}<small>${esc(n.formula)}</small></td><td>${esc(n.sg)}</td><td class="mono">${n.occ ? n.occ.map(frac).join(' / ') : '—'}</td></tr>`).join('')}</tbody></table>`; }
 
 function mode(view) { state.view = view; $('graphStage').hidden = view !== 'map'; $('listView').hidden = view !== 'list'; $('mapMode').classList.toggle('active', view === 'map'); $('listMode').classList.toggle('active', view === 'list'); if (view === 'map')
     requestAnimationFrame(readMap); }
@@ -505,7 +620,7 @@ function updateOccupancy(key) { if (key) {
 // Events. All user-supplied strings are rendered as text; there are no remote calls.
 document.addEventListener('click', ev => { const b = ev.target.closest('button,a,tr[data-listnode]'); if (!b)
     return; const d = b.dataset; if (d.backmap)
-    $('graphStage').scrollIntoView({ behavior: 'smooth', block: 'center' }); if (d.tab)
+    setSidebar('right', false); if (d.tab)
     tab(d.tab); if (d.family)
     family(d.family); if (d.classification) openClassification(d.classification); if (d.searchnode) {
     if (b.closest('#globalSearch')) {
@@ -577,6 +692,9 @@ for (const type of ['cancel', 'submit']) {
 }
 $('globalQuery').addEventListener('input', globalSearchResults);
 $('globalSearch').addEventListener('keydown', ev => {
+    if (ev.key === 'Escape') {
+        ev.preventDefault(); ev.stopPropagation(); closeGlobalSearch(); return;
+    }
     const buttons = [...$('globalResults').querySelectorAll('button')];
     if (!buttons.length) return;
     const index = buttons.indexOf(document.activeElement);
@@ -601,6 +719,7 @@ $('sourceFlow').addEventListener('change', ev => {
     state.flow = flow;
     state.collection = null;
     state.selected = E.get(flow.edges[0]).a;
+    resetExploration('overview');
     state.edge = null;
     state.strict = false;
     $('strictFilter').checked = false;
@@ -632,6 +751,23 @@ for (const [id, sign] of [['mapUp', 1], ['mapDown', -1]]) {
         applyCam();
     };
 }
+
+for (const [id, sign] of [['mapLeft', 1], ['mapRight', -1]]) {
+    $(id).onclick = () => { cam.x += sign * $('map').clientWidth * .6; applyCam(); };
+}
+$('focusGraph').onclick = () => { exploration.mode = 'focus'; renderGraph(); requestAnimationFrame(readMap); };
+$('overviewGraph').onclick = () => { exploration.mode = 'overview'; renderGraph(); requestAnimationFrame(readMap); };
+$('collapseGroups').onclick = () => { exploration.expanded.clear(); renderGraph(); requestAnimationFrame(readMap); $('focusGraph').focus(); };
+$('exploreSelection').onclick = () => {
+    if (exploration.anchor !== state.selected) exploration.history.push(exploration.anchor);
+    exploration.anchor = state.selected; exploration.mode = 'focus'; exploration.expanded.clear();
+    renderGraph(); requestAnimationFrame(readMap);
+};
+$('exploreBack').onclick = () => {
+    const id = exploration.history.pop(); if (!id) return;
+    exploration.anchor = id; state.selected = id; state.edge = null; exploration.expanded.clear();
+    renderGraph(); renderInspector(); requestAnimationFrame(readMap);
+};
 
 $('mapMode').onclick = () => mode('map');
 
@@ -715,6 +851,7 @@ $('guideSymRefs').innerHTML = refHTML([{ s: 'M06', p: 216, sec: '§18.3' }, { s:
 $('labSelect').innerHTML = LABPRESETS.map(p => `<option value="${p.id}">${p.label} — ${p.formula}</option>`).join('');
 
 initDefs();
+initWorkspace();
 
 $('sourceFlow').append(...DATA.flows.map(flow => new Option(flow.title, flow.id)));
 for (const group of new Set(DATA.collections.map(collection => collection.group))) {
@@ -735,14 +872,20 @@ renderInspector();
 
 updateOccupancy('spinel');
 
+let previousMapSize = null;
 new ResizeObserver(() => {
-    if (state.tab === 'explore' && state.view === 'map') requestAnimationFrame(() => {
-        renderGraph();
-        readMap();
-    });
-}).observe($('graphStage'));
+    const rect = $('map').getBoundingClientRect();
+    if (rect.width && rect.height && state.tab === 'explore' && state.view === 'map') {
+        if (previousMapSize) {
+            cam.x += (rect.width - previousMapSize.width) / 2;
+            cam.y += (rect.height - previousMapSize.height) / 2;
+            applyCam();
+        }
+        previousMapSize = { width: rect.width, height: rect.height };
+    }
+}).observe($('map'));
 
 requestAnimationFrame(readMap);
 
 // Expose only read-only diagnostics useful for validating the embedded dataset.
-window.atlasDiagnostics = () => ({ nodes: DATA.nodes.length, edges: DATA.edges.length, strict: DATA.edges.filter(e => e.strict).length, shownNodes: visibleNodes.length, shownEdges: visibleEdges.length, collection: state.collection?.id ?? null, selected: state.selected, family: state.family, tab: state.tab, models: DATA.nodes.filter(n => n.model || Object.hasOwn(DATA.models, n.id)).length });
+window.atlasDiagnostics = () => ({ nodes: DATA.nodes.length, edges: DATA.edges.length, strict: DATA.edges.filter(e => e.strict).length, shownNodes: visibleNodes.length, shownEdges: visibleEdges.length, collection: state.collection?.id ?? null, selected: state.selected, exploration: exploration.mode, anchor: exploration.anchor, groups: graphGroups.length, family: state.family, tab: state.tab, models: DATA.nodes.filter(n => n.model || Object.hasOwn(DATA.models, n.id)).length });

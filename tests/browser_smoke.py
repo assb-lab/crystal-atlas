@@ -16,6 +16,36 @@ PORT = int(os.environ.get('ATLAS_TEST_PORT', '4178'))
 URL = f'http://127.0.0.1:{PORT}'
 
 
+def show_sidebar(page):
+    if page.locator('#toggleSidebar').get_attribute('aria-expanded') != 'true':
+        page.locator('#toggleSidebar').click()
+
+
+def show_inspector(page):
+    if page.locator('#toggleInspector').get_attribute('aria-expanded') != 'true':
+        page.locator('#toggleInspector').click()
+
+
+def show_map(page):
+    if page.viewport_size['width'] <= 900:
+        for toggle in ['toggleSidebar', 'toggleInspector']:
+            if page.locator('#' + toggle).get_attribute('aria-expanded') == 'true':
+                page.locator('#' + toggle).click()
+
+
+def search_for(page, value):
+    show_sidebar(page)
+    page.locator('#search').fill(value)
+
+
+def classification(page, value, overview=True):
+    show_sidebar(page)
+    page.locator('#classification').select_option(value)
+    show_map(page)
+    if overview:
+        page.locator('#overviewGraph').click()
+
+
 def exercise(page, url):
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))
@@ -51,8 +81,12 @@ def exercise(page, url):
     page.wait_for_function('typeof window.atlasDiagnostics === "function"')
     assert page.evaluate('window.atlasDiagnostics().nodes') == 291
     assert page.evaluate('window.atlasDiagnostics().models') == 291
-    expect(page.locator('#nodeLayer .node')).to_have_count(16)
-    page.locator('#search').fill('L21')
+    assert page.evaluate('window.atlasDiagnostics().exploration') == 'focus'
+    assert page.locator('[data-group]').count() > 0
+    page.locator('#overviewGraph').click()
+    expect(page.locator('#nodeLayer [data-node]')).to_have_count(16)
+    show_inspector(page)
+    search_for(page, 'L21')
     page.locator('[data-searchnode="heusler"]').click()
     assert page.evaluate('window.atlasDiagnostics().selected') == 'heusler'
     expect(page.locator('#inspector h2')).to_have_text('フルホイスラー型')
@@ -81,7 +115,7 @@ def exercise(page, url):
     expect(page.locator('#tetraValue')).to_have_text('1/4')
     page.locator('[data-tab="explore"]').click()
     page.locator('[data-compare="heusler"]').click()
-    page.locator('#search').fill('MgAgAs')
+    search_for(page, 'MgAgAs')
     page.locator('[data-searchnode="half"]').click()
     page.locator('[data-compare="half"]').click()
     page.locator('#compareOpen').click()
@@ -102,7 +136,7 @@ def exercise(page, url):
     page.locator('[data-tab="explore"]').click()
     page.locator('[data-family="fcc"]').click()
     expect(page.locator('#map')).to_be_visible()
-    page.locator('#search').fill('BaAl4')
+    search_for(page, 'BaAl4')
     page.locator('[data-searchnode="baal4"]').click()
     page.locator('#inspector [data-relation="e66"]').click()
     expect(page.locator('#inspector a.refchip').first).to_have_attribute('href', 'https://doi.org/10.1515/znb-2021-0022')
@@ -113,17 +147,17 @@ def exercise(page, url):
 
 
 def exercise_expanded_catalog(page):
-    page.locator('#search').fill('Ba3SrTa2O9')
+    search_for(page, 'Ba3SrTa2O9')
     page.locator('[data-searchnode="bast"]').click()
     expect(page.locator('#inspector canvas')).to_be_visible()
     expect(page.locator('#inspector h2')).to_contain_text('1:2 規則型')
-    page.locator('#search').fill('KMgF3')
+    search_for(page, 'KMgF3')
     page.locator('[data-searchnode="kmgf3"]').click()
     page.locator('#inspector [data-source="G"][data-page="185"]').click()
     expect(page.locator('#sourcePage-G')).to_contain_text('PDF 196ページ')
     expect(page.locator('#source-G h3')).to_contain_text('Pergamon Press, Oxford, 1969')
     page.locator('[data-tab="explore"]').click()
-    page.locator('#search').fill('CaWO4')
+    search_for(page, 'CaWO4')
     page.locator('[data-searchnode="scheelite"]').click()
     page.locator('#inspector [data-source="GI"][data-page="107"]').click()
     expect(page.locator('#sourcePage-GI')).to_contain_text('PDF 111ページ')
@@ -132,13 +166,13 @@ def exercise_expanded_catalog(page):
 
 
 def exercise_framework_comparison(page):
-    page.locator('#search').fill('Li6PS5Cl')
+    search_for(page, 'Li6PS5Cl')
     page.locator('[data-searchnode="argy-cl"]').click()
     expect(page.locator('#inspector .modelcaption').first).to_contain_text('平均構造')
     page.locator('#inspector .modeldetails summary').click()
     expect(page.locator('#inspector .modelsites')).to_contain_text('48h')
     expect(page.locator('#inspector .modelsites')).to_contain_text('Li 1/2 / 空孔 1/2')
-    page.locator('#search').fill('FAU')
+    search_for(page, 'FAU')
     page.locator('[data-searchnode="zeo-fau"]').click()
     expect(page.locator('#inspector')).to_contain_text('IZA-SCの理想化SiO₂骨格')
     page.locator('#inspector [data-relation="breadth-zeo-lta-zeo-fau"]').click()
@@ -177,6 +211,7 @@ def exercise_search_axes_and_flows(page, label):
     page.locator('#sourceFlow').select_option('rocksalt')
     page.screenshot(path=str(OUT / f'{label}-okamoto-flow.png'), full_page=True)
     page.locator('[data-family="ion-ox"]').click()
+    page.locator('#overviewGraph').click()
     title = page.locator('[data-node="nzp"] .nodelabel.title')
     expect(title).to_have_text('NaZr₂(PO₄)₃ (NZP)')
     assert title.evaluate("el => getComputedStyle(el).textOverflow") == 'ellipsis'
@@ -191,7 +226,7 @@ def exercise_search_axes_and_flows(page, label):
 
 def exercise_classifications(page, label):
     page.locator('[data-tab="explore"]').click()
-    page.locator('#classification').select_option('perov-a-order')
+    classification(page, 'perov-a-order')
     assert page.evaluate('window.atlasDiagnostics().collection') == 'perov-a-order'
     expect(page.locator('#nodeLayer [data-node="camntio6"]')).to_have_count(1)
     page.locator('#nodeLayer [data-node="camntio6"]').dispatch_event('click')
@@ -199,14 +234,16 @@ def exercise_classifications(page, label):
     expect(page.locator('#inspector')).to_contain_text('a⁺a⁺c⁻')
     expect(page.locator('#inspector .modelcaption').last).to_contain_text('293 K')
     page.screenshot(path=str(OUT / f'{label}-a-site-order.png'), full_page=True)
-    page.locator('#classification').select_option('glazer')
-    page.locator('#classificationInfo summary').click()
+    classification(page, 'glazer')
+    show_map(page)
+    page.locator('#classificationInfo details:has(table) > summary').click()
     expect(page.locator('#classificationInfo tbody tr')).to_have_count(15)
     expect(page.locator('#classificationInfo')).to_contain_text('P4₂/nmc')
-    assert page.locator('#graphStage').bounding_box()['height'] >= 300
+    assert page.locator('#graphStage').bounding_box()['height'] >= 200
     page.screenshot(path=str(OUT / f'{label}-glazer.png'), full_page=True)
-    page.locator('#classification').select_option('delmas')
-    page.locator('#classificationInfo summary').click()
+    classification(page, 'delmas')
+    show_map(page)
+    page.locator('#classificationInfo details:has(table) > summary').click()
     expect(page.locator('#classificationInfo tbody tr')).to_have_count(10)
     page.locator('#classificationInfo [data-jump="licoo2-o4"]').click()
     assert page.evaluate('window.atlasDiagnostics().collection') == 'delmas'
@@ -214,19 +251,18 @@ def exercise_classifications(page, label):
     expect(page.locator('#inspector')).to_contain_text('プロトタイプ')
     page.screenshot(path=str(OUT / f'{label}-delmas.png'), full_page=True)
     for collection in ['honeycomb','honey-lithium','pyrochlores','pyro-beta','galasso','galasso-11']:
-        page.locator('#classification').select_option(collection)
+        classification(page, collection)
         assert page.evaluate('window.atlasDiagnostics().collection') == collection
         assert page.locator('#nodeLayer .node').count() > 0
         assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
     page.screenshot(path=str(OUT / f'{label}-galasso.png'), full_page=True)
-    page.locator('#classification').select_option('perovskites')
-    positions=page.locator('#nodeLayer .node').evaluate_all(
-        "nodes => nodes.map(n => { const m=n.transform.baseVal.consolidate().matrix; return [m.e,m.f]; })")
-    rows={}
-    for x,y in positions:
-        rows.setdefault(y,[]).append(x)
-    assert max(map(len,rows.values())) <= 3
-    assert max(x for x,y in positions)-min(x for x,y in positions) <= 510
+    classification(page, 'perovskites')
+    page.locator('#focusGraph').click()
+    assert page.evaluate('window.atlasDiagnostics().groups') > 0
+    assert page.evaluate('window.atlasDiagnostics().shownNodes') < 73
+    page.locator('#listMode').click()
+    expect(page.locator('#listView tbody tr')).to_have_count(73)
+    page.locator('#mapMode').click()
     page.locator('#readMap').click()
     assert float(page.locator('#zoomText').inner_text().strip('%')) >= 60
     page.locator('#mapDown').click()
@@ -240,8 +276,86 @@ def exercise_classifications(page, label):
     page.keyboard.press('Escape')
 
 
+def exercise_workspace(page, label):
+    classification(page, 'perovskites', overview=False)
+    if page.locator('#toggleInspector').get_attribute('aria-expanded') == 'true':
+        page.locator('#toggleInspector').click()
+    assert page.locator('#nodeLayer [data-group]').count() >= 4
+    # A summary is navigational grouping and never claims a directed relation.
+    expect(page.locator('#clusterLayer [marker-end]')).to_have_count(0)
+    group = page.locator('[data-group="out:ordering"]')
+    group.focus()
+    page.keyboard.press('Enter')
+    expect(page.locator('#collapseGroups')).to_be_focused()
+    expect(page.locator('#nodeLayer [data-node]')).to_have_count(6)
+    assert page.locator('#explorationGroups button').count() >= 3
+    camera = page.locator('#viewport').get_attribute('transform')
+    page.locator('[data-node="namn7o12"]').click()
+    assert page.locator('#viewport').get_attribute('transform') == camera
+    assert page.evaluate('window.atlasDiagnostics().anchor') == 'perov'
+    page.locator('#exploreSelection').click()
+    assert page.evaluate('window.atlasDiagnostics().anchor') == 'namn7o12'
+    page.locator('#exploreBack').click()
+    assert page.evaluate('window.atlasDiagnostics().anchor') == 'perov'
+    page.locator('[data-group="compare:analogy"]').click()
+    assert page.locator('#edgeLayer .edge').count() == 5
+    expect(page.locator('#edgeLayer .edge[marker-end]')).to_have_count(0)
+    page.locator('#collapseGroups').click()
+    page.locator('[data-group="out:ordering"]').click()
+    curves = page.locator('#edgeLayer .edge').evaluate_all('edges => edges.map(e => e.getAttribute("d"))')
+    assert all('C' in d and 'H' not in d and 'V' not in d for d in curves)
+    def camera_center():
+        page.wait_for_timeout(100)
+        return page.evaluate("""() => {
+            const m=document.querySelector('#viewport').transform.baseVal.consolidate().matrix;
+            const r=document.querySelector('#map').getBoundingClientRect();
+            return [(r.width/2-m.e)/m.a, (r.height/2-m.f)/m.d, m.a];
+        }""")
+    before = camera_center()
+    page.locator('#toggleInspector').click()
+    after = camera_center()
+    assert all(abs(a-b) < 0.1 for a,b in zip(before,after)), (before,after)
+    left = page.locator('#leftResize')
+    old_width = int(left.get_attribute('aria-valuenow'))
+    left.focus()
+    page.keyboard.press('ArrowRight')
+    expect(left).to_have_attribute('aria-valuenow', str(old_width+20))
+    after = camera_center()
+    assert all(abs(a-b) < 0.1 for a,b in zip(before,after)), (before,after)
+    handle = page.locator('#rightResize').bounding_box()
+    page.mouse.move(handle['x']+3, handle['y']+100)
+    page.mouse.down()
+    page.mouse.move(handle['x']-37, handle['y']+100)
+    page.mouse.up()
+    expect(page.locator('#rightResize')).to_have_attribute('aria-valuenow','360')
+    expect(page.locator('#inspector canvas')).to_be_visible()
+    assert page.locator('#map').bounding_box()['width'] > 700
+    page.screenshot(path=str(OUT / f'{label}-workspace.png'))
+    page.locator('#toggleSidebar').click()
+    page.locator('#toggleInspector').click()
+    assert page.locator('#map').bounding_box()['width'] >= page.viewport_size['width']-1
+    for width in [1024,768,390,320]:
+        page.set_viewport_size({'width':width,'height':844})
+        page.wait_for_timeout(120)
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
+        assert page.locator('#map').bounding_box()['height'] >= 200
+        show_sidebar(page)
+        expect(page.locator('#classification')).to_be_visible()
+        if width <= 900:
+            show_inspector(page)
+            expect(page.locator('#structureSidebar')).to_be_hidden()
+            page.keyboard.press('Escape')
+            expect(page.locator('#inspectorPanel')).to_be_hidden()
+        else:
+            page.locator('#toggleSidebar').click()
+    page.screenshot(path=str(OUT / f'{label}-workspace-mobile.png'))
+    page.set_viewport_size({'width':1440,'height':1050})
+    show_sidebar(page)
+    show_inspector(page)
+
+
 def exercise_model_comparison(page, label):
-    page.locator('#search').fill('defect fluorite')
+    search_for(page, 'defect fluorite')
     page.locator('[data-searchnode="defectfluorite"]').click()
     expect(page.locator('#inspector .modelcaption').first).to_contain_text('平均構造')
     page.locator('#inspector .modeldetails summary').click()
@@ -303,6 +417,7 @@ def main():
                 exercise_search_axes_and_flows(page, label)
                 exercise_classifications(page, label)
                 exercise_model_comparison(page, label)
+                exercise_workspace(page, label)
                 page.screenshot(path=str(OUT / f'{label}-desktop.png'), full_page=True)
                 page.locator('[data-tab="lab"]').click()
                 page.screenshot(path=str(OUT / f'{label}-lab.png'), full_page=True)

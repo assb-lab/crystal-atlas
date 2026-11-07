@@ -6,7 +6,7 @@ import { DATA } from '../src/data/atlas.js';
 import { KINDS, LABPRESETS, OCCPRESETS, ROUTES } from '../src/data/presets.js';
 import { esc, frac, normalize, shortestPath, sourcePdfPage } from '../src/utils.js';
 import { directionAngles, expanded, fourFCC, modelFor } from '../src/viewer.js';
-import { derivationPositions } from '../src/flow-layout.js';
+import { derivationPositions, neighborhoodGraph, relationshipCurve } from '../src/flow-layout.js';
 
 const ids = new Set(DATA.nodes.map(n => n.id));
 
@@ -247,20 +247,54 @@ test('classification membership, hierarchy, tables, labels and references resolv
   for (const id of Object.keys(DATA.structureLabels)) assert.ok(ids.has(id), id);
 });
 
-test('wide ranks wrap into bounded columns while every arrow still flows down', () => {
-  for (const columns of [1,2,3]) {
-    for (const c of DATA.collections) {
-      const nodes = c.ids.map(id => DATA.nodes.find(n => n.id === id));
-      const edges = DATA.edges.filter(e => c.ids.includes(e.a) && c.ids.includes(e.b));
-      const positions = derivationPositions(nodes, edges, columns);
-      const rows = new Map();
-      for (const pos of positions.values()) {
-        rows.set(pos.y, (rows.get(pos.y) ?? 0) + 1);
-        assert.ok(Math.abs(pos.x) <= (columns - 1) * 255 / 2);
+test('overview keeps a wide generation on one rank without folding siblings into descendants', () => {
+  const nodes = ['root', 'a', 'b', 'c', 'd', 'e', 'grandchild'].map((id, x) => ({ id, x }));
+  const edges = ['a', 'b', 'c', 'd', 'e'].map(b => ({ a: 'root', b }));
+  edges.push({ a: 'e', b: 'grandchild' });
+  const positions = derivationPositions(nodes, edges);
+  assert.equal(new Set(['a', 'b', 'c', 'd', 'e'].map(id => positions.get(id).y)).size, 1);
+  assert.ok(positions.get('grandchild').y > positions.get('a').y);
+  assert.equal(new Set([...positions.values()].map(p => `${p.x},${p.y}`)).size, nodes.length);
+  for (const collection of DATA.collections) {
+    const members = DATA.nodes.filter(n => collection.ids.includes(n.id));
+    const relations = DATA.edges.filter(e => collection.ids.includes(e.a) && collection.ids.includes(e.b));
+    const layout = derivationPositions(members, relations);
+    for (const e of relations.filter(e => !e.undirected)) assert.ok(layout.get(e.a).y < layout.get(e.b).y, e.id);
+  }
+});
+
+test('neighborhood summaries account for every real relation and preserve direction when expanded', () => {
+  for (const anchor of DATA.nodes) {
+    const incident = DATA.edges.filter(e => e.a === anchor.id || e.b === anchor.id);
+    const initial = neighborhoodGraph(DATA.nodes, DATA.edges, anchor.id);
+    const cases = [initial, ...initial.groups.map(group => neighborhoodGraph(DATA.nodes, DATA.edges, anchor.id, new Set([group.key])))];
+    for (const view of cases) {
+      const represented = [...view.edges, ...view.groups.flatMap(group => group.edges)];
+      assert.deepEqual(represented.map(e => e.id).sort(), incident.map(e => e.id).sort(), anchor.id);
+      assert.equal(new Set(view.nodes.map(n => n.id)).size, view.nodes.length);
+      for (const edge of view.edges) {
+        assert.ok(view.nodes.some(n => n.id === edge.a) && view.nodes.some(n => n.id === edge.b));
+        if (!edge.undirected) assert.ok(view.positions.get(edge.a).x < view.positions.get(edge.b).x, edge.id);
       }
-      for (const count of rows.values()) assert.ok(count <= columns);
-      for (const e of edges.filter(e => !e.undirected)) assert.ok(positions.get(e.a).y < positions.get(e.b).y, e.id);
+      for (const group of view.groups) {
+        assert.equal(group.count, new Set(group.edges.map(e => e.a === anchor.id ? e.b : e.a)).size);
+      }
+      const points = [...view.positions.values()];
+      for (let i = 0; i < points.length; i++) for (let j = i + 1; j < points.length; j++) {
+        assert.ok(Math.abs(points[i].x - points[j].x) >= 220 || Math.abs(points[i].y - points[j].y) >= 86, anchor.id);
+      }
     }
+  }
+  assert.equal(neighborhoodGraph([], [], 'missing').nodes.length, 0);
+});
+
+test('connector routes are finite cubic curves including long and same-rank relations', () => {
+  const positions = derivationPositions(DATA.nodes, DATA.edges);
+  for (const [i, edge] of DATA.edges.entries()) {
+    const curve = relationshipCurve(positions.get(edge.a), positions.get(edge.b), positions, i % 9);
+    assert.match(curve.d, /^M.*C/);
+    assert.doesNotMatch(curve.d, /[HV]|NaN|Infinity/);
+    assert.ok(Number.isFinite(curve.mx) && Number.isFinite(curve.my));
   }
 });
 
