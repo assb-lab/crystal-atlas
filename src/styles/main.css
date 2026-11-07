@@ -2218,6 +2218,12 @@ body:has(#explore:not([hidden])) #root > main {
   display: flex;
   flex-direction: column;
 }
+/* The workspace spans the whole window: sidebars sit on the window edges at any width.
+   (Lab and guide keep the 1500px reading measure of .tabpage.) */
+#explore.tabpage {
+  max-width: none;
+  margin: 0;
+}
 .workspacetools {
   display: flex;
   flex-wrap: wrap;
