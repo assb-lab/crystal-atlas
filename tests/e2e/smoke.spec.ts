@@ -452,3 +452,21 @@ for (const [label, url] of Object.entries(TARGETS)) {
     expect(errors).toEqual([]);
   });
 }
+
+for (const [label, url] of Object.entries(TARGETS)) {
+  test(`${label}: on wide windows the sidebars sit on the window edges`, async ({ page }) => {
+    await page.setViewportSize({ width: 2200, height: 1000 });
+    await page.goto(url);
+    await page.waitForFunction(() => typeof window.atlasDiagnostics === "function");
+    await showSidebar(page);
+    await showInspector(page);
+    const gaps = await page.evaluate(() => {
+      const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+      return [box("#structureSidebar").left, window.innerWidth - box("#inspectorPanel").right];
+    });
+    expect(gaps).toEqual([0, 0]);
+    // Reading pages keep their measure.
+    await page.locator('[data-tab="guide"]').click();
+    expect((await page.locator("#guide").boundingBox())!.width).toBeLessThanOrEqual(1500);
+  });
+}
