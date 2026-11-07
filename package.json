@@ -1,15 +1,40 @@
 {
   "name": "crystal-atlas",
-  "version": "1.0.0",
+  "version": "1.6.0",
   "private": true,
   "description": "Interactive atlas of crystal-structure relationships",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/serve.mjs",
-    "start": "node scripts/serve.mjs",
-    "build": "node scripts/build.mjs",
-    "test": "node --test tests/*.test.mjs",
-    "check": "npm test && npm run build"
+    "dev": "vp dev",
+    "build": "tsc -b && vp build && vp build --mode standalone",
+    "preview": "vp preview",
+    "test": "vp test run",
+    "check": "vp check",
+    "e2e": "playwright test",
+    "verify": "vp check && vp test run && pnpm build && playwright test"
   },
-  "engines": { "node": ">=22" }
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "~7.0.2",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "12.18.0",
+      "onFail": "download"
+    }
+  },
+  "engines": {
+    "node": ">=26"
+  }
 }
