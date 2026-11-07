@@ -66,8 +66,8 @@ const pixels = (canvases: Element[]) =>
 async function exercise(page: Page, url: string) {
   await page.goto(url);
   await page.waitForFunction(() => typeof window.atlasDiagnostics === "function");
-  expect(await diag(page, "nodes")).toBe(291);
-  expect(await diag(page, "models")).toBe(291);
+  expect(await diag(page, "nodes")).toBe(220);
+  expect(await diag(page, "models")).toBe(220);
   expect(await diag(page, "exploration")).toBe("overview");
   await expect(page.locator("[data-group]")).toHaveCount(0);
   await page.locator("#overviewGraph").click();
@@ -110,14 +110,14 @@ async function exercise(page: Page, url: string) {
   await page.keyboard.press("Escape");
   await expect(page.locator("#modalBackdrop")).toBeHidden();
   await page.locator("#routesBtn").click();
-  await expect(page.locator(".routecard")).toHaveCount(16);
+  await expect(page.locator(".routecard")).toHaveCount(12);
   await page.locator("#closeModal").click();
   await page.locator('[data-tab="guide"]').click();
-  await expect(page.locator(".sourcecard")).toHaveCount(32);
+  await expect(page.locator(".sourcecard")).toHaveCount(25);
   const download = page.waitForEvent("download");
   await page.locator("#exportBtn").click();
   const exported = JSON.parse(await readFile((await (await download).path())!, "utf8"));
-  expect([exported.nodes.length, exported.edges.length]).toEqual([291, 365]);
+  expect([exported.nodes.length, exported.edges.length]).toEqual([220, 283]);
   expect(exported.models.defectfluorite.kind).toBe("average");
   await page.locator('[data-tab="explore"]').click();
   await page.locator('[data-family="fcc"]').click();
@@ -155,22 +155,20 @@ async function exerciseExpandedCatalog(page: Page) {
   await page.locator('[data-tab="explore"]').click();
 }
 
-async function exerciseFrameworkComparison(page: Page) {
-  await searchFor(page, "Li6PS5Cl");
-  await page.locator('[data-searchnode="argy-cl"]').click();
+/** Averaged partial occupancy in a site table, then a side-by-side comparison of MnO₂ tunnels. */
+async function exerciseAverageAndTunnels(page: Page) {
+  await searchFor(page, "nacoo2-p2");
+  await page.locator('[data-searchnode="nacoo2-p2"]').click();
   await expect(page.locator("#inspector .modelcaption").first()).toContainText("平均構造");
   await page.locator("#inspector .modeldetails summary").click();
-  await expect(page.locator("#inspector .modelsites")).toContainText("48h");
-  await expect(page.locator("#inspector .modelsites")).toContainText("Li 1/2 / 空孔 1/2");
-  await searchFor(page, "FAU");
-  await page.locator('[data-searchnode="zeo-fau"]').click();
-  await expect(page.locator("#inspector")).toContainText("IZA-SCの理想化SiO₂骨格");
-  await page.locator('#inspector [data-relation="breadth-zeo-lta-zeo-fau"]').click();
-  await page.locator('[data-comparepair="zeo-lta,zeo-fau"]').click();
+  await expect(page.locator("#inspector .modelsites")).toContainText("6h");
+  await expect(page.locator("#inspector .modelsites")).toContainText("Na 0.146 / 空孔 0.854");
+  await searchFor(page, "pyrolusite");
+  await page.locator('[data-searchnode="pyrolusite"]').click();
+  await page.locator('#inspector [data-relation="breadth-pyrolusite-ramsdellite"]').click();
+  await page.locator('[data-comparepair="pyrolusite,ramsdellite"]').click();
   await expect(page.locator(".comparisonmodel canvas")).toHaveCount(2);
-  await expect(page.locator(".comparisonrelations article").first()).toContainText(
-    "LTAの8員環とFAUの12員環",
-  );
+  await expect(page.locator(".comparisonrelations article").first()).toContainText("1×2トンネル");
   await page.keyboard.press("Escape");
 }
 
@@ -178,7 +176,7 @@ async function exerciseSearchAxesAndFlows(page: Page, label: string) {
   await page.locator('[data-tab="guide"]').click();
   await page.keyboard.press("Meta+k");
   await expect(page.locator("#globalSearch")).toBeVisible();
-  await expect(page.locator("#globalResults button")).toHaveCount(291);
+  await expect(page.locator("#globalResults button")).toHaveCount(220);
   await page.locator("#globalQuery").fill("Li2PbO3");
   await expect(page.locator("#globalResults button").first()).toContainText("Li₂PbO₃");
   await page.keyboard.press("ArrowDown");
@@ -214,10 +212,10 @@ async function exerciseSearchAxesAndFlows(page: Page, label: string) {
   }
   await page.locator("#sourceFlow").selectOption("rocksalt");
   await shot(page, `${label}-okamoto-flow`);
-  await page.locator('[data-family="ion-ox"]').click();
+  await page.locator('[data-family="shear"]').click();
   await page.locator("#overviewGraph").click();
-  const title = page.locator('[data-node="nzp"] .nodelabel.title');
-  await expect(title).toHaveText("NaZr₂(PO₄)₃ (NZP)");
+  const title = page.locator('[data-node="tinb2o7"] .nodelabel.title');
+  await expect(title).toHaveText("TiNb₂O₇ Wadsley–Roth型");
   expect(await title.evaluate((el) => getComputedStyle(el).textOverflow)).toBe("ellipsis");
   await shot(page, `${label}-natural-type`);
   await page.keyboard.press("Control+k");
@@ -433,7 +431,7 @@ for (const [label, url] of Object.entries(TARGETS)) {
     page.on("pageerror", (e) => errors.push(String(e)));
     await exercise(page, url);
     await exerciseExpandedCatalog(page);
-    await exerciseFrameworkComparison(page);
+    await exerciseAverageAndTunnels(page);
     await exerciseSearchAxesAndFlows(page, label);
     await exerciseClassifications(page, label);
     await exerciseModelComparison(page, label);
@@ -444,7 +442,7 @@ for (const [label, url] of Object.entries(TARGETS)) {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.locator('[data-tab="explore"]').click();
     await page.locator("#openSearch").click();
-    await expect(page.locator("#globalResults button")).toHaveCount(291);
+    await expect(page.locator("#globalResults button")).toHaveCount(220);
     expect(await noHorizontalScroll(page)).toBe(true);
     await page.keyboard.press("Escape");
     await exerciseClassifications(page, `${label}-mobile`);

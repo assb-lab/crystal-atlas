@@ -1766,65 +1766,6 @@ export const coordinateModels: Record<string, CoordinateModel> = {
       },
     ],
   },
-  cuzr2: {
-    kind: "computed",
-    source: {
-      label: "Acta Phys. Sin. (2025) · CuZr₂ 計算緩和",
-      url: "https://doi.org/10.7498/aps.74.20250264",
-    },
-    spaceGroup: 139,
-    parameters: [3.233, 3.233, 11.207, 90, 90, 90],
-    groups: [
-      {
-        wyckoff: "2a",
-        occupants: { Cu: 1 },
-        positions: [
-          [0.0, 0.0, 0.0],
-          [0.5, 0.5, 0.5],
-        ],
-      },
-      {
-        wyckoff: "4e",
-        occupants: { Zr: 1 },
-        positions: [
-          [0.0, 0.0, 0.346],
-          [0.0, 0.0, 0.654],
-          [0.5, 0.5, 0.154],
-          [0.5, 0.5, 0.846],
-        ],
-      },
-    ],
-  },
-  xef2: {
-    kind: "literature",
-    source: {
-      label: "A simple cryotransfer method… (2025) · Table 2 · 100 K",
-      url: "https://doi.org/10.1107/S1600576725002456",
-    },
-    spaceGroup: 139,
-    parameters: [4.2249, 4.2249, 6.9526, 90, 90, 90],
-    note: "格子定数と分子内 Xe–F 距離から 4e の z を算出。",
-    groups: [
-      {
-        wyckoff: "2a",
-        occupants: { Xe: 1 },
-        positions: [
-          [0.0, 0.0, 0.0],
-          [0.5, 0.5, 0.5],
-        ],
-      },
-      {
-        wyckoff: "4e",
-        occupants: { F: 1 },
-        positions: [
-          [0.0, 0.0, 0.28651152],
-          [0.0, 0.0, 0.71348848],
-          [0.5, 0.5, 0.21348848],
-          [0.5, 0.5, 0.78651152],
-        ],
-      },
-    ],
-  },
   doubleperov: {
     kind: "schematic",
     source: {

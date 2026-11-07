@@ -3264,57 +3264,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
       },
     ],
   },
-  "nafeo2-beta": {
-    kind: "prototype",
-    source: {
-      label: "AFLOW · ABC2_oP16_33_a_a_2a-001",
-      url: "https://www.aflow.org/prototype-encyclopedia/ABC2_oP16_33_a_a_2a-001/",
-    },
-    spaceGroup: 33,
-    parameters: [5.6793, 7.1243, 5.3784, 90.0, 90.0, 90.0],
-    groups: [
-      {
-        wyckoff: "4a",
-        occupants: { Fe: 1.0 },
-        positions: [
-          [0.06822, 0.12658, 0.0],
-          [0.43178, 0.62658, 0.5],
-          [0.56822, 0.37342, 0.0],
-          [0.93178, 0.87342, 0.5],
-        ],
-      },
-      {
-        wyckoff: "4a",
-        occupants: { Na: 1.0 },
-        positions: [
-          [0.0759, 0.6229, 0.003],
-          [0.4241, 0.1229, 0.503],
-          [0.5759, 0.8771, 0.003],
-          [0.9241, 0.3771, 0.503],
-        ],
-      },
-      {
-        wyckoff: "4a",
-        occupants: { O: 1.0 },
-        positions: [
-          [0.0424, 0.0875, 0.656],
-          [0.4576, 0.5875, 0.156],
-          [0.5424, 0.4125, 0.656],
-          [0.9576, 0.9125, 0.156],
-        ],
-      },
-      {
-        wyckoff: "4a",
-        occupants: { O: 1.0 },
-        positions: [
-          [0.1123, 0.661, 0.4169],
-          [0.3877, 0.161, 0.9169],
-          [0.6123, 0.839, 0.4169],
-          [0.8877, 0.339, 0.9169],
-        ],
-      },
-    ],
-  },
   gese: {
     kind: "literature",
     source: {
@@ -3346,37 +3295,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
       },
     ],
   },
-  sns: {
-    kind: "prototype",
-    source: {
-      label: "AFLOW · AB_oP8_62_c_c-004",
-      url: "https://www.aflow.org/prototype-encyclopedia/AB_oP8_62_c_c-004/",
-    },
-    spaceGroup: 62,
-    parameters: [11.18, 3.982, 4.329, 90.0, 90.0, 90.0],
-    groups: [
-      {
-        wyckoff: "4c",
-        occupants: { S: 1.0 },
-        positions: [
-          [0.1493, 0.25, 0.4799],
-          [0.3507, 0.75, 0.9799],
-          [0.6493, 0.25, 0.0201],
-          [0.8507, 0.75, 0.5201],
-        ],
-      },
-      {
-        wyckoff: "4c",
-        occupants: { Sn: 1.0 },
-        positions: [
-          [0.11937, 0.75, 0.8806],
-          [0.38063, 0.25, 0.3806],
-          [0.61937, 0.75, 0.6194],
-          [0.88063, 0.25, 0.1194],
-        ],
-      },
-    ],
-  },
   tis2: {
     kind: "literature",
     source: {
@@ -3395,26 +3313,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
         ],
       },
       { wyckoff: "1a", occupants: { Ti: 1.0 }, positions: [[0.0, 0.0, 0.0]] },
-    ],
-  },
-  ptse2: {
-    kind: "literature",
-    source: {
-      label: "COD 1537202 · Furuseth 1965",
-      url: "https://www.crystallography.net/cod/1537202.html",
-    },
-    spaceGroup: 164,
-    parameters: [3.7278, 3.7278, 5.0313, 90.0, 90.0, 120.0],
-    groups: [
-      {
-        wyckoff: "2d",
-        occupants: { Se: 1.0 },
-        positions: [
-          [0.3333, 0.6667, 0.255],
-          [0.6667, 0.3333, 0.745],
-        ],
-      },
-      { wyckoff: "1a", occupants: { Pt: 1.0 }, positions: [[0.0, 0.0, 0.0]] },
     ],
   },
   "mos2-2h": {
@@ -3800,51 +3698,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
       },
     ],
   },
-  cuinse2: {
-    kind: "literature",
-    source: {
-      label: "COD 1563481 · Souilah 2010 · 293 K",
-      url: "https://www.crystallography.net/cod/1563481.html",
-    },
-    spaceGroup: 122,
-    parameters: [5.78361, 5.78361, 11.6214, 90.0, 90.0, 90.0],
-    groups: [
-      {
-        wyckoff: "4a",
-        occupants: { Cu: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.0],
-          [0.0, 0.5, 0.25],
-          [0.5, 0.0, 0.75],
-          [0.5, 0.5, 0.5],
-        ],
-      },
-      {
-        wyckoff: "4b",
-        occupants: { In: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.5],
-          [0.0, 0.5, 0.75],
-          [0.5, 0.0, 0.25],
-          [0.5, 0.5, 0.0],
-        ],
-      },
-      {
-        wyckoff: "8d",
-        occupants: { Se: 1.0 },
-        positions: [
-          [0.22738, 0.25, 0.125],
-          [0.25, 0.72738, 0.375],
-          [0.25, 0.77262, 0.875],
-          [0.27262, 0.25, 0.625],
-          [0.72738, 0.75, 0.625],
-          [0.75, 0.22738, 0.875],
-          [0.75, 0.27262, 0.375],
-          [0.77262, 0.75, 0.125],
-        ],
-      },
-    ],
-  },
   stannite: {
     kind: "prototype",
     source: {
@@ -4105,31 +3958,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
         positions: [
           [0.33333333, 0.66666667, 0.75],
           [0.66666667, 0.33333333, 0.25],
-        ],
-      },
-    ],
-  },
-  blackp: {
-    kind: "prototype",
-    source: {
-      label: "AFLOW · A_oC8_64_f-002",
-      url: "https://www.aflow.org/prototype-encyclopedia/A_oC8_64_f-002/",
-    },
-    spaceGroup: 64,
-    parameters: [3.3136, 10.478, 4.3763, 90.0, 90.0, 90.0],
-    groups: [
-      {
-        wyckoff: "8f",
-        occupants: { P: 1.0 },
-        positions: [
-          [0.0, 0.10168, 0.08056],
-          [0.0, 0.39832, 0.58056],
-          [0.0, 0.60168, 0.41944],
-          [0.0, 0.89832, 0.91944],
-          [0.5, 0.10168, 0.41944],
-          [0.5, 0.39832, 0.91944],
-          [0.5, 0.60168, 0.08056],
-          [0.5, 0.89832, 0.58056],
         ],
       },
     ],
@@ -4551,108 +4379,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
       },
     ],
   },
-  digenite: {
-    kind: "prototype",
-    source: {
-      label: "COD 1536218 · Daams 1993",
-      url: "https://www.crystallography.net/cod/1536218.html",
-    },
-    spaceGroup: 166,
-    parameters: [3.93, 3.93, 48.14, 90.0, 90.0, 120.0],
-    note: "長周期の構造型データ。硫化銅では組成、温度、Cu秩序によって異なる相が現れます。",
-    groups: [
-      {
-        wyckoff: "3a",
-        occupants: { S: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.0],
-          [0.33333333, 0.66666667, 0.66666667],
-          [0.66666667, 0.33333333, 0.33333333],
-        ],
-      },
-      {
-        wyckoff: "6c",
-        occupants: { Cu: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.06],
-          [0.0, 0.0, 0.94],
-          [0.33333333, 0.66666667, 0.60666667],
-          [0.33333333, 0.66666667, 0.72666667],
-          [0.66666667, 0.33333333, 0.27333333],
-          [0.66666667, 0.33333333, 0.39333333],
-        ],
-      },
-      {
-        wyckoff: "6c",
-        occupants: { S: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.2],
-          [0.0, 0.0, 0.8],
-          [0.33333333, 0.66666667, 0.46666667],
-          [0.33333333, 0.66666667, 0.86666667],
-          [0.66666667, 0.33333333, 0.13333333],
-          [0.66666667, 0.33333333, 0.53333333],
-        ],
-      },
-      {
-        wyckoff: "6c",
-        occupants: { Cu: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.35],
-          [0.0, 0.0, 0.65],
-          [0.33333333, 0.66666667, 0.01666667],
-          [0.33333333, 0.66666667, 0.31666667],
-          [0.66666667, 0.33333333, 0.68333333],
-          [0.66666667, 0.33333333, 0.98333333],
-        ],
-      },
-      {
-        wyckoff: "6c",
-        occupants: { Cu: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.133],
-          [0.0, 0.0, 0.867],
-          [0.33333333, 0.66666667, 0.53366667],
-          [0.33333333, 0.66666667, 0.79966667],
-          [0.66666667, 0.33333333, 0.20033333],
-          [0.66666667, 0.33333333, 0.46633333],
-        ],
-      },
-      {
-        wyckoff: "3b",
-        occupants: { Cu: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.5],
-          [0.33333333, 0.66666667, 0.16666667],
-          [0.66666667, 0.33333333, 0.83333333],
-        ],
-      },
-      {
-        wyckoff: "6c",
-        occupants: { Cu: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.25],
-          [0.0, 0.0, 0.75],
-          [0.33333333, 0.66666667, 0.41666667],
-          [0.33333333, 0.66666667, 0.91666667],
-          [0.66666667, 0.33333333, 0.08333333],
-          [0.66666667, 0.33333333, 0.58333333],
-        ],
-      },
-      {
-        wyckoff: "6c",
-        occupants: { S: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.4],
-          [0.0, 0.0, 0.6],
-          [0.33333333, 0.66666667, 0.06666667],
-          [0.33333333, 0.66666667, 0.26666667],
-          [0.66666667, 0.33333333, 0.73333333],
-          [0.66666667, 0.33333333, 0.93333333],
-        ],
-      },
-    ],
-  },
   covellite: {
     kind: "prototype",
     source: {
@@ -4950,45 +4676,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
       },
     ],
   },
-  tlco2s2: {
-    kind: "prototype",
-    source: {
-      label: "AFLOW · A2B2C_tI10_139_d_e_a-002",
-      url: "https://www.aflow.org/prototype-encyclopedia/A2B2C_tI10_139_d_e_a-002/",
-    },
-    spaceGroup: 139,
-    parameters: [3.741, 3.741, 12.95601, 90.0, 90.0, 90.0],
-    groups: [
-      {
-        wyckoff: "2a",
-        occupants: { Tl: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.0],
-          [0.5, 0.5, 0.5],
-        ],
-      },
-      {
-        wyckoff: "4d",
-        occupants: { Co: 1.0 },
-        positions: [
-          [0.0, 0.5, 0.25],
-          [0.0, 0.5, 0.75],
-          [0.5, 0.0, 0.25],
-          [0.5, 0.0, 0.75],
-        ],
-      },
-      {
-        wyckoff: "4e",
-        occupants: { S: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.3474],
-          [0.0, 0.0, 0.6526],
-          [0.5, 0.5, 0.1526],
-          [0.5, 0.5, 0.8474],
-        ],
-      },
-    ],
-  },
   "laves-c15": {
     kind: "prototype",
     source: {
@@ -5138,35 +4825,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
           [0.67142, 0.83571, 0.25],
           [0.83571, 0.16429, 0.75],
           [0.83571, 0.67142, 0.75],
-        ],
-      },
-    ],
-  },
-  cacu5: {
-    kind: "prototype",
-    source: {
-      label: "AFLOW · AB5_hP6_191_a_cg-001",
-      url: "https://www.aflow.org/prototype-encyclopedia/AB5_hP6_191_a_cg-001/",
-    },
-    spaceGroup: 191,
-    parameters: [5.082, 5.082, 4.078, 90.0, 90.0, 120.0],
-    groups: [
-      { wyckoff: "1a", occupants: { Ca: 1.0 }, positions: [[0.0, 0.0, 0.0]] },
-      {
-        wyckoff: "2c",
-        occupants: { Cu: 1.0 },
-        positions: [
-          [0.33333, 0.66667, 0.0],
-          [0.66666, 0.33333, 0.0],
-        ],
-      },
-      {
-        wyckoff: "3g",
-        occupants: { Cu: 1.0 },
-        positions: [
-          [0.0, 0.5, 0.5],
-          [0.5, 0.0, 0.5],
-          [0.5, 0.5, 0.5],
         ],
       },
     ],
@@ -5389,61 +5047,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
       },
     ],
   },
-  cosb3: {
-    kind: "literature",
-    source: {
-      label: "COD 1566759 · Glazyrin 2022 · 293 K",
-      url: "https://www.crystallography.net/cod/1566759.html",
-    },
-    spaceGroup: 204,
-    parameters: [9.036, 9.036, 9.036, 90.0, 90.0, 90.0],
-    groups: [
-      {
-        wyckoff: "24g",
-        occupants: { Sb: 1.0 },
-        positions: [
-          [0.0, 0.15785, 0.33509],
-          [0.0, 0.15785, 0.66491],
-          [0.0, 0.84215, 0.33509],
-          [0.0, 0.84215, 0.66491],
-          [0.15785, 0.33509, 0.0],
-          [0.15785, 0.66491, 0.0],
-          [0.16491, 0.5, 0.34215],
-          [0.16491, 0.5, 0.65785],
-          [0.33509, 0.0, 0.15785],
-          [0.33509, 0.0, 0.84215],
-          [0.34215, 0.16491, 0.5],
-          [0.34215, 0.83509, 0.5],
-          [0.5, 0.34215, 0.16491],
-          [0.5, 0.34215, 0.83509],
-          [0.5, 0.65785, 0.16491],
-          [0.5, 0.65785, 0.83509],
-          [0.65785, 0.16491, 0.5],
-          [0.65785, 0.83509, 0.5],
-          [0.66491, 0.0, 0.15785],
-          [0.66491, 0.0, 0.84215],
-          [0.83509, 0.5, 0.34215],
-          [0.83509, 0.5, 0.65785],
-          [0.84215, 0.33509, 0.0],
-          [0.84215, 0.66491, 0.0],
-        ],
-      },
-      {
-        wyckoff: "8c",
-        occupants: { Co: 1.0 },
-        positions: [
-          [0.25, 0.25, 0.25],
-          [0.25, 0.25, 0.75],
-          [0.25, 0.75, 0.25],
-          [0.25, 0.75, 0.75],
-          [0.75, 0.25, 0.25],
-          [0.75, 0.25, 0.75],
-          [0.75, 0.75, 0.25],
-          [0.75, 0.75, 0.75],
-        ],
-      },
-    ],
-  },
   bif3: {
     kind: "prototype",
     source: {
@@ -5604,112 +5207,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
           [0.7538, 0.6012, 0.4659],
           [0.8512, 0.4962, 0.7159],
           [0.8512, 0.9962, 0.2841],
-        ],
-      },
-    ],
-  },
-  pbwo4: {
-    kind: "literature",
-    source: {
-      label: "COD 9009811 · Chipaux 2001 · 290 K",
-      url: "https://www.crystallography.net/cod/9009811.html",
-    },
-    spaceGroup: 88,
-    parameters: [5.46979, 5.46979, 12.06339, 90.0, 90.0, 90.0],
-    groups: [
-      {
-        wyckoff: "4a",
-        occupants: { Pb: 1.0 },
-        positions: [
-          [0.0, 0.25, 0.625],
-          [0.0, 0.75, 0.375],
-          [0.5, 0.25, 0.875],
-          [0.5, 0.75, 0.125],
-        ],
-      },
-      {
-        wyckoff: "4b",
-        occupants: { W: 1.0 },
-        positions: [
-          [0.0, 0.25, 0.125],
-          [0.0, 0.75, 0.875],
-          [0.5, 0.25, 0.375],
-          [0.5, 0.75, 0.625],
-        ],
-      },
-      {
-        wyckoff: "16f",
-        occupants: { O: 1.0 },
-        positions: [
-          [0.1378, 0.4817, 0.207],
-          [0.1378, 0.9817, 0.793],
-          [0.2317, 0.1122, 0.043],
-          [0.2317, 0.6122, 0.957],
-          [0.2683, 0.3878, 0.457],
-          [0.2683, 0.8878, 0.543],
-          [0.3622, 0.0183, 0.293],
-          [0.3622, 0.5183, 0.707],
-          [0.6378, 0.4817, 0.293],
-          [0.6378, 0.9817, 0.707],
-          [0.7317, 0.1122, 0.457],
-          [0.7317, 0.6122, 0.543],
-          [0.7683, 0.3878, 0.043],
-          [0.7683, 0.8878, 0.957],
-          [0.8622, 0.0183, 0.207],
-          [0.8622, 0.5183, 0.793],
-        ],
-      },
-    ],
-  },
-  zircon: {
-    kind: "prototype",
-    source: {
-      label: "AFLOW · A4BC_tI24_141_h_a_b-001",
-      url: "https://www.aflow.org/prototype-encyclopedia/A4BC_tI24_141_h_a_b-001/",
-    },
-    spaceGroup: 141,
-    parameters: [6.6042, 6.6042, 5.9796, 90.0, 90.0, 90.0],
-    groups: [
-      {
-        wyckoff: "4a",
-        occupants: { Si: 1.0 },
-        positions: [
-          [0.0, 0.25, 0.875],
-          [0.0, 0.75, 0.125],
-          [0.5, 0.25, 0.625],
-          [0.5, 0.75, 0.375],
-        ],
-      },
-      {
-        wyckoff: "4b",
-        occupants: { Zr: 1.0 },
-        positions: [
-          [0.0, 0.25, 0.375],
-          [0.0, 0.75, 0.625],
-          [0.5, 0.25, 0.125],
-          [0.5, 0.75, 0.875],
-        ],
-      },
-      {
-        wyckoff: "16h",
-        occupants: { O: 1.0 },
-        positions: [
-          [0.0, 0.066, 0.6951],
-          [0.0, 0.434, 0.6951],
-          [0.0, 0.566, 0.3049],
-          [0.0, 0.934, 0.3049],
-          [0.184, 0.25, 0.0549],
-          [0.184, 0.75, 0.9451],
-          [0.316, 0.25, 0.4451],
-          [0.316, 0.75, 0.5549],
-          [0.5, 0.066, 0.8049],
-          [0.5, 0.434, 0.8049],
-          [0.5, 0.566, 0.1951],
-          [0.5, 0.934, 0.1951],
-          [0.684, 0.25, 0.4451],
-          [0.684, 0.75, 0.5549],
-          [0.816, 0.25, 0.0549],
-          [0.816, 0.75, 0.9451],
         ],
       },
     ],
@@ -5900,39 +5397,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
           [0.7381, 0.3891, 0.5674],
           [0.7619, 0.8891, 0.6826],
           [0.8891, 0.7619, 0.3174],
-        ],
-      },
-    ],
-  },
-  "quartz-a": {
-    kind: "prototype",
-    source: {
-      label: "AFLOW · A2B_hP9_152_c_a-001",
-      url: "https://www.aflow.org/prototype-encyclopedia/A2B_hP9_152_c_a-001/",
-    },
-    spaceGroup: 152,
-    parameters: [4.914, 4.914, 5.406, 90.0, 90.0, 120.0],
-    note: "一方の鏡像型を表示。",
-    groups: [
-      {
-        wyckoff: "3a",
-        occupants: { Si: 1.0 },
-        positions: [
-          [0.0, 0.4699, 0.66666667],
-          [0.4699, 0.0, 0.33333333],
-          [0.5301, 0.5301, 0.0],
-        ],
-      },
-      {
-        wyckoff: "6c",
-        occupants: { O: 1.0 },
-        positions: [
-          [0.1462, 0.7332, 0.45266667],
-          [0.2668, 0.413, 0.786],
-          [0.413, 0.2668, 0.214],
-          [0.587, 0.8538, 0.11933333],
-          [0.7332, 0.1462, 0.54733333],
-          [0.8538, 0.587, 0.88066667],
         ],
       },
     ],
@@ -6527,26 +5991,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
       },
     ],
   },
-  mgb2: {
-    kind: "literature",
-    source: {
-      label: "COD 1526507 · Jorgensen 2001",
-      url: "https://www.crystallography.net/cod/1526507.html",
-    },
-    spaceGroup: 191,
-    parameters: [3.0823, 3.0823, 3.51461, 90.0, 90.0, 120.0],
-    groups: [
-      { wyckoff: "1a", occupants: { Mg: 1.0 }, positions: [[0.0, 0.0, 0.0]] },
-      {
-        wyckoff: "2d",
-        occupants: { B: 1.0 },
-        positions: [
-          [0.3333, 0.6667, 0.5],
-          [0.6666, 0.3333, 0.5],
-        ],
-      },
-    ],
-  },
   nb3sn: {
     kind: "literature",
     source: {
@@ -6646,110 +6090,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
       },
     ],
   },
-  laf3: {
-    kind: "literature",
-    source: {
-      label: "COD 9011159 · Cheetham 1976",
-      url: "https://www.crystallography.net/cod/9011159.html",
-    },
-    spaceGroup: 165,
-    parameters: [7.185, 7.185, 7.351, 90.0, 90.0, 120.0],
-    groups: [
-      {
-        wyckoff: "6f",
-        occupants: { La: 1.0 },
-        positions: [
-          [0.0, 0.3391, 0.75],
-          [0.0, 0.6609, 0.25],
-          [0.3391, 0.0, 0.75],
-          [0.3391, 0.3391, 0.25],
-          [0.6609, 0.0, 0.25],
-          [0.6609, 0.6609, 0.75],
-        ],
-      },
-      {
-        wyckoff: "12g",
-        occupants: { F: 1.0 },
-        positions: [
-          [0.054, 0.3667, 0.4176],
-          [0.054, 0.6873, 0.9176],
-          [0.3127, 0.3667, 0.9176],
-          [0.3127, 0.946, 0.4176],
-          [0.3667, 0.054, 0.0824],
-          [0.3667, 0.3127, 0.5824],
-          [0.6333, 0.6873, 0.4176],
-          [0.6333, 0.946, 0.9176],
-          [0.6873, 0.054, 0.5824],
-          [0.6873, 0.6333, 0.0824],
-          [0.946, 0.3127, 0.0824],
-          [0.946, 0.6333, 0.5824],
-        ],
-      },
-      {
-        wyckoff: "4d",
-        occupants: { F: 1.0 },
-        positions: [
-          [0.33333, 0.66667, 0.1855],
-          [0.33333, 0.66667, 0.6855],
-          [0.66667, 0.33333, 0.3145],
-          [0.66667, 0.33333, 0.8145],
-        ],
-      },
-      {
-        wyckoff: "2a",
-        occupants: { F: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.25],
-          [0.0, 0.0, 0.75],
-        ],
-      },
-    ],
-  },
-  yf3: {
-    kind: "literature",
-    source: {
-      label: "COD 9017377 · Cheetham 1974",
-      url: "https://www.crystallography.net/cod/9017377.html",
-    },
-    spaceGroup: 62,
-    parameters: [6.3537, 6.8545, 4.3953, 90.0, 90.0, 90.0],
-    groups: [
-      {
-        wyckoff: "4c",
-        occupants: { Y: 1.0 },
-        positions: [
-          [0.1327, 0.75, 0.5591],
-          [0.3673, 0.25, 0.0591],
-          [0.6327, 0.75, 0.9409],
-          [0.8673, 0.25, 0.4409],
-        ],
-      },
-      {
-        wyckoff: "4c",
-        occupants: { F: 1.0 },
-        positions: [
-          [0.0227, 0.25, 0.909],
-          [0.4773, 0.75, 0.409],
-          [0.5227, 0.25, 0.591],
-          [0.9773, 0.75, 0.091],
-        ],
-      },
-      {
-        wyckoff: "8d",
-        occupants: { F: 1.0 },
-        positions: [
-          [0.1652, 0.0643, 0.3755],
-          [0.1652, 0.4357, 0.3755],
-          [0.3348, 0.5643, 0.8755],
-          [0.3348, 0.9357, 0.8755],
-          [0.6652, 0.0643, 0.1245],
-          [0.6652, 0.4357, 0.1245],
-          [0.8348, 0.5643, 0.6245],
-          [0.8348, 0.9357, 0.6245],
-        ],
-      },
-    ],
-  },
   "la2o3-a": {
     kind: "prototype",
     source: {
@@ -6774,122 +6114,6 @@ export const expansionModels: Record<string, CoordinateModel> = {
         positions: [
           [0.33333333, 0.66666667, 0.647],
           [0.66666667, 0.33333333, 0.353],
-        ],
-      },
-    ],
-  },
-  mgf2: {
-    kind: "literature",
-    source: {
-      label: "COD 9007534 · Baur 1971",
-      url: "https://www.crystallography.net/cod/9007534.html",
-    },
-    spaceGroup: 136,
-    parameters: [4.6213, 4.6213, 3.0159, 90.0, 90.0, 90.0],
-    groups: [
-      {
-        wyckoff: "2a",
-        occupants: { Mg: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.0],
-          [0.5, 0.5, 0.5],
-        ],
-      },
-      {
-        wyckoff: "4f",
-        occupants: { F: 1.0 },
-        positions: [
-          [0.1972, 0.8028, 0.5],
-          [0.3028, 0.3028, 0.0],
-          [0.6972, 0.6972, 0.0],
-          [0.8028, 0.1972, 0.5],
-        ],
-      },
-    ],
-  },
-  mgh2: {
-    kind: "literature",
-    source: {
-      label: "COD 4124639 · Ellinger 1955",
-      url: "https://www.crystallography.net/cod/4124639.html",
-    },
-    spaceGroup: 136,
-    parameters: [4.5168, 4.5168, 3.0205, 90.0, 90.0, 90.0],
-    groups: [
-      {
-        wyckoff: "4f",
-        occupants: { H: 1.0 },
-        positions: [
-          [0.194, 0.806, 0.5],
-          [0.306, 0.306, 0.0],
-          [0.694, 0.694, 0.0],
-          [0.806, 0.194, 0.5],
-        ],
-      },
-      {
-        wyckoff: "2a",
-        occupants: { Mg: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.0],
-          [0.5, 0.5, 0.5],
-        ],
-      },
-    ],
-  },
-  sno2: {
-    kind: "literature",
-    source: {
-      label: "COD 1000062 · Baur 1971",
-      url: "https://www.crystallography.net/cod/1000062.html",
-    },
-    spaceGroup: 136,
-    parameters: [4.738, 4.738, 3.1865, 90.0, 90.0, 90.0],
-    groups: [
-      {
-        wyckoff: "2a",
-        occupants: { Sn: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.0],
-          [0.5, 0.5, 0.5],
-        ],
-      },
-      {
-        wyckoff: "4f",
-        occupants: { O: 1.0 },
-        positions: [
-          [0.1929, 0.8071, 0.5],
-          [0.3071, 0.3071, 0.0],
-          [0.6929, 0.6929, 0.0],
-          [0.8071, 0.1929, 0.5],
-        ],
-      },
-    ],
-  },
-  "pbo2-beta": {
-    kind: "literature",
-    source: {
-      label: "COD 9011216 · D'Antonio P 1980",
-      url: "https://www.crystallography.net/cod/9011216.html",
-    },
-    spaceGroup: 136,
-    parameters: [4.9578, 4.9578, 3.3878, 90.0, 90.0, 90.0],
-    groups: [
-      {
-        wyckoff: "2a",
-        occupants: { Pb: 1.0 },
-        positions: [
-          [0.0, 0.0, 0.0],
-          [0.5, 0.5, 0.5],
-        ],
-      },
-      {
-        wyckoff: "4f",
-        occupants: { O: 1.0 },
-        positions: [
-          [0.1933, 0.8067, 0.5],
-          [0.3067, 0.3067, 0.0],
-          [0.6933, 0.6933, 0.0],
-          [0.8067, 0.1933, 0.5],
         ],
       },
     ],

@@ -527,8 +527,8 @@ const galassoChapters: [string, string, number, string[], string][] = [
     "galasso-10",
     "第10章 · β-Wとガーネット",
     240,
-    ["bcc", "nb3sn", "cr3si", "yag", "yig", "llzo-tet", "llzo-cubic"],
-    "Table 10.0：bcc→β-W(A15)→garnetの記述。LLZOは同書の章を拡張する現代のガーネット関連例。",
+    ["bcc", "nb3sn", "cr3si", "yag", "yig"],
+    "Table 10.0：bcc→β-W(A15)→garnetの記述。",
   ],
   [
     "galasso-11",

@@ -564,41 +564,9 @@ export const edges: AtlasEdge[] = [
     ],
   },
   {
-    id: "e32",
-    a: "mosi2",
-    b: "cuzr2",
-    kind: "analogy",
-    label: "isopointal",
-    desc: "I4/mmm・tI6・Wyckoff列eaの一致。軸比、内部座標、結合の違いは消えない。",
-    refs: [
-      {
-        s: "SP",
-        p: 250,
-        sec: "§2・Fig.1",
-      },
-    ],
-    undirected: true,
-  },
-  {
     id: "e33",
     a: "mosi2",
     b: "cac2",
-    kind: "analogy",
-    label: "isopointal",
-    desc: "I4/mmm・tI6・Wyckoff列eaの一致。軸比、内部座標、結合の違いは消えない。",
-    refs: [
-      {
-        s: "SP",
-        p: 250,
-        sec: "§2・Fig.1",
-      },
-    ],
-    undirected: true,
-  },
-  {
-    id: "e34",
-    a: "mosi2",
-    b: "xef2",
     kind: "analogy",
     label: "isopointal",
     desc: "I4/mmm・tI6・Wyckoff列eaの一致。軸比、内部座標、結合の違いは消えない。",

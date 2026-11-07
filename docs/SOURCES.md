@@ -21,13 +21,6 @@
 
 - **[CD]** S. Gražulis et al., “Crystallography Open Database (COD): an open-access collection of crystal structures and platform for world-wide collaboration,” _Nucleic Acids Res._ **40**, D420–D427 (2012). 採用した CIF の番号と、得られる場合は測定温度を各単位胞に表示します。 [DOI](https://doi.org/10.1093/nar/gkr900) · [COD](https://www.crystallography.net/cod/)
 - **[AF]** _AFLOW Library of Crystallographic Prototypes_, Parts 1–4. 格子定数、Wyckoff軌道と分率座標を代表セルに使用しています。各単位胞から採用した項目を参照できます。 [索引](https://aflow.org/p/prototype_index.html) · [Part 1](https://doi.org/10.1016/j.commatsci.2017.01.017) · [Part 2](https://doi.org/10.1016/j.commatsci.2019.03.001) · [Part 3](https://doi.org/10.1016/j.commatsci.2021.110450) · [Part 4](https://doi.org/10.1016/j.commatsci.2024.112988)
-- **[IZA]** C. Baerlocher and L. B. McCusker, _Database of Zeolite Structures_ (International Zeolite Association, Structure Commission). SOD・LTA・FAU・CHA・MFIは理想化SiO₂骨格です。 [IZA-SC](https://www.iza-structure.org/databases/)
-- **[LG]** A. Kuhn, J. Köhler and B. V. Lotsch, “Single-crystal X-ray structure analysis of the superionic conductor Li₁₀GeP₂S₁₂,” _Phys. Chem. Chem. Phys._ **15**, 11620–11622 (2013). Table 2の298 Kモデル。 [DOI](https://doi.org/10.1039/C3CP51985F)
-- **[LP]** K. Homma et al., “Crystal structure and phase transitions of the lithium ionic conductor Li₃PS₄,” _Solid State Ionics_ **182**, 53–58 (2011). γ・β相の回折モデル。 [DOI](https://doi.org/10.1016/j.ssi.2010.10.001)
-- **[AR]** G. F. Dewald et al., “Experimental Assessment of the Practical Oxidative Stability of Lithium Thiophosphate Solid Electrolytes,” _Chem. Mater._ **31**, 8328–8337 (2019). Table S2のLi₆PS₅Cl。 [DOI](https://doi.org/10.1021/acs.chemmater.9b01550)
-- **[LY]** H. Ito et al., “Kinetically Stabilized Cation Arrangement in Li₃YCl₆ Superionic Conductor during Solid-State Reaction,” _Adv. Sci._ **8**, 2101413 (2021). Table 1のβ-Li₃YCl₆。 [DOI](https://doi.org/10.1002/advs.202101413)
-- **[LT]** J. Awaka et al., “Synthesis and structure analysis of tetragonal Li₇La₃Zr₂O₁₂ with the garnet-related type structure,” _J. Solid State Chem._ **182**, 2046–2052 (2009). Tables 1–2の正方晶LLZO。 [DOI](https://doi.org/10.1016/j.jssc.2009.05.020)
-- **[LC]** A. C. Moy et al., “Effects of Al concentration on the structure and conductivity of lithium lanthanum zirconium oxide,” _J. Mater. Chem. A_ **12**, 28193–28210 (2024). Table S7のAl置換立方晶LLZO。 [DOI](https://doi.org/10.1039/D4TA04862H)
 - **[O07]** Y. Okamoto, M. Nohara, H. Aruga-Katori and H. Takagi, “Spin-Liquid State in the S = 1/2 Hyperkagome Antiferromagnet Na₄Ir₃O₈,” _Phys. Rev. Lett._ **99**, 137207 (2007). Table Iの室温構造とNa部分占有。 [DOI](https://doi.org/10.1103/PhysRevLett.99.137207)
 - **[BI14]** A. Biffin et al., “Unconventional magnetic order on the hyperhoneycomb Kitaev lattice in β-Li₂IrO₃. Full solution via magnetic resonant x-ray diffraction,” _Phys. Rev. B_ **90**, 205116 (2014). Table IIIの100 K構造。 [DOI](https://doi.org/10.1103/PhysRevB.90.205116)
 - **[BH82]** B. Brazel and R. Hoppe, “Über Oxoplumbate(IV). Die Kristallstruktur von TT-Li₂PbO₃,” _Z. Naturforsch. B_ **37**, 1369–1374 (1982). Table IIの単結晶座標。 [DOI](https://doi.org/10.1515/znb-1982-1102)
@@ -50,6 +43,6 @@ PDF は版に合わせて画面からローカルで関連付けられます。�
 - **[BE11]** R. Berthelot, M. Pollet, D. Carlier and C. Delmas, “Reinvestigation of the OP4-(Li/Na)CoO₂-Layered System and First Evidence of the (Li/Na/Na)CoO₂ Phase with OPP9 Oxygen Stacking,” Inorg. Chem. 50, 2420–2430 (2011). DOI: 10.1021/ic102218w. 混合O/P積層のOP4とOPP9。OPP9は分類表の文献項目。 [DOI](https://doi.org/10.1021/ic102218w)
 - **[AL24]** E. K. Albrecht, T. Graubner, S. I. Ivlev, E.-L. Rautama, M. Karppinen, F. Kraus and A. J. Karttunen, “Low-Temperature Single-Crystal Structure and Phonon Properties of A-Site Ordered Double Perovskite CaMnTi₂O₆,” ChemistrySelect 9, e202402132 (2024). DOI: 10.1002/slct.202402132. CaMnTi₂O₆の柱状Aサイト秩序・Glazer回転系・低温極性変位。 [DOI](https://doi.org/10.1002/slct.202402132)
 
-Galasso（1970）の章別ビューは第2〜11章と各章のフロー表に対応します。第11章のCuAl₂型も収録します。LLZOは第10章のガーネット分類を現代の固体電解質へ拡張した例です。
+Galasso（1970）の章別ビューは第2〜11章と各章のフロー表に対応します。第11章のCuAl₂型も収録します。
 
 追加単位胞の座標は原著のCIF・精密化表、COD、AFLOWから取得しました。CaMnTi₂O₆の800 Kの分裂Mn、P2-Na₀.₆₀₉CoO₂の分裂Na、OP4のLi/Naは占有率を保持します。O2/O4は積層プロトタイプ、O1-CoO₂は模式模型、O6/OPP9は文献項目のみです。

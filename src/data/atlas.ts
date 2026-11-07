@@ -14,7 +14,7 @@ import type { Atlas } from "../types.ts";
 
 /** Canonical dataset used by the UI, JSON export, tests, and standalone build. */
 export const DATA: Atlas = {
-  version: "1.5",
+  version: "1.6",
   date: "2026-11-07",
   sources: { ...sources, ...classificationSources },
   families,

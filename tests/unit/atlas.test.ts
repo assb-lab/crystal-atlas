@@ -32,12 +32,12 @@ test("the serialized dataset matches the curated snapshot", async () => {
   assert.equal(createHash("sha256").update(JSON.stringify(DATA)).digest("hex"), expected);
 });
 
-test("the atlas has 291 structures, 365 relations, 14 strict relations", () => {
-  assert.equal(DATA.nodes.length, 291);
-  assert.equal(DATA.edges.length, 365);
+test("the atlas has 220 structures, 283 relations, 14 strict relations", () => {
+  assert.equal(DATA.nodes.length, 220);
+  assert.equal(DATA.edges.length, 283);
   assert.equal(DATA.edges.filter((e) => e.strict).length, 14);
-  assert.equal(Object.keys(DATA.sources).length, 32);
-  assert.equal(Object.keys(DATA.families).length, 26);
+  assert.equal(Object.keys(DATA.sources).length, 25);
+  assert.equal(Object.keys(DATA.families).length, 20);
 });
 
 test("structure and relationship IDs are unique", () => {
@@ -245,22 +245,40 @@ test("coordinate models preserve Wyckoff multiplicities and occupancy", () => {
   );
 });
 
-test("experimental disorder and idealized zeolite cells retain their provenance", () => {
-  const { lgps, "argy-cl": argy, "zeo-fau": fau } = DATA.models;
-  assert.equal(lgps.kind, "average");
-  assert.deepEqual(must(lgps.groups.find((g) => g.occupants.Ge)).occupants, { Ge: 0.5, P: 0.5 });
-  assert.equal(argy.kind, "average");
-  assert.equal(must(argy.groups.find((g) => g.wyckoff === "48h")).occupants.Li, 0.5);
-  assert.deepEqual(must(argy.groups.find((g) => g.wyckoff === "4a")).occupants, {
-    Cl: 0.385,
-    S: 0.615,
+test("averaged cells keep mixed and partial occupancies with their provenance", () => {
+  const li2mno3 = must(DATA.models.li2mno3);
+  assert.equal(li2mno3.kind, "average");
+  assert.deepEqual(must(li2mno3.groups.find((g) => g.wyckoff === "2b")).occupants, {
+    Li: 0.854,
+    Mn: 0.146,
   });
-  assert.equal(fau.kind, "prototype");
-  assert.match(fau.source.url ?? "", /iza-structure\.org/);
-  assert.equal(
-    fau.groups.reduce((count, g) => count + g.positions.length, 0),
-    576,
+  const p2 = must(DATA.models["nacoo2-p2"]);
+  assert.equal(p2.kind, "average");
+  assert.deepEqual(must(p2.groups.find((g) => g.wyckoff === "6h")).occupants, { Na: 0.146 });
+  for (const model of Object.values(DATA.models))
+    assert.ok(model.source.label, model.spaceGroup.toString());
+});
+
+test("every structure is tied in by a structural relation, a classification or a source flow", () => {
+  const structural = new Set(
+    DATA.edges.filter((e) => e.kind !== "analogy").flatMap((e) => [e.a, e.b]),
   );
+  const classified = new Set(DATA.collections.flatMap((c) => c.ids));
+  const flowEdges = new Set(DATA.flows.flatMap((f) => f.edges));
+  const inFlow = new Set(DATA.edges.filter((e) => flowEdges.has(e.id)).flatMap((e) => [e.a, e.b]));
+  for (const n of DATA.nodes)
+    assert.ok(
+      structural.has(n.id) || classified.has(n.id) || inFlow.has(n.id),
+      `${n.id} is linked only by comparisons`,
+    );
+  // Families grouped by application or mineral class rather than structure are not part of the atlas.
+  for (const id of ["ion-ox", "ion-sulf", "ion-hal", "phosphates", "silicates", "zeolite"])
+    assert.equal(DATA.families[id], undefined, id);
+  for (const id of Object.keys(DATA.families))
+    assert.ok(
+      DATA.nodes.some((n) => n.family === id),
+      `${id} has no structures`,
+    );
 });
 
 test("four-fcc models retain atom counts after periodic wrapping", () => {
