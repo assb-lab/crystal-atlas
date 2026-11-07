@@ -57,11 +57,11 @@
 <div class="workspacetools">
 <button id="toggleSidebar" class="small" aria-controls="structureSidebar" aria-expanded="true">分類・検索</button>
 <div class="segmented" aria-label="マップの範囲">
-<button id="focusGraph" class="active" aria-pressed="true">周辺を探索</button>
-<button id="overviewGraph" aria-pressed="false">全体図</button>
+<button id="overviewGraph" class="active" aria-pressed="true">全世代ツリー</button>
+<button id="focusGraph" aria-pressed="false">選択系統</button>
 </div>
 <button id="exploreBack" class="small" disabled aria-label="前の探索の中心に戻る">← 戻る</button>
-<button id="exploreSelection" class="small">選択構造から探索</button>
+<button id="exploreSelection" class="small">この系統を表示</button>
 <span class="spacer"></span>
 <button id="toggleInspector" class="small" aria-controls="inspectorPanel" aria-expanded="false">構造の詳細</button>
 </div>
@@ -122,7 +122,7 @@
 <button id="listMode">一覧</button>
 </div>
 </div>
-<div class="explorationbar" id="explorationBar"><span id="explorationTitle"></span><button id="collapseGroups" class="small" hidden>枝をまとめる</button></div>
+<div class="explorationbar" id="explorationBar"><span id="explorationTitle"></span><button id="foldBranch" class="small">この枝を畳む</button><button id="collapseGroups" class="small" hidden>全ての枝を開く</button></div>
 <div id="explorationGroups" class="explorationgroups" hidden></div>
 <div id="classificationInfo" class="classificationinfo" hidden></div>
 <div class="graphstage" id="graphStage">

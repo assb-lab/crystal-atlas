@@ -81,8 +81,8 @@ def exercise(page, url):
     page.wait_for_function('typeof window.atlasDiagnostics === "function"')
     assert page.evaluate('window.atlasDiagnostics().nodes') == 291
     assert page.evaluate('window.atlasDiagnostics().models') == 291
-    assert page.evaluate('window.atlasDiagnostics().exploration') == 'focus'
-    assert page.locator('[data-group]').count() > 0
+    assert page.evaluate('window.atlasDiagnostics().exploration') == 'overview'
+    assert page.locator('[data-group]').count() == 0
     page.locator('#overviewGraph').click()
     expect(page.locator('#nodeLayer [data-node]')).to_have_count(16)
     show_inspector(page)
@@ -258,8 +258,9 @@ def exercise_classifications(page, label):
     page.screenshot(path=str(OUT / f'{label}-galasso.png'), full_page=True)
     classification(page, 'perovskites')
     page.locator('#focusGraph').click()
-    assert page.evaluate('window.atlasDiagnostics().groups') > 0
-    assert page.evaluate('window.atlasDiagnostics().shownNodes') < 73
+    expect(page.locator('[data-node="camntio6-ht"]')).to_have_count(1)
+    expect(page.locator('[data-node="camntio6"]')).to_have_count(1)
+    assert page.evaluate('window.atlasDiagnostics().shownNodes') > 20
     page.locator('#listMode').click()
     expect(page.locator('#listView tbody tr')).to_have_count(73)
     page.locator('#mapMode').click()
@@ -277,31 +278,35 @@ def exercise_classifications(page, label):
 
 
 def exercise_workspace(page, label):
-    classification(page, 'perovskites', overview=False)
+    classification(page, 'perov-a-order', overview=False)
     if page.locator('#toggleInspector').get_attribute('aria-expanded') == 'true':
         page.locator('#toggleInspector').click()
-    assert page.locator('#nodeLayer [data-group]').count() >= 4
-    # A summary is navigational grouping and never claims a directed relation.
-    expect(page.locator('#clusterLayer [marker-end]')).to_have_count(0)
-    group = page.locator('[data-group="out:ordering"]')
-    group.focus()
-    page.keyboard.press('Enter')
-    expect(page.locator('#collapseGroups')).to_be_focused()
-    expect(page.locator('#nodeLayer [data-node]')).to_have_count(6)
-    assert page.locator('#explorationGroups button').count() >= 3
+    expect(page.locator('#nodeLayer [data-node]')).to_have_count(5)
+    expect(page.locator('#nodeLayer [data-group]')).to_have_count(0)
+    # Parent, child and grandchild coexist before any interaction.
+    levels = page.locator('[data-node]').evaluate_all("nodes => Object.fromEntries(nodes.map(n=>[n.dataset.node,n.transform.baseVal.consolidate().matrix.f]))")
+    assert levels['perov'] < levels['camntio6-ht'] < levels['camntio6']
+    page.evaluate('() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))')
     camera = page.locator('#viewport').get_attribute('transform')
-    page.locator('[data-node="namn7o12"]').click()
-    assert page.locator('#viewport').get_attribute('transform') == camera
-    assert page.evaluate('window.atlasDiagnostics().anchor') == 'perov'
+    page.locator('[data-node="camntio6-ht"]').click()
+    assert page.locator('#viewport').get_attribute('transform') == camera, (camera, page.locator('#viewport').get_attribute('transform'))
+    page.locator('#foldBranch').click()
+    expect(page.locator('[data-node="camntio6"]')).to_have_count(0)
+    expect(page.locator('[data-node="ccto"]')).to_have_count(1)
+    expect(page.locator('[data-node="namn7o12"]')).to_have_count(1)
+    expect(page.locator('#clusterLayer [marker-end]')).to_have_count(0)
+    page.locator('[data-group="camntio6-ht"]').focus()
+    page.keyboard.press('Enter')
+    expect(page.locator('[data-node="camntio6"]')).to_have_count(1)
+    expect(page.locator('#foldBranch')).to_be_focused()
     page.locator('#exploreSelection').click()
-    assert page.evaluate('window.atlasDiagnostics().anchor') == 'namn7o12'
+    assert page.evaluate('window.atlasDiagnostics().anchor') == 'camntio6-ht'
+    for node in ['perov','camntio6-ht','camntio6']:
+        expect(page.locator(f'[data-node="{node}"]')).to_have_count(1)
     page.locator('#exploreBack').click()
     assert page.evaluate('window.atlasDiagnostics().anchor') == 'perov'
-    page.locator('[data-group="compare:analogy"]').click()
-    assert page.locator('#edgeLayer .edge').count() == 5
-    expect(page.locator('#edgeLayer .edge[marker-end]')).to_have_count(0)
-    page.locator('#collapseGroups').click()
-    page.locator('[data-group="out:ordering"]').click()
+    expect(page.locator('[data-node="camntio6"]')).to_have_count(1)
+    page.locator('#overviewGraph').click()
     curves = page.locator('#edgeLayer .edge').evaluate_all('edges => edges.map(e => e.getAttribute("d"))')
     assert all('C' in d and 'H' not in d and 'V' not in d for d in curves)
     def camera_center():

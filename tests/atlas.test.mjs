@@ -6,7 +6,7 @@ import { DATA } from '../src/data/atlas.js';
 import { KINDS, LABPRESETS, OCCPRESETS, ROUTES } from '../src/data/presets.js';
 import { esc, frac, normalize, shortestPath, sourcePdfPage } from '../src/utils.js';
 import { directionAngles, expanded, fourFCC, modelFor } from '../src/viewer.js';
-import { derivationPositions, neighborhoodGraph, relationshipCurve } from '../src/flow-layout.js';
+import { derivationPositions, derivationGraph, relationshipCurve } from '../src/flow-layout.js';
 
 const ids = new Set(DATA.nodes.map(n => n.id));
 
@@ -263,29 +263,49 @@ test('overview keeps a wide generation on one rank without folding siblings into
   }
 });
 
-test('neighborhood summaries account for every real relation and preserve direction when expanded', () => {
-  for (const anchor of DATA.nodes) {
-    const incident = DATA.edges.filter(e => e.a === anchor.id || e.b === anchor.id);
-    const initial = neighborhoodGraph(DATA.nodes, DATA.edges, anchor.id);
-    const cases = [initial, ...initial.groups.map(group => neighborhoodGraph(DATA.nodes, DATA.edges, anchor.id, new Set([group.key])))];
-    for (const view of cases) {
-      const represented = [...view.edges, ...view.groups.flatMap(group => group.edges)];
-      assert.deepEqual(represented.map(e => e.id).sort(), incident.map(e => e.id).sort(), anchor.id);
-      assert.equal(new Set(view.nodes.map(n => n.id)).size, view.nodes.length);
-      for (const edge of view.edges) {
-        assert.ok(view.nodes.some(n => n.id === edge.a) && view.nodes.some(n => n.id === edge.b));
-        if (!edge.undirected) assert.ok(view.positions.get(edge.a).x < view.positions.get(edge.b).x, edge.id);
-      }
-      for (const group of view.groups) {
-        assert.equal(group.count, new Set(group.edges.map(e => e.a === anchor.id ? e.b : e.a)).size);
-      }
-      const points = [...view.positions.values()];
-      for (let i = 0; i < points.length; i++) for (let j = i + 1; j < points.length; j++) {
-        assert.ok(Math.abs(points[i].x - points[j].x) >= 220 || Math.abs(points[i].y - points[j].y) >= 86, anchor.id);
-      }
+test('the default tree includes every structure and relation without a generation limit', () => {
+  const tree = derivationGraph(DATA.nodes, DATA.edges);
+  assert.equal(tree.nodes.length, DATA.nodes.length);
+  assert.equal(tree.edges.length, DATA.edges.length);
+  assert.equal(tree.groups.length, 0);
+  for (const edge of tree.edges.filter(edge => !edge.undirected)) {
+    assert.ok(tree.positions.get(edge.a).y < tree.positions.get(edge.b).y, edge.id);
+  }
+  const lineage = derivationGraph(DATA.nodes, DATA.edges, 'perov');
+  for (const id of ['perov', 'camntio6-ht', 'camntio6']) assert.ok(lineage.nodes.some(node => node.id === id), id);
+  assert.ok(lineage.edges.some(edge => edge.a === 'camntio6-ht' && edge.b === 'camntio6'));
+});
+
+test('lineages retain all ancestors and descendants, and folds preserve shared descendants', () => {
+  const nodes = ['root','child','grandchild','greatgrandchild','leaf','sibling','other'].map((id,x) => ({id,x}));
+  const edges = [['root','child'],['child','grandchild'],['grandchild','greatgrandchild'],['greatgrandchild','leaf'],['root','sibling']]
+    .map(([a,b],i) => ({id:String(i),a,b}));
+  const lineage = derivationGraph(nodes,edges,'grandchild');
+  assert.deepEqual(new Set(lineage.nodes.map(n=>n.id)), new Set(['root','child','grandchild','greatgrandchild','leaf']));
+  const folded = derivationGraph(nodes,edges,null,new Set(['child']));
+  assert.deepEqual(new Set(folded.nodes.map(n=>n.id)),new Set(['root','child','sibling','other']));
+  assert.equal(folded.groups[0].count,3);
+  const restored = derivationGraph(nodes,edges);
+  assert.equal(restored.nodes.length,nodes.length);
+  const shared = derivationGraph(nodes,[...edges,{id:'shared',a:'other',b:'grandchild'}],null,new Set(['child']));
+  for (const id of ['grandchild','greatgrandchild','leaf']) assert.ok(shared.nodes.some(n=>n.id===id),id);
+  assert.equal(shared.groups.length,0);
+});
+
+test('manual folds preserve direction and non-overlapping generation positions across the catalog', () => {
+  for (const parent of DATA.nodes) {
+    const tree = derivationGraph(DATA.nodes,DATA.edges,null,new Set([parent.id]));
+    const shown = new Set(tree.nodes.map(node=>node.id));
+    assert.ok(shown.has(parent.id));
+    for (const edge of tree.edges) {
+      assert.ok(shown.has(edge.a) && shown.has(edge.b));
+      if (!edge.undirected) assert.ok(tree.positions.get(edge.a).y < tree.positions.get(edge.b).y,edge.id);
+    }
+    const points = [...tree.positions.values()];
+    for (let i=0;i<points.length;i++) for(let j=i+1;j<points.length;j++) {
+      assert.ok(Math.abs(points[i].x-points[j].x)>=220 || Math.abs(points[i].y-points[j].y)>=86,parent.id);
     }
   }
-  assert.equal(neighborhoodGraph([], [], 'missing').nodes.length, 0);
 });
 
 test('connector routes are finite cubic curves including long and same-rank relations', () => {

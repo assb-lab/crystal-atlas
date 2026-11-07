@@ -35,51 +35,68 @@ export function derivationPositions(nodes, edges) {
     return positions;
 }
 
-/** Only real incident edges enter this view. Summary connectors are not derivations. */
-export function neighborhoodGraph(nodes, edges, anchor, expanded = new Set()) {
-    const byId = new Map(nodes.map(node => [node.id, node]));
-    if (!byId.has(anchor)) return { nodes: [], edges: [], groups: [], positions: new Map() };
-    const incident = edges.filter(edge => edge.a === anchor || edge.b === anchor);
-    const buckets = new Map();
-    for (const edge of incident) {
-        const direction = edge.undirected ? 'compare' : edge.a === anchor ? 'out' : 'in';
-        const kind = direction === 'compare' ? 'analogy' : edge.kind;
-        const key = `${direction}:${kind}`;
-        if (!buckets.has(key)) buckets.set(key, { id: `group:${key}`, key, direction, kind, edges: [] });
-        buckets.get(key).edges.push(edge);
+/** Retain every generation. Only explicitly folded branches hide descendants. */
+export function derivationGraph(nodes, edges, anchor = null, collapsed = new Set()) {
+    const ids = new Set(nodes.map(node => node.id));
+    const directed = edges.filter(edge => !edge.undirected);
+    const children = new Map(nodes.map(node => [node.id, []]));
+    const parents = new Map(nodes.map(node => [node.id, []]));
+    for (const edge of directed) {
+        children.get(edge.a).push(edge.b);
+        parents.get(edge.b).push(edge.a);
     }
-    const other = edge => edge.a === anchor ? edge.b : edge.a;
-    const shown = new Set([anchor]);
-    const active = [...buckets.values()].find(bucket => expanded.has(bucket.key));
-    for (const bucket of buckets.values()) {
-        if (active ? bucket === active : new Set(bucket.edges.map(other)).size === 1) {
-            bucket.edges.forEach(edge => shown.add(other(edge)));
+    function walk(starts, links, stops = new Set()) {
+        const seen = new Set(starts), queue = [...starts];
+        for (const id of queue) {
+            if (stops.has(id)) continue;
+            for (const next of links.get(id) ?? []) if (!seen.has(next)) { seen.add(next); queue.push(next); }
+        }
+        return seen;
+    }
+    let included = ids;
+    if (anchor !== null) {
+        if (!ids.has(anchor)) return { nodes: [], edges: [], groups: [], positions: new Map() };
+        included = new Set([...walk([anchor], children), ...walk([anchor], parents)]);
+        // Direct comparisons provide context but never stand in for a derivation.
+        for (const edge of edges.filter(edge => edge.undirected)) {
+            if (edge.a === anchor) included.add(edge.b);
+            if (edge.b === anchor) included.add(edge.a);
         }
     }
-    const groups = [...buckets.values()].map(bucket => {
-        const hidden = bucket.edges.filter(edge => active ? bucket !== active : !shown.has(other(edge)));
-        return { ...bucket, edges: hidden, count: new Set(hidden.map(other)).size };
-    }).filter(bucket => bucket.count);
-    const visibleEdges = (active ? active.edges : incident).filter(edge => shown.has(other(edge)));
-    const columns = { in: [], out: [], compare: [] };
-    for (const id of shown) {
-        if (id === anchor) continue;
-        const edge = visibleEdges.find(edge => other(edge) === id && !edge.undirected)
-            ?? visibleEdges.find(edge => other(edge) === id);
-        columns[edge.undirected ? active ? 'out' : 'compare' : edge.a === anchor ? 'out' : 'in'].push(id);
+    const scopedNodes = nodes.filter(node => included.has(node.id));
+    const scopedEdges = edges.filter(edge => included.has(edge.a) && included.has(edge.b));
+    const scopedChildren = new Map(scopedNodes.map(node => [node.id, []]));
+    const childIds = new Set();
+    for (const edge of scopedEdges.filter(edge => !edge.undirected)) {
+        scopedChildren.get(edge.a).push(edge.b); childIds.add(edge.b);
     }
-    if (!active) groups.forEach(group => columns[group.direction].push(group.id));
-    const positions = new Map([[anchor, { x: 0, y: 0 }]]);
-    for (const direction of ['in', 'out']) {
-        columns[direction].forEach((id, i, list) => positions.set(id, {
-            x: direction === 'in' ? -350 : 350, y: (i - (list.length - 1) / 2) * 116,
-        }));
+    const roots = scopedNodes.filter(node => !childIds.has(node.id)).map(node => node.id);
+    // A shared descendant stays visible if another unfolded parent still reaches it.
+    const visible = collapsed.size ? walk(roots, scopedChildren, collapsed) : included;
+    const groups = [];
+    for (const id of collapsed) {
+        if (!visible.has(id) || !included.has(id)) continue;
+        const hidden = [...walk([id], scopedChildren)].filter(child => !visible.has(child));
+        if (hidden.length) groups.push({ id: `group:${id}`, key: id, parent: id, count: hidden.length });
     }
-    const bottom = Math.max(180, Math.max(columns.in.length, columns.out.length) * 58 + 100);
-    columns.compare.forEach((id, i, list) => positions.set(id, {
-        x: (i - (list.length - 1) / 2) * 270, y: bottom,
-    }));
-    return { nodes: nodes.filter(node => shown.has(node.id)), edges: visibleEdges, groups, positions };
+    const positions = derivationPositions(scopedNodes, scopedEdges);
+    const shownNodes = scopedNodes.filter(node => visible.has(node.id));
+    const shownEdges = scopedEdges.filter(edge => visible.has(edge.a) && visible.has(edge.b));
+    if (!groups.length) return { nodes: shownNodes, edges: shownEdges, groups, positions };
+    // Keep original generation heights while closing the horizontal gaps of folded branches.
+    const rows = new Map();
+    const marks = [...shownNodes.map(node => ({ id: node.id, ...positions.get(node.id) })),
+        ...groups.map(group => ({ id: group.id, x: positions.get(group.parent).x, y: positions.get(group.parent).y + 180 }))];
+    for (const mark of marks) {
+        if (!rows.has(mark.y)) rows.set(mark.y, []);
+        rows.get(mark.y).push(mark);
+    }
+    const compact = new Map();
+    for (const [y, row] of rows) {
+        row.sort((a, b) => a.x - b.x);
+        row.forEach((mark, i) => compact.set(mark.id, { x: (i - (row.length - 1) / 2) * 270, y }));
+    }
+    return { nodes: shownNodes, edges: shownEdges, groups, positions: compact };
 }
 
 /** Cubic connectors retain smooth tangents, including routes around intermediate ranks. */

@@ -4,7 +4,7 @@ import { KINDS, ROUTES, LABPRESETS, OCCPRESETS } from "./data/presets.js";
 import { esc, frac, normalize, shortestPath, sourcePdfPage } from "./utils.js";
 import { CrystalView, modelFor, fourFCC, SITE_COLORS } from "./viewer.js";
 import { modelPanelHTML, mountModelPanel, viewDirectionControls } from "./model-panels.js";
-import { derivationPositions, neighborhoodGraph, relationshipCurve } from "./flow-layout.js";
+import { derivationPositions, derivationGraph, relationshipCurve } from "./flow-layout.js";
 
 'use strict';
 
@@ -14,7 +14,7 @@ const state = { tab: 'explore', family: 'fcc', flow: null, collection: null, sel
 
 let modelView = null, labView = null, comparisonViews = [], visibleNodes = [], visibleEdges = [], lastFocus = null;
 let graphPositions = new Map(), graphGroups = [];
-const exploration = { mode: 'focus', anchor: 'fcc', expanded: new Set(), history: [] };
+const exploration = { mode: 'overview', anchor: 'fcc', collapsed: new Set(), history: [] };
 const sidebarState = { left: innerWidth > 900, right: false, leftWidth: 205, rightWidth: 320 };
 try {
     const saved = JSON.parse(localStorage.getItem('atlas-workspace') ?? '{}');
@@ -90,10 +90,10 @@ function initWorkspace() {
     }
 }
 
-function resetExploration(mode = 'focus') {
+function resetExploration(mode = 'overview') {
     exploration.mode = mode;
     exploration.anchor = state.selected;
-    exploration.expanded.clear();
+    exploration.collapsed.clear();
     exploration.history = [];
 }
 
@@ -232,30 +232,27 @@ function getVisible() {
 }
 
 function edgePath(a, b, lane = 0) {
-    return relationshipCurve(pos(a), pos(b), graphPositions, lane, exploration.mode === 'focus');
+    return relationshipCurve(pos(a), pos(b), graphPositions, lane);
 }
 
 function openGroup(key) {
-    // Other branches remain accessible as chips, without stretching the open branch.
-    exploration.expanded.clear();
-    exploration.expanded.add(key);
+    exploration.collapsed.delete(key);
     renderGraph();
     requestAnimationFrame(readMap);
-    requestAnimationFrame(() => $('collapseGroups').focus());
+    requestAnimationFrame(() => $('foldBranch').focus());
 }
 
 function renderGroups() {
-    const directionNames = { in: '親側', out: '派生側', compare: '比較・無方向' };
     for (const group of graphGroups) {
         if (!graphPositions.has(group.id)) continue;
-        const point = graphPositions.get(group.id), anchor = graphPositions.get(exploration.anchor);
-        const curve = relationshipCurve(anchor, point, graphPositions, 0, true);
+        const point = graphPositions.get(group.id), anchor = graphPositions.get(group.parent);
+        const curve = relationshipCurve(anchor, point, graphPositions);
         $('clusterLayer').append(svgEl('path', { d: curve.d, class: 'groupconnector' }));
         const g = svgEl('g', { class: 'node groupnode', transform: `translate(${point.x - 110},${point.y - 43})`,
             'data-group': group.key, tabindex: '0', role: 'button',
-            'aria-label': `${directionNames[group.direction]}・${KINDS[group.kind].name}、${group.count}構造・${group.edges.length}関係を展開` });
+            'aria-label': `${N.get(group.parent).name}から先の${group.count}構造を再表示` });
         g.append(svgEl('rect', { width: 220, height: 86, rx: 12, class: 'main' }));
-        for (const [text, y, cls] of [[KINDS[group.kind].name, 14, 'title'], [`${directionNames[group.direction]} · ${group.count}構造 / ${group.edges.length}関係`, 39, 'formula'], ['枝を開く ＋', 61, 'sg']]) {
+        for (const [text, y, cls] of [[`${N.get(group.parent).name} の続き`, 14, 'title'], [`${group.count}構造を折り畳み中`, 39, 'formula'], ['この枝を再表示 ＋', 61, 'sg']]) {
             const box = svgEl('foreignObject', { x: 14, y, width: 192, height: 20 });
             const label = document.createElement('div'); label.className = `nodelabel ${cls}`; label.textContent = text;
             box.append(label); g.append(box);
@@ -271,17 +268,17 @@ function renderGraph() {
     const focusedEdge = document.activeElement?.dataset.edge;
     const scope = getVisible();
     if (!scope.nodes.some(node => node.id === exploration.anchor)) exploration.anchor = scope.nodes[0]?.id;
-    const v = exploration.mode === 'focus'
-        ? neighborhoodGraph(scope.nodes, scope.edges, exploration.anchor, exploration.expanded) : scope;
+    const v = derivationGraph(scope.nodes, scope.edges, exploration.mode === 'focus' ? exploration.anchor : null, exploration.collapsed);
     graphGroups = v.groups ?? [];
     visibleNodes = v.nodes;
     visibleEdges = v.edges;
     graphPositions = v.positions ?? derivationPositions(v.nodes, v.edges);
     ['clusterLayer', 'edgeLayer', 'nodeLayer', 'edgeLabels'].forEach(id => $(id).replaceChildren());
+    const highlightedEdges = new Set(derivationGraph(v.nodes, v.edges, state.selected).edges.map(edge => edge.id));
     renderGroups();
     for (const [lane, e] of visibleEdges.entries()) {
         const p = edgePath(N.get(e.a), N.get(e.b), lane % 9);
-        const hi = state.edge ? state.edge === e.id : (e.a === state.selected || e.b === state.selected);
+        const hi = state.edge ? state.edge === e.id : highlightedEdges.has(e.id);
         const k = KINDS[e.kind];
         const path = svgEl('path', { d: p.d, class: `edge ${hi ? 'highlight' : ''} ${state.edge === e.id ? 'selected' : ''}`, stroke: k.color, 'stroke-dasharray': k.dash, ...(!e.undirected ? { 'marker-end': `url(#arrow-${e.kind})` } : {}) });
         const hit = svgEl('path', { d: p.d, class: 'edgehit', 'data-edge': e.id, tabindex: '0', role: 'button', 'aria-label': `${N.get(e.a).name} と ${N.get(e.b).name}: ${e.label}` });
@@ -327,18 +324,19 @@ function renderGraph() {
     }
     const cross = DATA.edges.filter(e => (e.a === state.selected || e.b === state.selected) && N.get(e.a).family !== N.get(e.b).family && (!state.strict || e.strict)).length;
     const focus = exploration.mode === 'focus';
-    $('graphNote').innerHTML = `<span>${focus && exploration.expanded.has('compare:analogy') ? '比較・無方向の関係（矢印なし）' : focus ? '左：親側 → 中心 → 右：派生側 ／ 下：比較' : '上段の親構造から下段の派生へ ↓'}</span>${state.strict ? '<span>確認済みの群–部分群関係のみ</span>' : ''}${cross && state.family !== 'all' && !state.flow ? `<span>領域をまたぐ関係 ${cross} 件 ↗ 詳細から探索</span>` : ''}`;
-    $('graphStatus').textContent = `表示 ${visibleNodes.length} 構造 / ${visibleEdges.length} 関係${graphGroups.length ? ` ＋ ${graphGroups.length} まとまり` : ''} · 範囲内 ${scope.nodes.length} 構造`;
-    $('explorationTitle').textContent = focus ? `${N.get(exploration.anchor)?.name ?? '該当構造なし'} の周辺` : '派生段階を保った全体図';
+    $('graphNote').innerHTML = `<span>親 → 子 → 孫へ、世代を保って上から下に表示</span>${state.strict ? '<span>確認済みの群–部分群関係のみ</span>' : ''}${cross && state.family !== 'all' && !state.flow ? `<span>領域をまたぐ関係 ${cross} 件 ↗ 詳細から探索</span>` : ''}`;
+    $('graphStatus').textContent = `表示 ${visibleNodes.length} 構造 / ${visibleEdges.length} 関係${graphGroups.length ? ` · ${graphGroups.length} 枝を折り畳み中` : ''} · 範囲内 ${scope.nodes.length} 構造`;
+    $('explorationTitle').textContent = focus ? `${N.get(exploration.anchor)?.name ?? '該当構造なし'} の祖先・子孫（世代制限なし）` : '全世代のツリー · 枝を選んで折り畳めます';
     $('explorationGroups').replaceChildren();
-    if (focus && exploration.expanded.size) for (const group of graphGroups) {
+    for (const group of graphGroups) {
         const button = document.createElement('button'); button.className = 'small';
-        button.textContent = `${group.direction === 'in' ? '親側・' : ''}${KINDS[group.kind].name} ${group.count}`;
+        button.textContent = `${N.get(group.parent).name} の先を開く (${group.count})`;
         button.dataset.branch = group.key; button.onclick = () => openGroup(group.key);
         $('explorationGroups').append(button);
     }
-    $('explorationGroups').hidden = !focus || !exploration.expanded.size;
-    $('collapseGroups').hidden = !exploration.expanded.size || !focus;
+    $('explorationGroups').hidden = !graphGroups.length;
+    $('collapseGroups').hidden = !exploration.collapsed.size;
+    $('foldBranch').disabled = !visibleEdges.some(edge => !edge.undirected && edge.a === state.selected);
     $('exploreBack').disabled = !exploration.history.length;
     $('exploreSelection').disabled = !state.selected || !scope.nodes.some(node => node.id === state.selected);
     for (const [id, active] of [['focusGraph', focus], ['overviewGraph', !focus]]) {
@@ -384,15 +382,6 @@ function readMap() {
     const rect = $('map').getBoundingClientRect();
     if (!rect.width || !visibleNodes.length) return;
     const points = [...graphPositions.values()];
-    if (exploration.mode === 'focus') {
-        const x1 = Math.min(...points.map(p => p.x)) - 130, x2 = Math.max(...points.map(p => p.x)) + 130;
-        const y1 = Math.min(...points.map(p => p.y)) - 65, y2 = Math.max(...points.map(p => p.y)) + 65;
-        cam.k = Math.max(.7, Math.min(1.05, (rect.width - 40) / (x2 - x1), (rect.height - 110) / (y2 - y1)));
-        const anchor = graphPositions.get(exploration.anchor);
-        cam.x = rect.width / 2 - ((x2 - x1) * cam.k <= rect.width - 20 ? (x1 + x2) / 2 : anchor.x) * cam.k;
-        cam.y = (rect.height - 20) / 2 - ((y2 - y1) * cam.k <= rect.height - 90 ? (y1 + y2) / 2 : anchor.y) * cam.k;
-        applyCam(); return;
-    }
     const left = Math.min(...points.map(p => p.x)) - 175;
     const right = Math.max(...points.map(p => p.x)) + 175;
     cam.k = Math.max(.7, Math.min(1.05, rect.width / (right - left) * .96));
@@ -755,17 +744,18 @@ for (const [id, sign] of [['mapUp', 1], ['mapDown', -1]]) {
 for (const [id, sign] of [['mapLeft', 1], ['mapRight', -1]]) {
     $(id).onclick = () => { cam.x += sign * $('map').clientWidth * .6; applyCam(); };
 }
-$('focusGraph').onclick = () => { exploration.mode = 'focus'; renderGraph(); requestAnimationFrame(readMap); };
-$('overviewGraph').onclick = () => { exploration.mode = 'overview'; renderGraph(); requestAnimationFrame(readMap); };
-$('collapseGroups').onclick = () => { exploration.expanded.clear(); renderGraph(); requestAnimationFrame(readMap); $('focusGraph').focus(); };
+$('focusGraph').onclick = () => $('exploreSelection').click();
+$('overviewGraph').onclick = () => { exploration.mode = 'overview'; exploration.collapsed.clear(); renderGraph(); requestAnimationFrame(readMap); };
+$('foldBranch').onclick = () => { exploration.collapsed.add(state.selected); state.edge = null; renderGraph(); requestAnimationFrame(readMap); };
+$('collapseGroups').onclick = () => { exploration.collapsed.clear(); renderGraph(); requestAnimationFrame(readMap); $('focusGraph').focus(); };
 $('exploreSelection').onclick = () => {
     if (exploration.anchor !== state.selected) exploration.history.push(exploration.anchor);
-    exploration.anchor = state.selected; exploration.mode = 'focus'; exploration.expanded.clear();
-    renderGraph(); requestAnimationFrame(readMap);
+    exploration.anchor = state.selected; exploration.mode = 'focus'; exploration.collapsed.clear(); state.edge = null;
+    renderGraph(); renderInspector(); requestAnimationFrame(readMap);
 };
 $('exploreBack').onclick = () => {
     const id = exploration.history.pop(); if (!id) return;
-    exploration.anchor = id; state.selected = id; state.edge = null; exploration.expanded.clear();
+    exploration.anchor = id; exploration.mode = 'focus'; state.selected = id; state.edge = null; exploration.collapsed.clear();
     renderGraph(); renderInspector(); requestAnimationFrame(readMap);
 };
 
