@@ -8,7 +8,7 @@ import { CrystalView, modelFor, fourFCC, SITE_COLORS } from "./viewer.js";
 
 const $ = id => document.getElementById(id), N = new Map(DATA.nodes.map(n => [n.id, n])), E = new Map(DATA.edges.map(e => [e.id, e]));
 
-const state = { tab: 'explore', family: 'fcc', selected: 'fcc', edge: null, strict: false, view: 'map', comp: [], lab: 'heusler', subVisible: [true, true, true, true], t: .125, o: .5, occPreset: 'spinel' };
+const state = { tab: 'explore', family: 'fcc', selected: 'fcc', edge: null, bundle: null, strict: false, view: 'map', comp: [], lab: 'heusler', subVisible: [true, true, true, true], t: .125, o: .5, occPreset: 'spinel' };
 
 let modelView = null, labView = null, visibleNodes = [], visibleEdges = [], lastFocus = null;
 
@@ -18,7 +18,7 @@ function refHTML(refs) { return refs.map(r => `<button class="refchip" data-sour
 
 function toast(s) { $('toast').textContent = s; $('toast').hidden = false; clearTimeout(toast.timer); toast.timer = setTimeout(() => $('toast').hidden = true, 3500); }
 
-function tab(id) { state.tab = id; document.querySelectorAll('.tabpage').forEach(p => p.hidden = p.id !== id); document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === id)); if (id === 'explore') {
+function tab(id) { state.tab = id; document.body.dataset.page = id; document.querySelectorAll('.tabpage').forEach(p => p.hidden = p.id !== id); document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === id)); if (id === 'explore') {
     requestAnimationFrame(() => { fitMap(); modelView?.draw(); });
 } if (id === 'lab') {
     if (!labView)
@@ -27,7 +27,7 @@ function tab(id) { state.tab = id; document.querySelectorAll('.tabpage').forEach
     requestAnimationFrame(() => labView.draw());
 } }
 
-function family(id, fit = true) { state.family = id; state.edge = null; const nodes = DATA.nodes.filter(n => id === 'all' || n.family === id); if (!nodes.some(n => n.id === state.selected))
+function family(id, fit = true) { state.family = id; state.edge = null; state.bundle = null; const nodes = DATA.nodes.filter(n => id === 'all' || n.family === id); if (!nodes.some(n => n.id === state.selected))
     state.selected = nodes.find(n => n.id === id)?.id || nodes[0]?.id; renderFamily(); renderGraph(); renderInspector(); if (fit)
     requestAnimationFrame(fitMap); }
 
@@ -36,7 +36,7 @@ function selectNode(id, jump = true) { if (!N.has(id))
     state.strict = false;
     $('strictFilter').checked = false;
     toast('この構造の関係を表示するため、絞り込みを解除しました。');
-} state.selected = id; state.edge = null; if (jump && state.family !== 'all' && N.get(id).family !== state.family) {
+} revealInspector(); state.selected = id; state.edge = null; state.bundle = null; if (jump && state.family !== 'all' && N.get(id).family !== state.family) {
     state.family = N.get(id).family;
     renderFamily();
     renderGraph();
@@ -48,16 +48,19 @@ else
     requestAnimationFrame(() => $('inspector').scrollIntoView({ behavior: 'smooth', block: 'start' })); }
 
 function selectEdge(id) { const e = E.get(id); if (!e)
-    return; state.edge = id; renderGraph(); renderEdge(e); }
+    return; revealInspector(); state.edge = id; state.bundle = null; renderGraph(); renderEdge(e); }
 
-function renderFamily() { const fs = DATA.families; const all = [['all', { short: 'すべてのファミリー', color: '#93a9ba' }], ...Object.entries(fs)]; $('families').innerHTML = all.map(([id, f]) => `<button class="familybutton ${state.family === id ? 'active' : ''}" data-family="${id}"><i class="dot" style="background:${f.color}"></i><span>${f.short}</span><span class="num">${id === 'all' ? DATA.nodes.length : DATA.nodes.filter(n => n.family === id).length}</span></button>`).join(''); $('familyTitle').textContent = state.family === 'all' ? '構造ファミリーの全体地図' : fs[state.family].name; $('familySubtitle').textContent = state.family === 'all' ? '６つの領域をクリックして拡大。領域間の線も表示。' : fs[state.family].subtitle; }
+function revealInspector() { if (document.querySelector('.workspace').classList.contains('hide-right'))
+    setPanel('right', true); }
+
+function renderFamily() { const fs = DATA.families; const all = [['all', { short: 'すべてのファミリー', color: '#93a9ba' }], ...Object.entries(fs)]; $('families').innerHTML = all.map(([id, f]) => `<button class="familybutton ${state.family === id ? 'active' : ''}" data-family="${id}"><i class="dot" style="background:${f.color}"></i><span>${f.short}</span><span class="num">${id === 'all' ? DATA.nodes.length : DATA.nodes.filter(n => n.family === id).length}</span></button>`).join(''); $('familyTitle').innerHTML = state.family === 'all' ? '構造ファミリーの全体地図' : `<button class="crumb" data-family="all" title="全体地図へ戻る">全体地図</button><span class="crumbsep" aria-hidden="true">›</span>${esc(fs[state.family].name)}`; $('familySubtitle').textContent = state.family === 'all' ? `${Object.keys(fs).length} つのファミリーと、その間をつなぐ関係` : fs[state.family].subtitle; }
 
 const SVGNS = 'http://www.w3.org/2000/svg';
 
 function svgEl(tag, attrs = {}, text) { const el = document.createElementNS(SVGNS, tag); Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v)); if (text !== undefined)
     el.textContent = text; return el; }
 
-function pos(n) { const f = DATA.families[n.family]; return { x: n.x + (state.family === 'all' ? f.x : 0), y: n.y + (state.family === 'all' ? f.y : 0) }; }
+function pos(n) { return { x: n.x, y: n.y }; }
 
 function getVisible() { let nodes = DATA.nodes.filter(n => state.family === 'all' || n.family === state.family); let ids = new Set(nodes.map(n => n.id)); let edges = DATA.edges.filter(e => ids.has(e.a) && ids.has(e.b) && (!state.strict || e.strict)); if (state.strict) {
     const linked = new Set(edges.flatMap(e => [e.a, e.b]));
@@ -96,23 +99,27 @@ function edgePath(a, b) {
     return { d: `M${sx},${sy} C${c1x},${c1y} ${c2x},${c2y} ${ex},${ey}`, mx: (sx + 3 * c1x + 3 * c2x + ex) / 8, my: (sy + 3 * c1y + 3 * c2y + ey) / 8 };
 }
 
+const CARD = { w: 220, h: 86 };
+
+function crossEdgesOf(id) { return DATA.edges.filter(e => (e.a === id || e.b === id) && N.get(e.a).family !== N.get(e.b).family && (!state.strict || e.strict)); }
+
 function renderGraph() {
     const v = getVisible();
     visibleNodes = v.nodes;
     visibleEdges = v.edges;
     ['clusterLayer', 'edgeLayer', 'nodeLayer', 'edgeLabels'].forEach(id => $(id).replaceChildren());
-    if (state.family === 'all') {
-        for (const [id, f] of Object.entries(DATA.families)) {
-            const g = svgEl('g');
-            g.append(svgEl('rect', { x: f.x + 30, y: f.y - 40, width: 830, height: 760, class: 'clusterbox' }));
-            const title = svgEl('text', { x: f.x + 65, y: f.y + 4, class: 'clustertitle' }, f.name);
-            title.addEventListener('click', () => family(id));
-            g.append(title);
-            $('clusterLayer').append(g);
-        }
-    }
-    const connected = new Set([state.selected]);
-    visibleEdges.filter(e => e.a === state.selected || e.b === state.selected).forEach(e => { connected.add(e.a); connected.add(e.b); });
+    $('map').classList.remove('tilehover');
+    if (state.family === 'all')
+        renderOverview();
+    else
+        renderFamilyGraph();
+    renderCrossDock();
+    const cross = visibleEdges.filter(e => N.get(e.a).family !== N.get(e.b).family).length;
+    $('graphStatus').textContent = `表示 ${visibleNodes.length} 構造 / ${visibleEdges.length} 関係${state.family === 'all' ? ` · 領域をまたぐ関係 ${cross}` : ''}`;
+    renderList();
+}
+
+function renderFamilyGraph() {
     for (const e of visibleEdges) {
         const p = edgePath(N.get(e.a), N.get(e.b));
         const hi = state.edge ? state.edge === e.id : (e.a === state.selected || e.b === state.selected);
@@ -134,10 +141,11 @@ function renderGraph() {
             $('edgeLabels').append(label);
         }
     }
+    const cross = crossEdgesOf(state.selected).length;
     for (const n of visibleNodes) {
         const p = pos(n);
-        const g = svgEl('g', { class: `node ${state.selected === n.id && !state.edge ? 'selected' : ''}`, transform: `translate(${p.x - 110},${p.y - 43})`, 'data-node': n.id, tabindex: '0', role: 'button', 'aria-label': `${n.name} ${n.formula}` });
-        g.append(svgEl('rect', { width: 220, height: 86, rx: 9, class: 'main' }));
+        const g = svgEl('g', { class: `node ${state.selected === n.id && !state.edge ? 'selected' : ''}`, transform: `translate(${p.x - CARD.w / 2},${p.y - CARD.h / 2})`, 'data-node': n.id, tabindex: '0', role: 'button', 'aria-label': `${n.name} ${n.formula}` });
+        g.append(svgEl('rect', { width: CARD.w, height: CARD.h, rx: 9, class: 'main' }));
         g.append(svgEl('rect', { x: 0, y: 14, width: 3, height: 24, rx: 1.5, fill: DATA.families[n.family].color, class: 'familystripe' }));
         const title = svgEl('text', { x: 14, y: 26, class: 'title' }, n.name);
         if (n.name.length > 15) {
@@ -151,6 +159,10 @@ function renderGraph() {
         if (state.comp.includes(n.id)) {
             g.append(svgEl('circle', { cx: 207, cy: 12, r: 7, class: 'comparecircle' }), svgEl('text', { x: 207, y: 15, 'text-anchor': 'middle', fill: '#a7efd7', 'font-size': 9 }, state.comp.indexOf(n.id) + 1));
         }
+        if (n.id === state.selected && cross) {
+            // Marks that the selected card has neighbours outside this family (listed in the cross-family dock).
+            g.append(svgEl('rect', { x: 194, y: 75, width: 42, height: 22, rx: 11, class: 'crossbadge' }), svgEl('text', { x: 215, y: 90, 'text-anchor': 'middle', class: 'crossbadgetext' }, `↗ ${cross}`));
+        }
         g.append(svgEl('title', {}, `${n.name}\n${n.formula}\n${n.sg}`));
         g.addEventListener('click', () => { if (panMoved)
             return; selectNode(n.id, false); });
@@ -160,11 +172,105 @@ function renderGraph() {
         } });
         $('nodeLayer').append(g);
     }
-    const cross = DATA.edges.filter(e => (e.a === state.selected || e.b === state.selected) && N.get(e.a).family !== N.get(e.b).family && (!state.strict || e.strict)).length;
-    $('graphNote').innerHTML = `${state.strict ? '<span>群–部分群の確認済み関係のみ</span>' : '<span>構造・矢印をクリックして詳細</span>'}${cross && state.family !== 'all' ? `<span>選択構造に領域をまたぐ関係 ${cross} 件 ↗</span>` : ''}`;
-    $('graphStatus').textContent = `表示 ${visibleNodes.length} 構造 / ${visibleEdges.length} 関係`;
-    renderList();
+    $('graphNote').innerHTML = state.strict ? '<span>群–部分群の確認済み関係のみ</span>' : '<span>構造・矢印をクリックして詳細</span>';
 }
+
+// Overview: one tile per family, laid out so every cross-family bundle joins neighbouring tiles without crossings.
+const OVERVIEW = { w: 400, h: 340, gx: 150, gy: 130, cols: 3, order: ['fluorite', 'fcc', 'bcc', 'perov', 'hcp', 'rutile'] };
+
+function tileRect(id) { const ids = [...OVERVIEW.order.filter(f => DATA.families[f]), ...Object.keys(DATA.families).filter(f => !OVERVIEW.order.includes(f))], i = ids.indexOf(id), c = i % OVERVIEW.cols, r = Math.floor(i / OVERVIEW.cols); return { x: c * (OVERVIEW.w + OVERVIEW.gx), y: r * (OVERVIEW.h + OVERVIEW.gy), w: OVERVIEW.w, h: OVERVIEW.h }; }
+
+function overviewBounds() { const rs = Object.keys(DATA.families).map(tileRect); return { x1: Math.min(...rs.map(r => r.x)), y1: Math.min(...rs.map(r => r.y)), x2: Math.max(...rs.map(r => r.x + r.w)), y2: Math.max(...rs.map(r => r.y + r.h)) }; }
+
+function clipToRect(r, tx, ty, pad = 10) { const cx = r.x + r.w / 2, cy = r.y + r.h / 2, dx = tx - cx, dy = ty - cy; const t = Math.min(dx ? (r.w / 2 + pad) / Math.abs(dx) : Infinity, dy ? (r.h / 2 + pad) / Math.abs(dy) : Infinity); return [cx + dx * t, cy + dy * t]; }
+
+function bundleKey(a, b) { const ids = Object.keys(DATA.families); return ids.indexOf(a) <= ids.indexOf(b) ? `${a}|${b}` : `${b}|${a}`; }
+
+function bundles() { const m = new Map(); for (const e of visibleEdges) {
+    const fa = N.get(e.a).family, fb = N.get(e.b).family;
+    if (fa === fb)
+        continue;
+    const k = bundleKey(fa, fb);
+    if (!m.has(k))
+        m.set(k, []);
+    m.get(k).push(e);
+} return m; }
+
+function fitText(text, max) { return text.length > max ? text.slice(0, max - 1) + '…' : text; }
+
+let downTile = null;
+
+function renderOverview() {
+    const sel = N.get(state.selected), activeBundle = state.bundle || (state.edge && (() => { const e = E.get(state.edge), fa = N.get(e.a).family, fb = N.get(e.b).family; return fa !== fb ? bundleKey(fa, fb) : null; })());
+    for (const [key, list] of bundles()) {
+        const [fa, fb] = key.split('|'), ra = tileRect(fa), rb = tileRect(fb);
+        const [x1, y1] = clipToRect(ra, rb.x + rb.w / 2, rb.y + rb.h / 2), [x2, y2] = clipToRect(rb, ra.x + ra.w / 2, ra.y + ra.h / 2);
+        const gid = `bundle-${fa}-${fb}`, grad = svgEl('linearGradient', { id: gid, gradientUnits: 'userSpaceOnUse', x1, y1, x2, y2 });
+        grad.append(svgEl('stop', { offset: '0', 'stop-color': DATA.families[fa].color }), svgEl('stop', { offset: '1', 'stop-color': DATA.families[fb].color }));
+        const d = `M${x1},${y1} L${x2},${y2}`, on = activeBundle === key;
+        const line = svgEl('path', { d, class: `bundle ${on ? 'selected' : ''}`, stroke: `url(#${gid})`, 'stroke-width': 3 + list.length * 2.4, 'data-a': fa, 'data-b': fb });
+        const label = `${DATA.families[fa].short} と ${DATA.families[fb].short}：${list.length} 本の関係`;
+        const hit = svgEl('path', { d, class: 'bundlehit', tabindex: '0', role: 'button', 'aria-label': label });
+        hit.append(svgEl('title', {}, `${label}\n${list.map(e => `${N.get(e.a).name} → ${N.get(e.b).name}`).join('\n')}`));
+        hit.addEventListener('click', () => selectBundle(key));
+        hit.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') {
+            ev.preventDefault();
+            selectBundle(key);
+        } });
+        $('edgeLayer').append(grad, line, hit);
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, pill = svgEl('g', { class: `bundlelabel ${on ? 'selected' : ''}`, 'data-a': fa, 'data-b': fb });
+        pill.append(svgEl('rect', { x: mx - 34, y: my - 17, width: 68, height: 34, rx: 17 }), svgEl('text', { x: mx, y: my + 7, 'text-anchor': 'middle' }, `${list.length} 本`));
+        $('edgeLabels').append(pill);
+    }
+    for (const [id, f] of Object.entries(DATA.families)) {
+        const r = tileRect(id), all = DATA.nodes.filter(n => n.family === id), shown = visibleNodes.filter(n => n.family === id), ids = new Set(shown.map(n => n.id));
+        const current = sel?.family === id;
+        const g = svgEl('g', { class: `familytile ${current ? 'current' : ''} ${shown.length ? '' : 'empty'}`, 'data-tile': id, tabindex: '0', role: 'button', 'aria-label': `${f.name}：${shown.length} 構造。開く`, style: `--fam:${f.color}` });
+        g.append(svgEl('rect', { x: r.x, y: r.y, width: r.w, height: r.h, rx: 22, class: 'tilebg' }));
+        g.append(svgEl('rect', { x: r.x, y: r.y + 30, width: 6, height: 44, rx: 3, fill: f.color }));
+        g.append(svgEl('text', { x: r.x + 28, y: r.y + 58, class: 'tiletitle' }, f.short));
+        g.append(svgEl('text', { x: r.x + 28, y: r.y + 88, class: 'tilesub' }, fitText(f.subtitle, 21)));
+        g.append(svgEl('text', { x: r.x + r.w - 26, y: r.y + 60, 'text-anchor': 'end', class: 'tilecount' }, String(shown.length)));
+        // Mini-map of the family, using the same coordinates as the family view.
+        const xs = all.map(n => n.x), ys = all.map(n => n.y);
+        const bx1 = Math.min(...xs) - CARD.w / 2, bx2 = Math.max(...xs) + CARD.w / 2, by1 = Math.min(...ys) - CARD.h / 2, by2 = Math.max(...ys) + CARD.h / 2;
+        const area = { x: r.x + 24, y: r.y + 112, w: r.w - 48, h: r.h - 172 }, s = Math.min(area.w / (bx2 - bx1), area.h / (by2 - by1));
+        const ox = area.x + (area.w - (bx2 - bx1) * s) / 2 - bx1 * s, oy = area.y + (area.h - (by2 - by1) * s) / 2 - by1 * s;
+        const mini = svgEl('g', { class: 'minimap' });
+        for (const e of visibleEdges)
+            if (ids.has(e.a) && ids.has(e.b))
+                mini.append(svgEl('line', { x1: ox + N.get(e.a).x * s, y1: oy + N.get(e.a).y * s, x2: ox + N.get(e.b).x * s, y2: oy + N.get(e.b).y * s, class: 'miniedge' }));
+        for (const n of shown)
+            mini.append(svgEl('rect', { x: ox + (n.x - CARD.w / 2) * s, y: oy + (n.y - CARD.h / 2) * s, width: CARD.w * s, height: CARD.h * s, rx: 4, class: `mininode ${n.id === state.selected ? 'sel' : ''}` }));
+        g.append(mini);
+        const degree = n => visibleEdges.filter(e => e.a === n.id || e.b === n.id).length;
+        const reps = [...shown].sort((a, b) => degree(b) - degree(a)).slice(0, 3).map(n => n.name).join(' · ');
+        g.append(svgEl('text', { x: r.x + 28, y: r.y + r.h - 26, class: 'tilereps' }, shown.length ? fitText(reps, 24) : 'この絞り込みでは該当なし'));
+        g.append(svgEl('title', {}, `${f.name}\n${f.subtitle}${current ? `\n選択中：${sel.name}` : ''}\nクリックで開く`));
+        g.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') {
+            ev.preventDefault();
+            family(id);
+        } });
+        g.addEventListener('pointerenter', () => { $('map').classList.add('tilehover'); document.querySelectorAll('#map .bundle,#map .bundlelabel').forEach(b => b.classList.toggle('lit', b.dataset.a === id || b.dataset.b === id)); });
+        g.addEventListener('pointerleave', () => $('map').classList.remove('tilehover'));
+        $('nodeLayer').append(g);
+    }
+    $('graphNote').innerHTML = `${state.strict ? '<span>群–部分群の確認済み関係のみ</span>' : ''}<span>ファミリーをクリックして中へ</span><span>線の数字は領域をまたぐ関係の本数</span>`;
+}
+
+function selectBundle(key) { revealInspector(); state.bundle = key; state.edge = null; renderGraph(); renderBundle(key); }
+
+function renderBundle(key) { modelView?.destroy(); modelView = null; const [fa, fb] = key.split('|'), A = DATA.families[fa], B = DATA.families[fb], list = bundles().get(key) || []; $('inspector').innerHTML = `<div class="inspecthead"><div class="eyebrow">CROSS-FAMILY / 領域をまたぐ関係</div><h2 style="font-size:19px"><span style="color:${A.color}">${esc(A.short)}</span> ↔ <span style="color:${B.color}">${esc(B.short)}</span></h2><div class="muted smalltext">${list.length} 本の関係。矢印を選ぶと詳細を表示します。</div><div class="row" style="margin-top:11px"><button class="small" data-family="${fa}">${esc(A.short)} を開く</button><button class="small" data-family="${fb}">${esc(B.short)} を開く</button></div></div><div class="inspectbody"><div class="relationlist">${list.map(e => { const a = N.get(e.a), b = N.get(e.b); return `<button class="relationitem" data-relation="${e.id}"><div><span style="color:${KINDS[e.kind].color}">${e.undirected ? '↔' : '→'}</span> ${esc(a.name)} ${e.undirected ? '↔' : '→'} ${esc(b.name)}<small>${esc(e.label)} · ${esc(KINDS[e.kind].name)}</small></div><span class="relarr">›</span></button>`; }).join('')}</div><div class="detailsection"><div class="note">ファミリーは本アトラスの編集上の分類です。領域をまたぐ関係は、分類の境界が一つの見方にすぎないことを示します。</div></div></div>`; $('inspector').scrollTop = 0; }
+
+function renderCrossDock() { const dock = $('crossDock'), list = state.family === 'all' ? [] : crossEdgesOf(state.selected); dock.hidden = !list.length; if (!list.length)
+    return; $('crossCount').textContent = list.length; $('crossList').innerHTML = list.map(e => { const out = e.a === state.selected, other = N.get(out ? e.b : e.a), f = DATA.families[other.family], k = KINDS[e.kind]; return `<button class="crossitem" data-jump="${other.id}" title="${esc(N.get(state.selected).name)} ${e.undirected ? '↔' : out ? '→' : '←'} ${esc(other.name)}：${esc(e.label)}（${esc(f.short)} へ移動）"><span class="crossarrow" style="color:${k.color}">${e.undirected ? '↔' : out ? '→' : '←'}</span>${esc(other.name)}<i class="dot" style="background:${f.color}" aria-hidden="true"></i><small>${esc(f.short)}</small></button>`; }).join(''); }
+
+function renderSide() { if (state.edge)
+    renderEdge(E.get(state.edge));
+else if (state.bundle)
+    renderBundle(state.bundle);
+else
+    renderInspector(); }
 
 function initDefs() { for (const [key, k] of Object.entries(KINDS)) {
     const m = svgEl('marker', { id: `arrow-${key}`, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' });
@@ -178,14 +284,21 @@ function applyCam() { $('viewport').setAttribute('transform', `translate(${cam.x
 
 function fitMap() { if (state.tab !== 'explore' || state.view !== 'map')
     return; const r = $('map').getBoundingClientRect(); if (!r.width || !r.height)
-    return; let points = visibleNodes.map(pos); if (!points.length) {
+    return; if (state.family === 'all') {
+    // Screen space reserved for the note chips above and the zoom controls below.
+    const b = overviewBounds(), pad = 30, top = 44, bottom = 64, h = r.height - top - bottom;
+    cam.k = Math.min((r.width - pad * 2) / (b.x2 - b.x1), (h - pad) / (b.y2 - b.y1), 1.25);
+    cam.x = r.width / 2 - (b.x1 + b.x2) / 2 * cam.k;
+    cam.y = top + h / 2 - (b.y1 + b.y2) / 2 * cam.k;
+    applyCam();
+    return;
+} let points = visibleNodes.map(pos); if (!points.length) {
     cam.x = r.width / 2;
     cam.y = r.height / 2;
     cam.k = 1;
     applyCam();
     return;
-} let x1 = Math.min(...points.map(p => p.x)) - 140, x2 = Math.max(...points.map(p => p.x)) + 140, y1 = Math.min(...points.map(p => p.y)) - 90, y2 = Math.max(...points.map(p => p.y)) + 105; if (state.family === 'all')
-    y1 -= 50; cam.k = Math.min(r.width / (x2 - x1), r.height / (y2 - y1), 1.25) * .96; cam.x = r.width / 2 - (x1 + x2) / 2 * cam.k; cam.y = r.height / 2 - (y1 + y2) / 2 * cam.k; applyCam(); }
+} let x1 = Math.min(...points.map(p => p.x)) - 140, x2 = Math.max(...points.map(p => p.x)) + 140, y1 = Math.min(...points.map(p => p.y)) - 90, y2 = Math.max(...points.map(p => p.y)) + 105; const top = 40, h = r.height - top; cam.k = Math.min(r.width / (x2 - x1), h / (y2 - y1), 1.25) * .96; cam.x = r.width / 2 - (x1 + x2) / 2 * cam.k; cam.y = top + h / 2 - (y1 + y2) / 2 * cam.k; applyCam(); }
 
 function zoom(f, cx, cy) { const r = $('map').getBoundingClientRect(); cx ??= r.width / 2; cy ??= r.height / 2; const old = cam.k; cam.k = Math.max(.13, Math.min(3.8, cam.k * f)); cam.x = cx - (cx - cam.x) * cam.k / old; cam.y = cy - (cy - cam.y) * cam.k / old; applyCam(); }
 
@@ -197,7 +310,7 @@ $('map').addEventListener('pointerdown', ev => { const r = $('map').getBoundingC
     panStart = null;
     ev.preventDefault();
     return;
-} if (ev.target.closest('.node,.edgehit'))
+} downTile = pointers.size === 1 ? ev.target.closest('[data-tile]')?.dataset.tile : null; if (ev.target.closest('.node,.edgehit,.bundlehit'))
     return; panStart = { x: ev.clientX, y: ev.clientY, cx: cam.x, cy: cam.y }; $('map').setPointerCapture(ev.pointerId); $('map').classList.add('dragging'); });
 
 $('map').addEventListener('pointermove', ev => { if (!pointers.has(ev.pointerId))
@@ -218,7 +331,8 @@ $('map').addEventListener('pointermove', ev => { if (!pointers.has(ev.pointerId)
 function endPointer(ev) { pointers.delete(ev.pointerId); if (pointers.size < 2)
     pinch = null; panStart = null; $('map').classList.remove('dragging'); setTimeout(() => panMoved = false, 100); }
 
-$('map').addEventListener('pointerup', endPointer);
+$('map').addEventListener('pointerup', ev => { const tile = downTile; downTile = null; const moved = panMoved; endPointer(ev); if (tile && !moved)
+    family(tile); });
 
 $('map').addEventListener('pointercancel', endPointer);
 
@@ -252,10 +366,7 @@ else if (state.comp.length < 2)
 else {
     toast('比較は２構造までです。トレイから一つ外してください。');
     return;
-} renderTray(); renderGraph(); if (state.edge)
-    renderEdge(E.get(state.edge));
-else
-    renderInspector(); }
+} renderTray(); renderGraph(); renderSide(); }
 
 function renderTray() { $('compareTray').hidden = !state.comp.length; $('trayItems').innerHTML = state.comp.map((id, i) => `<span class="pill">${i + 1} ${esc(N.get(id).name)}<button data-compare="${id}" aria-label="比較から外す">×</button></span>`).join(''); $('compareOpen').disabled = state.comp.length !== 2; }
 
@@ -352,7 +463,7 @@ $('search').addEventListener('keydown', ev => { if (ev.key === 'Enter') {
         b.click();
 } });
 
-$('strictFilter').addEventListener('change', ev => { state.strict = ev.target.checked; state.edge = null; renderGraph(); renderInspector(); requestAnimationFrame(fitMap); });
+$('strictFilter').addEventListener('change', ev => { state.strict = ev.target.checked; state.edge = null; state.bundle = null; renderGraph(); renderInspector(); requestAnimationFrame(fitMap); });
 
 $('zoomIn').onclick = () => zoom(1.25);
 
@@ -364,12 +475,43 @@ $('mapMode').onclick = () => mode('map');
 
 $('listMode').onclick = () => mode('list');
 
+// Edge-anchored side panels can be collapsed to give the map more room. The choice is a per-viewer convenience.
+const PANEL_KEY = 'crystal-atlas:panels';
+
+function setPanel(side, open, save = true) { const ws = document.querySelector('.workspace'), btn = $(side === 'left' ? 'toggleLeft' : 'toggleRight'); ws.classList.toggle(`hide-${side}`, !open); btn.setAttribute('aria-expanded', String(open)); btn.classList.toggle('active', open); btn.title = `${side === 'left' ? '検索・絞り込み' : '詳細'}パネルを${open ? '隠す' : '表示'} ( ${side === 'left' ? '[' : ']'} )`; if (save)
+    try {
+        localStorage.setItem(PANEL_KEY, JSON.stringify({ left: !ws.classList.contains('hide-left'), right: !ws.classList.contains('hide-right') }));
+    }
+    catch { } }
+
+function togglePanel(side) { setPanel(side, document.querySelector('.workspace').classList.contains(`hide-${side}`)); }
+
+$('toggleLeft').onclick = () => togglePanel('left');
+
+$('toggleRight').onclick = () => togglePanel('right');
+
+try {
+    const saved = JSON.parse(localStorage.getItem(PANEL_KEY) || '{}');
+    setPanel('left', saved.left !== false, false);
+    setPanel('right', saved.right !== false, false);
+}
+catch {
+    setPanel('left', true, false);
+    setPanel('right', true, false);
+}
+
+document.addEventListener('keydown', ev => { if (state.tab !== 'explore' || ev.metaKey || ev.ctrlKey || ev.altKey || !$('modalBackdrop').hidden || ev.target.closest('input,select,textarea,[contenteditable]'))
+    return; if (ev.key === '[') {
+    ev.preventDefault();
+    togglePanel('left');
+} if (ev.key === ']') {
+    ev.preventDefault();
+    togglePanel('right');
+} });
+
 $('compareOpen').onclick = compare;
 
-$('compareClear').onclick = () => { state.comp = []; renderTray(); renderGraph(); if (state.edge)
-    renderEdge(E.get(state.edge));
-else
-    renderInspector(); };
+$('compareClear').onclick = () => { state.comp = []; renderTray(); renderGraph(); renderSide(); };
 
 $('routesBtn').onclick = routes;
 
@@ -419,9 +561,9 @@ document.addEventListener('change', ev => { if (ev.target.dataset.sub !== undefi
 
 $('exportBtn').onclick = () => { const blob = new Blob([JSON.stringify(DATA, null, 2)], { type: 'application/json;charset=utf-8' }), u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = 'crystal-atlas-data-v1.json'; a.click(); setTimeout(() => URL.revokeObjectURL(u), 1500); toast('出典を含む構造・関係データを書き出しました。'); };
 
-$('nodeCount').textContent = DATA.nodes.length;
+$('nodeCount').textContent = $('sideNodeCount').textContent = DATA.nodes.length;
 
-$('edgeCount').textContent = DATA.edges.length;
+$('edgeCount').textContent = $('sideEdgeCount').textContent = DATA.edges.length;
 
 $('strictCount').textContent = DATA.edges.filter(e => e.strict).length;
 

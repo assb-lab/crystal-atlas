@@ -259,8 +259,10 @@ main {
   display: none!important
 }
 .workspace {
+  --left-w: 205px;
+  --right-w: 342px;
   display: grid;
-  grid-template-columns: 205px minmax(360px,1fr) 342px;
+  grid-template-columns: var(--left-w) minmax(360px,1fr) var(--right-w);
   gap: 12px;
   height: calc(100vh - 220px);
   min-height: 650px;
@@ -407,6 +409,60 @@ main {
 }
 .graphbar h2 {
   font-size: 14px
+}
+.graphtitle {
+  min-width: 0
+}
+.paneltoggle {
+  display: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  flex-shrink: 0;
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted)
+}
+.paneltoggle svg {
+  width: 18px;
+  height: 18px
+}
+.paneltoggle .fillbar {
+  opacity: 0;
+  transition: opacity .15s
+}
+.paneltoggle.active {
+  background: transparent;
+  border-color: transparent;
+  color: var(--sub)
+}
+.paneltoggle.active .fillbar {
+  opacity: .55
+}
+.paneltoggle:hover {
+  color: var(--ink);
+  background: var(--panel2)
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap
+}
+.sidestats {
+  display: flex;
+  gap: 12px;
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 11px
+}
+.sidestats b {
+  font: 500 13px/1 var(--mono);
+  color: var(--sub);
+  margin-right: 3px
 }
 .graphbar .subtitle {
   font-size: 10px;
@@ -594,23 +650,196 @@ main {
   stroke: #385469;
   stroke-width: .7
 }
-.clusterbox {
-  fill: #122130;
-  stroke: #314656;
+.familytile {
+  cursor: pointer;
+  outline: none
+}
+.familytile .tilebg {
+  fill: #13222f;
+  stroke: #2c4152;
   stroke-width: 2;
-  rx: 25;
+  transition: fill .15s,stroke .15s
+}
+.familytile:hover .tilebg,.familytile:focus-visible .tilebg {
+  fill: #182b3b;
+  stroke: var(--fam)
+}
+.familytile:focus-visible .tilebg {
+  stroke-width: 4
+}
+.familytile.current .tilebg {
+  stroke: var(--fam);
+  stroke-opacity: .7
+}
+.familytile.empty {
+  opacity: .45
+}
+.familytile text {
+  pointer-events: none
+}
+.tiletitle {
+  font-size: 30px;
+  font-weight: 650;
+  fill: #e3eef5
+}
+.tilesub {
+  font-size: 17px;
+  fill: #93abbe
+}
+.tilecount {
+  font: 500 42px var(--mono);
+  fill: var(--fam)
+}
+.tilereps {
+  font-size: 16px;
+  fill: #b5c8d6
+}
+.miniedge {
+  stroke: #6f8799;
+  stroke-width: 1.4;
   opacity: .55
 }
-.clustertitle {
-  font-size: 31px;
-  font-weight: 650;
-  fill: #d0e2ed;
-  cursor: pointer
+.mininode {
+  fill: #1d3243;
+  stroke: var(--fam);
+  stroke-opacity: .55;
+  stroke-width: 1.2
 }
-.clustersub {
-  font-size: 17px;
-  fill: #8ca4b8;
-  pointer-events: none
+.mininode.sel {
+  fill: #2c5a52;
+  stroke: #7bedcc;
+  stroke-opacity: 1;
+  stroke-width: 2.4
+}
+.bundle {
+  fill: none;
+  stroke-linecap: round;
+  opacity: .5;
+  pointer-events: none;
+  transition: opacity .15s
+}
+.bundle.selected {
+  opacity: 1
+}
+.bundlehit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 34;
+  cursor: pointer;
+  outline: none
+}
+.bundlehit:hover+.bundle,.bundlehit:focus-visible+.bundle {
+  opacity: .95
+}
+.bundlelabel {
+  pointer-events: none;
+  transition: opacity .15s
+}
+.bundlelabel rect {
+  fill: #0d1824;
+  stroke: #4a6478;
+  stroke-width: 1.5
+}
+.bundlelabel text {
+  font: 600 17px var(--mono);
+  fill: #d7e6ef
+}
+.bundlelabel.selected rect {
+  stroke: var(--accent);
+  stroke-width: 2.5
+}
+#map.tilehover .bundle:not(.lit),#map.tilehover .bundlelabel:not(.lit) {
+  opacity: .15
+}
+#map.tilehover .bundle.lit {
+  opacity: .95
+}
+.crossbadge {
+  fill: #173c3b;
+  stroke: #6fd9bc;
+  stroke-width: 1.2
+}
+.crossbadgetext {
+  font: 600 11px var(--mono);
+  fill: #a9f3dc
+}
+.crumb {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 500;
+  color: var(--muted)
+}
+.crumb:hover {
+  background: none;
+  color: var(--accent);
+  text-decoration: underline
+}
+.crumbsep {
+  color: #5d7385;
+  margin: 0 7px;
+  font-weight: 400
+}
+.crossdock {
+  position: absolute;
+  top: 9px;
+  right: 12px;
+  z-index: 2;
+  max-width: calc(100% - 230px);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px
+}
+.crosslabel {
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0
+}
+.crosslabel b {
+  font: 600 10px var(--mono);
+  color: #a9f3dc;
+  background: #173c3b;
+  border-radius: 8px;
+  padding: 1px 6px;
+  margin-left: 2px
+}
+.crosslist {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0
+}
+.crossitem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  padding: 4px 9px;
+  font-size: 11px;
+  background: #0c1622e6;
+  border-color: #3a5468;
+  border-radius: 14px;
+  backdrop-filter: blur(6px)
+}
+.crossitem:hover {
+  background: #1b2e3e;
+  border-color: #6fd9bc
+}
+.crossitem small {
+  font-size: 10px;
+  color: var(--muted)
+}
+.crossarrow {
+  font-weight: 700
+}
+.crossitem .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  margin-left: 2px
 }
 .listview {
   overflow: auto;
@@ -1292,7 +1521,8 @@ main {
 }
 @media(min-width:1700px) {
   .workspace {
-    grid-template-columns: 230px minmax(360px,1fr) 380px
+    --left-w: 230px;
+    --right-w: 380px
   }
   .hero {
     padding-top: 28px;
@@ -1320,7 +1550,9 @@ main {
     min-width: 185px
   }
   .workspace {
-    grid-template-columns: 178px minmax(310px,1fr) 300px;
+    --left-w: 178px;
+    --right-w: 300px;
+    grid-template-columns: var(--left-w) minmax(310px,1fr) var(--right-w);
     gap: 9px
   }
   main {
@@ -1362,6 +1594,77 @@ main {
   }
   .labgrid {
     grid-template-columns: minmax(340px,1.3fr) minmax(300px,1fr)
+  }
+}
+/* Desktop explore: full-bleed app shell. Side panels sit flush against the window edges. */
+@media(min-width:981px) {
+  body[data-page=explore] .hero,body[data-page=explore] .footer {
+    display: none
+  }
+  body[data-page=explore] main {
+    padding: 0
+  }
+  body[data-page=explore] .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30
+  }
+  #explore.tabpage {
+    max-width: none
+  }
+  #explore .workspace {
+    gap: 0;
+    height: calc(100dvh - 72px);
+    min-height: 560px;
+    max-height: none;
+    transition: grid-template-columns .22s ease
+  }
+  #explore .sidebar,#explore .graphpanel,#explore .inspector {
+    border-radius: 0;
+    border: 0
+  }
+  #explore .sidebar {
+    border-right: 1px solid var(--line);
+    background: #0e1721
+  }
+  #explore .inspector {
+    border-left: 1px solid var(--line);
+    background: #0e1721
+  }
+  #explore .graphbar {
+    padding-left: 10px;
+    padding-right: 10px
+  }
+  #explore .paneltoggle {
+    display: grid
+  }
+  #explore .workspace.hide-left {
+    --left-w: 0px
+  }
+  #explore .workspace.hide-right {
+    --right-w: 0px
+  }
+  #explore .workspace.hide-left .sidebar,#explore .workspace.hide-right .inspector {
+    visibility: hidden;
+    overflow: hidden;
+    padding-left: 0;
+    padding-right: 0;
+    border: 0
+  }
+  #explore .comparetray {
+    position: fixed;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    z-index: 40;
+    margin: 0;
+    max-width: calc(100vw - 32px);
+    box-shadow: 0 14px 40px #000a
+  }
+}
+@media(min-width:981px) and (prefers-reduced-motion:reduce) {
+  #explore .workspace {
+    transition: none
   }
 }
 @media(max-width:980px) {
@@ -1891,5 +2194,12 @@ main {
   }
   .panel,.inspector {
     break-inside: avoid
+  }
+}
+@media(max-width:700px) {
+  .crossdock {
+    top: 40px;
+    left: 12px;
+    max-width: none
   }
 }

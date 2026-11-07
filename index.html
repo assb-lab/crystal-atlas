@@ -7,7 +7,7 @@
 <meta name="description" content="結晶構造の規則化・空隙占有・積層・群–部分群関係を探索する、文献に基づくインタラクティブアトラス。">
 <link rel="stylesheet" href="./styles/main.css">
 </head>
-<body>
+<body data-page="explore">
 <header class="topbar">
 <div class="brand">
 <svg class="brandmark" viewBox="0 0 40 44" fill="none" aria-hidden="true">
@@ -54,7 +54,7 @@
 <main>
 <section id="explore" class="tabpage">
 <div class="workspace">
-<aside class="sidebar" aria-label="構造の検索と絞り込み">
+<aside class="sidebar" id="exploreSidebar" aria-label="構造の検索と絞り込み">
 <div class="searchzone">
 <div class="label">構造を探す</div>
 <div class="searchbox">
@@ -83,13 +83,22 @@
 </div>
 </div>
 <div class="sidebarbottom">
+<div class="sidestats" aria-label="収録データ">
+<span><b id="sideNodeCount">56</b>構造</span>
+<span><b id="sideEdgeCount">62</b>関係</span>
+<span><b>5</b>資料</span>
+</div>
 <button id="sidebarRoute" class="small flat" style="width:100%">どこから読む？ →</button>
 <p>矢印は構造の記述上の関係です。実際の反応・相転移経路とは限りません。</p>
 </div>
 </aside>
 <section class="graphpanel" aria-label="結晶構造関係グラフ">
 <div class="graphbar">
-<div>
+<button id="toggleLeft" class="paneltoggle" aria-controls="exploreSidebar" aria-expanded="true" title="検索・絞り込みパネルを隠す ( [ )">
+<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M7.5 3.5v13" stroke="currentColor" stroke-width="1.4"/><rect class="fillbar" x="3.5" y="4.5" width="3.3" height="11" rx="1" fill="currentColor"/></svg>
+<span class="sr-only">検索・絞り込みパネルの表示切替</span>
+</button>
+<div class="graphtitle">
 <h2 id="familyTitle">
 </h2>
 <div class="subtitle" id="familySubtitle">
@@ -101,10 +110,19 @@
 <button id="mapMode" class="active">地図</button>
 <button id="listMode">一覧</button>
 </div>
+<button id="toggleRight" class="paneltoggle" aria-controls="inspector" aria-expanded="true" title="詳細パネルを隠す ( ] )">
+<svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2.5" y="3.5" width="15" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M12.5 3.5v13" stroke="currentColor" stroke-width="1.4"/><rect class="fillbar" x="13.2" y="4.5" width="3.3" height="11" rx="1" fill="currentColor"/></svg>
+<span class="sr-only">詳細パネルの表示切替</span>
+</button>
 </div>
 <div class="graphstage" id="graphStage">
 <div class="graphtopnote" id="graphNote">
 </div>
+<nav class="crossdock" id="crossDock" aria-label="他のファミリーとのつながり" hidden>
+<span class="crosslabel">他のファミリーへ <b id="crossCount">0</b></span>
+<div class="crosslist" id="crossList">
+</div>
+</nav>
 <svg id="map" role="img" aria-label="インタラクティブ構造関係図。構造を選択すると詳細が表示されます。">
 <defs id="mapDefs">
 </defs>
