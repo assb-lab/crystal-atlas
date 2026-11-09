@@ -213,3 +213,18 @@ body:has(.knowledge-derivation details[open]) #explore:not([hidden]) {
 .route-members li {
   margin-block: 1rem;
 }
+
+.scheme-explorer {
+  border-top: 1px solid var(--line);
+  margin: 16px 0;
+  padding: 12px 0;
+  overflow-wrap: anywhere;
+}
+.scheme-explorer select {
+  display: block;
+  max-width: 100%;
+  margin: 8px 0;
+}
+.scheme-explorer li {
+  margin: 8px 0;
+}

@@ -1,3 +1,4 @@
+import { FamilySchemes } from "./FamilySchemes.tsx";
 import {
   EVIDENCE_QUERY,
   STEP_QUERY,
@@ -258,6 +259,7 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
           件。未分離は同一性が確認済みという意味ではありません。
         </p>
       )}
+      {!loading && !error && mode === "family" && <FamilySchemes focus={focus} onSelect={pick} />}
       {!loading && !error && <EntityProfile key={focus} id={focus} onSelect={pick} />}
       {!loading && !error && (
         <div className="knowledge-body">

@@ -80,7 +80,9 @@ test("references preserve locators without inventing mentions or reviewed covera
     (r) =>
       !String(r[0]).startsWith("adopted:") &&
       !String(r[0]).startsWith("recipe:") &&
-      r[1] !== "description",
+      r[1] !== "description" &&
+      !String(r[0]).startsWith("contains:class:HS:") &&
+      r[0] !== "class-member:HS:perov",
   ))
     assert.equal(a[5], "imported_not_revalidated");
   assert.equal(

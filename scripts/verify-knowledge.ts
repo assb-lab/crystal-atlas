@@ -1,3 +1,9 @@
+import {
+  CLASSIFICATION_SCHEMES_QUERY,
+  CLASSIFICATION_ITEMS_QUERY,
+  CLASSIFICATION_CLAIMS_QUERY,
+  ENTITY_CLASSIFICATIONS_QUERY,
+} from "../src/knowledge/queries.ts";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { readFile } from "node:fs/promises";
@@ -85,6 +91,20 @@ try {
       `${t.name} full round-trip`,
     );
   }
+  assert.ok(query(CLASSIFICATION_SCHEMES_QUERY).length > 2);
+  assert.equal(query(CLASSIFICATION_ITEMS_QUERY, { id: "scheme:HS:1998:table1" }).length, 16);
+  assert.equal(query(CLASSIFICATION_CLAIMS_QUERY, { id: "scheme:HS:1998:table1" }).length, 16);
+  assert.ok(
+    query(ENTITY_CLASSIFICATIONS_QUERY, { id: "perov" }).some(
+      (r) => r.schemeId === "scheme:HS:1998:table1",
+    ),
+  );
+  assert.ok(
+    query(ENTITY_CLASSIFICATIONS_QUERY, { id: "perov" }).some(
+      (r) => r.schemeId === "scheme:legacy:GI",
+    ),
+  );
+  assert.deepEqual(query(CLASSIFICATION_ITEMS_QUERY, { id: "' OR true //" }), []);
   const contexts = query(MODEL_CONTEXT_QUERY, { id: "anatase" });
   assert.equal(contexts.length, 1);
   const context = JSON.parse(String(contexts[0]!.payload));

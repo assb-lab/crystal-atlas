@@ -59,3 +59,8 @@ export const ROUTE_MEMBERS_QUERY = `MATCH (r:DerivationRoute {id: $id})-[m:Route
 RETURN a.id AS id, a.label AS label, a.domain AS domain, a.status AS status, a.payload AS payload, s.id AS subjectId, s.title AS subjectTitle, t.id AS objectId, t.title AS objectTitle ORDER BY m.ordinal`;
 export const OPERATION_VOCABULARY_QUERY = `MATCH (op:OperationDefinition) RETURN op.id AS id, op.title AS title, op.payload AS payload ORDER BY op.title`;
 export const VOCABULARY_EXAMPLES_QUERY = `MATCH (a:Assertion)-[:VocabularyExample]->(op:OperationDefinition {id: $id}) RETURN a.id AS id, a.label AS label, a.status AS status ORDER BY a.id`;
+
+export const CLASSIFICATION_SCHEMES_QUERY = `MATCH (s:ClassificationScheme) RETURN s.id AS id, s.title AS title, s.payload AS payload ORDER BY s.title`;
+export const CLASSIFICATION_ITEMS_QUERY = `MATCH (s:ClassificationScheme {id:$id})-[:SchemeItem]->(e:Entity) RETURN e.id AS id,e.title AS title,e.payload AS payload ORDER BY e.title`;
+export const CLASSIFICATION_CLAIMS_QUERY = `MATCH (a:Assertion)-[:ClaimInScheme]->(scheme:ClassificationScheme {id:$id}), (a)-[:Subject]->(s:Entity), (a)-[:Object]->(t:Entity) RETURN a.id AS id,a.operation AS operation,a.status AS status,a.basis AS basis,a.description AS description,s.id AS subjectId,s.title AS subjectTitle,t.id AS objectId,t.title AS objectTitle ORDER BY a.id`;
+export const ENTITY_CLASSIFICATIONS_QUERY = `MATCH (a:Assertion)-[:Subject]->(e:Entity {id:$id}), (a)-[:Object]->(item:Entity), (a)-[:ClaimInScheme]->(scheme:ClassificationScheme) WHERE a.operation='member_of' RETURN a.id AS id,a.status AS status,a.basis AS basis,item.title AS itemTitle,scheme.id AS schemeId,scheme.title AS schemeTitle ORDER BY scheme.title,item.title`;

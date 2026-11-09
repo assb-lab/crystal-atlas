@@ -1,3 +1,5 @@
+import { appendClassification, appendLegacySchemes } from "./classification.ts";
+import { howardScheme } from "../data/classification-schemes.ts";
 import type { Atlas, AtlasEdge, Ref } from "../types.ts";
 import { CONCEPTS, ROLES } from "../data/packing.ts";
 import { TABLES, type Cell } from "./schema.ts";
@@ -284,6 +286,8 @@ export function knowledgeDataset(
     });
   }
   appendModelContexts(rows, data, identityRegistry);
+  appendLegacySchemes(rows, data);
+  appendClassification(rows, howardScheme);
   appendIdentity(rows, data, identityRegistry);
   for (const batch of extractions) appendExtraction(rows, data, catalog, batch);
   for (const review of reviews) {
@@ -341,5 +345,6 @@ export function knowledgeDataset(
       "adopted:pilot:K:2-3:relation:nacl-sc",
     ]);
   appendOperationVocabulary(rows);
+
   return { rows };
 }

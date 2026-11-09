@@ -1,5 +1,5 @@
 /** Versioned physical schema. Scientific relations are nodes so they can carry evidence. */
-export const KNOWLEDGE_SCHEMA_VERSION = 8;
+export const KNOWLEDGE_SCHEMA_VERSION = 9;
 export const LADYBUG_VERSION = "0.22.3";
 export type AtlasMode = "family" | "derivation" | "symmetry";
 export type Cell = string | number | boolean | null;
@@ -16,6 +16,7 @@ const rel = (name: string, from: string, to: string, extra: [string, string][] =
   endpoints: [from, to],
 });
 export const TABLES: Table[] = [
+  node("ClassificationScheme", ["id", "title", "payload"]),
   node("Entity", ["id", "title", "kind", "payload"]),
   node("Assertion", [
     "id",
@@ -43,6 +44,9 @@ export const TABLES: Table[] = [
   node("CandidateDecision", ["id", "candidateKind", "candidateId", "outcome", "reason", "payload"]),
   node("CoverageReview", ["id", "status", "payload"]),
   node("ProcessingRun", ["id", "payload"]),
+  rel("SchemeDocument", "ClassificationScheme", "Document"),
+  rel("SchemeItem", "ClassificationScheme", "Entity"),
+  rel("ClaimInScheme", "Assertion", "ClassificationScheme"),
   rel("Subject", "Assertion", "Entity"),
   rel("Object", "Assertion", "Entity"),
   rel("HasEvidence", "Assertion", "SourceSpan"),
