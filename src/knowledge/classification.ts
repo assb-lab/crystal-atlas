@@ -21,6 +21,9 @@ export function appendClassification(
     !registry.id ||
     !registry.title ||
     !registry.scope ||
+    !["literature_classification", "editorial_synthesis", "editorial_navigation"].includes(
+      registry.basis,
+    ) ||
     rows.ClassificationScheme!.some((r) => r[0] === registry.id)
   )
     throw new Error("Invalid/duplicate classification scheme");

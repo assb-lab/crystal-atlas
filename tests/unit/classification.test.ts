@@ -26,6 +26,9 @@ test("source-specific classification separates imported synthesis and checked id
 test("invalid scheme references, cycles and evidence fail atomically", () => {
   for (const change of [
     (s: typeof howardScheme) => {
+      s.basis = "invalid" as typeof s.basis;
+    },
+    (s: typeof howardScheme) => {
       s.documents = ["missing"];
     },
     (s: typeof howardScheme) => {
