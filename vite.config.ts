@@ -1,3 +1,4 @@
+import { atlasSSG } from "./scripts/ssg.ts";
 import react from "@vitejs/plugin-react";
 import { defineConfig, lazyPlugins, type Plugin } from "vite-plus";
 import { knowledgeAssets } from "./scripts/knowledge-assets.ts";
@@ -77,5 +78,5 @@ export default defineConfig({
   test: {
     include: ["tests/unit/**/*.test.ts"],
   },
-  plugins: lazyPlugins(() => [react(), knowledgeAssets(), standaloneHtml()]),
+  plugins: lazyPlugins(() => [react(), knowledgeAssets(), atlasSSG(), standaloneHtml()]),
 });

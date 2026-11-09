@@ -1,3 +1,24 @@
+import {
+  FAMILY_ENTITIES_QUERY,
+  FAMILY_ITEMS_QUERY,
+  FAMILY_CLAIMS_QUERY,
+  FAMILY_ITEM_SCHEMES_QUERY,
+} from "../src/knowledge/queries.ts";
+import { recordQuery } from "../src/knowledge/records.ts";
+import { recordKinds } from "../src/knowledge/navigation.ts";
+import { ASSERTION_ENDPOINT_QUERY } from "../src/knowledge/queries.ts";
+import {
+  SYMMETRY_MAPPING_QUERY,
+  SYMMETRY_VALIDATION_QUERY,
+  SYMMETRY_MODEL_QUERY,
+  SYMMETRY_TREE_QUERY,
+} from "../src/knowledge/queries.ts";
+import {
+  CLASSIFICATION_SCHEMES_QUERY,
+  CLASSIFICATION_ITEMS_QUERY,
+  CLASSIFICATION_CLAIMS_QUERY,
+  ENTITY_CLASSIFICATIONS_QUERY,
+} from "../src/knowledge/queries.ts";
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { readFile } from "node:fs/promises";
@@ -20,6 +41,14 @@ import {
   CURRENT_DECISIONS_QUERY,
   ENTITY_PROFILE_QUERY,
   OCCUPATION_QUERY,
+  LABEL_MAP_QUERY,
+  ROUTES_QUERY,
+  ROUTE_MEMBERS_QUERY,
+  OPERATION_VOCABULARY_QUERY,
+  VOCABULARY_EXAMPLES_QUERY,
+  MODEL_CONTEXT_QUERY,
+  PROTOTYPE_MODEL_QUERY,
+  IDENTITY_STATUS_QUERY,
   DECISION_RESULT_QUERY,
   ADOPTED_ASSERTION_QUERY,
   DECISION_EVIDENCE_QUERY,
@@ -77,6 +106,69 @@ try {
       `${t.name} full round-trip`,
     );
   }
+  const familyEntities = query(FAMILY_ENTITIES_QUERY);
+  const familyItems = query(FAMILY_ITEMS_QUERY);
+  const familyClaims = query(FAMILY_CLAIMS_QUERY);
+  assert.equal(
+    familyEntities.length,
+    expected.rows.Entity!.filter((r) => r[2] !== "editorial_concept").length,
+  );
+  assert.equal(familyItems.length, expected.rows.SchemeItem!.length);
+  assert.equal(familyClaims.length, expected.rows.ClaimInScheme!.length);
+  assert.ok(
+    familyClaims.some(
+      (r) =>
+        r.subjectId === "collection:glazer" &&
+        r.objectId === "collection:perovskites" &&
+        r.schemeId === "scheme:legacy:GL+HS",
+    ),
+  );
+  assert.ok(query(CLASSIFICATION_SCHEMES_QUERY).length > 2);
+  assert.equal(query(CLASSIFICATION_ITEMS_QUERY, { id: "scheme:HS:1998:table1" }).length, 16);
+  assert.equal(query(CLASSIFICATION_CLAIMS_QUERY, { id: "scheme:HS:1998:table1" }).length, 16);
+  assert.ok(
+    query(ENTITY_CLASSIFICATIONS_QUERY, { id: "perov" }).some(
+      (r) => r.schemeId === "scheme:HS:1998:table1",
+    ),
+  );
+  assert.ok(
+    query(ENTITY_CLASSIFICATIONS_QUERY, { id: "perov" }).some(
+      (r) => r.schemeId === "scheme:legacy:GI",
+    ),
+  );
+  assert.deepEqual(query(CLASSIFICATION_ITEMS_QUERY, { id: "' OR true //" }), []);
+  assert.equal(query(SYMMETRY_TREE_QUERY).length, 15);
+  assert.equal(query(SYMMETRY_MAPPING_QUERY, { id: "relation:e8" }).length, 1);
+  assert.equal(query(SYMMETRY_VALIDATION_QUERY, { id: "mapping:legacy:e8" }).length, 0);
+  const idealValidation = query(SYMMETRY_VALIDATION_QUERY, { id: "mapping:M13:fig1.1" });
+  assert.equal(JSON.parse(String(idealValidation[0]!.payload)).parentOperations, 192);
+  assert.equal(query(SYMMETRY_MODEL_QUERY, { id: "mapping:M13:fig1.1" }).length, 1);
+  assert.deepEqual(query(SYMMETRY_MAPPING_QUERY, { id: "' OR true //" }), []);
+  for (const kind of recordKinds) {
+    const all = query(recordQuery(kind, true));
+    assert.ok(all.length > 0);
+    assert.equal(query(recordQuery(kind), { id: String(all[0]!.id) }).length, 1);
+    assert.deepEqual(query(recordQuery(kind), { id: "' OR true //" }), []);
+  }
+  assert.equal(query(ASSERTION_ENDPOINT_QUERY, { id: "relation:e8" })[0]!.subjectId, "diamond");
+  assert.deepEqual(query(FAMILY_ITEM_SCHEMES_QUERY, { id: "family:fcc" }), [
+    { schemeId: "scheme:atlas" },
+  ]);
+  assert.deepEqual(query(FAMILY_ITEM_SCHEMES_QUERY, { id: "' OR true //" }), []);
+  const contexts = query(MODEL_CONTEXT_QUERY, { id: "anatase" });
+  assert.equal(contexts.length, 1);
+  const context = JSON.parse(String(contexts[0]!.payload));
+  assert.equal(context.refinementState, "not_established");
+  assert.equal(context.conditions.temperatureK, null);
+  assert.deepEqual(context.cell.parameters, DATA.models.anatase!.parameters);
+  assert.equal(query(PROTOTYPE_MODEL_QUERY, { id: "prototype:TiO2:anatase" }).length, 1);
+  assert.ok(
+    query(IDENTITY_STATUS_QUERY).some(
+      (r) => r.kind === "chemical_substance" && Number(r.count) === 1,
+    ),
+  );
+  assert.deepEqual(query(MODEL_CONTEXT_QUERY, { id: "' OR true //" }), []);
+  assert.equal(query(RELATIONSHIP_QUERY, { domain: "description", id: "material:TiO2" }).length, 2);
   const family = query(RELATIONSHIP_QUERY, { domain: "family", id: "pyrochlore" });
   assert.ok(family.length > 1);
   const derivation = query(RELATIONSHIP_QUERY, { domain: "derivation", id: "fcc" });
@@ -123,21 +215,26 @@ try {
     "supplement",
   );
   assert.equal(query(DOCUMENT_ASSETS_QUERY, { id: "T16" }).length, 1);
+  assert.equal(query(DOCUMENT_ASSETS_QUERY, { id: "MI02" }).length, 1);
   assert.equal(query(DOCUMENT_ASSETS_QUERY, { id: "HCG79" }).length, 1);
   assert.deepEqual(query(DOCUMENT_ASSETS_QUERY, { id: "M06' OR true //" }), []);
   const pilotAssetId = "asset:89e53b92d39ab682ec8dd1b6931e580ccb0de19fe07524d91d51d47ea9688e27";
-  assert.equal(query(EXTRACTION_RUN_QUERY, { id: pilotAssetId }).length, 1);
+  assert.equal(query(EXTRACTION_RUN_QUERY, { id: pilotAssetId }).length, 3);
   const mentions = query(MENTIONS_QUERY, { id: pilotAssetId });
-  assert.equal(mentions.length, 10);
+  assert.equal(mentions.length, 53);
   for (const mention of mentions) {
     assert.equal(mention.status, "candidate_unresolved");
     const ref = JSON.parse(mention.reference as string);
-    assert.ok([2, 3].includes(ref.pdfPage));
-    assert.equal(ref.p, ref.pdfPage + 155);
-    assert.equal(query(ENTITY_CANDIDATES_QUERY, { id: mention.id }).length, 1);
+    assert.ok([2, 3, 4].includes(ref.pdfPage));
+    if (String(mention.runId).startsWith("extraction:auto:")) assert.equal(ref.p, undefined);
+    else assert.equal(ref.p, ref.pdfPage + 155);
+    assert.equal(
+      query(ENTITY_CANDIDATES_QUERY, { id: mention.id }).length,
+      JSON.parse(String(mention.payload)).candidates.length,
+    );
   }
   const candidates = query(RELATION_CANDIDATES_QUERY, { id: pilotAssetId });
-  assert.equal(candidates.length, 10);
+  assert.equal(candidates.length, 13);
   for (const candidate of candidates) {
     const payload = JSON.parse(candidate.payload as string);
     assert.equal(candidate.status, "candidate_unresolved");
@@ -153,13 +250,13 @@ try {
   }
   assert.deepEqual(query(MENTIONS_QUERY, { id: pilotAssetId + "' OR true //" }), []);
   const decisions = query(DECISIONS_QUERY, { id: pilotAssetId });
-  assert.equal(decisions.length, 24);
-  assert.equal(decisions.filter((d) => d.outcome === "accepted").length, 17);
+  assert.equal(decisions.length, 27);
+  assert.equal(decisions.filter((d) => d.outcome === "accepted").length, 20);
   assert.equal(decisions.filter((d) => d.outcome === "held").length, 7);
   const currentDecisions = query(CURRENT_DECISIONS_QUERY, { id: pilotAssetId });
   assert.equal(currentDecisions.length, 20);
-  assert.equal(currentDecisions.filter((d) => d.outcome === "accepted").length, 17);
-  assert.equal(currentDecisions.filter((d) => d.outcome === "held").length, 3);
+  assert.equal(currentDecisions.filter((d) => d.outcome === "accepted").length, 20);
+  assert.equal(currentDecisions.filter((d) => d.outcome === "held").length, 0);
   for (const [name, host, guest, voidKind, selection] of [
     ["nacl", "Na", "Cl", "octahedral", "all"],
     ["zns", "Zn", "S", "tetrahedral", "one_of_two"],
@@ -179,6 +276,23 @@ try {
   }
   assert.deepEqual(query(OCCUPATION_QUERY, { id: "relation:e1" }), []);
   assert.deepEqual(query(OCCUPATION_QUERY, { id: "' OR true //" }), []);
+  for (const suffix of ["cscl-bcc", "nacl-sc", "zns-diamond"]) {
+    const id = `adopted:pilot:K:2-3:relation:${suffix}`;
+    const spec = JSON.parse(String(query(LABEL_MAP_QUERY, { id })[0]!.payload));
+    assert.equal(spec.outputLabel, "X");
+    assert.equal(spec.cellPolicy, "minimal_cell_not_verified");
+    assert.deepEqual(query(COUNTERPART_QUERY, { id }), []);
+  }
+  const route = query(ROUTES_QUERY).find((r) => r.id === "route:recipe:fcc-nacl-sc")!;
+  assert.equal(JSON.parse(String(route.payload)).basis, "editorial_composition");
+  assert.deepEqual(
+    query(ROUTE_MEMBERS_QUERY, { id: route.id }).map((r) => r.id),
+    ["adopted:pilot:K:2-3:relation:fcc-nacl", "adopted:pilot:K:2-3:relation:nacl-sc"],
+  );
+  assert.equal(query(STEP_QUERY, { id: "recipe:fcc-nacl-sc" }).length, 2);
+  assert.equal(query(LABEL_MAP_QUERY, { id: "recipe:fcc-nacl-sc" }).length, 1);
+  assert.equal(query(OPERATION_VOCABULARY_QUERY).length, 9);
+  assert.ok(query(VOCABULARY_EXAMPLES_QUERY, { id: "operation:site_occupation" }).length);
   const latticeMention = "pilot:K:2-3:mention:fcc-lattice";
   assert.equal(
     currentDecisions.find((d) => d.candidateId === latticeMention)?.id,

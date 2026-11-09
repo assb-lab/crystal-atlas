@@ -20,7 +20,15 @@ const before = knowledgeDataset(
   [latticeReconsideration],
   [],
 ).rows;
-const after = knowledgeDataset(DATA).rows;
+const after = knowledgeDataset(
+  DATA,
+  catalog as LiteratureCatalog,
+  [extraction],
+  [decisionsData as DecisionBatch],
+  [latticeReconsideration],
+  occupationReconsiderations,
+  [],
+).rows;
 
 test("void adoption preserves candidates, prior judgments, existing claims, models and coverage", () => {
   for (const table of [

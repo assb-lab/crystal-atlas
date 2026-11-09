@@ -47,6 +47,7 @@ export interface RelationshipRecord {
 const decode = (value: string) => Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
 
 async function openKnowledge(): Promise<KnowledgeDB> {
+  const started = performance.now();
   const blobs: string[] = [];
   let engine: BrowserEngine | undefined;
   let db: Database | undefined;
@@ -64,11 +65,22 @@ async function openKnowledge(): Promise<KnowledgeDB> {
     blobs.forEach((url) => URL.revokeObjectURL(url));
   };
   try {
-    const inline = document.getElementById("atlas-knowledge-assets")?.textContent;
+    const inlineElement = document.getElementById("atlas-knowledge-assets");
+    const inline = inlineElement?.textContent;
     const assets = inline ? (JSON.parse(inline) as Record<string, string>) : null;
     const base = new URL(`${import.meta.env.BASE_URL}knowledge/`, document.baseURI);
-    const blobURL = (name: string) => {
+    const inlineBytes = async (name: string) => {
       const bytes = decode(assets![name]!);
+      if (inlineElement?.dataset.compression !== "gzip") return bytes;
+      if (typeof DecompressionStream === "undefined")
+        throw new Error(
+          "この単一HTMLにはgzip展開に対応したブラウザが必要です。対応ブラウザで開いてください。",
+        );
+      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+      return new Uint8Array(await new Response(stream).arrayBuffer());
+    };
+    const blobURL = async (name: string) => {
+      const bytes = await inlineBytes(name);
       const url = URL.createObjectURL(new Blob([bytes], { type: "text/javascript" }));
       blobs.push(url);
       return url;
@@ -76,12 +88,13 @@ async function openKnowledge(): Promise<KnowledgeDB> {
     const fetchAsset = async (name: string) => {
       const response = await fetch(new URL(name, base), {
         cache: name === "manifest.json" ? "no-cache" : "default",
+        signal: AbortSignal.timeout(60000),
       });
       if (!response.ok) throw new Error(`配布データを取得できませんでした (${response.status})`);
       return new Uint8Array(await response.arrayBuffer());
     };
     const manifestBytes = assets
-      ? decode(assets["manifest.json"]!)
+      ? await inlineBytes("manifest.json")
       : await fetchAsset("manifest.json");
     const manifest = JSON.parse(
       new TextDecoder().decode(manifestBytes),
@@ -96,10 +109,10 @@ async function openKnowledge(): Promise<KnowledgeDB> {
       Object.values(manifest.files).some((name) => !/^[a-zA-Z0-9._-]+$/.test(name))
     )
       throw new Error("配布ファイルの指定が不正です。");
-    const moduleURL = assets ? blobURL("lbug.js") : new URL(manifest.files.module, base).href;
+    const moduleURL = assets ? await blobURL("lbug.js") : new URL(manifest.files.module, base).href;
     const [module, snapshot] = await Promise.all([
       import(/* @vite-ignore */ moduleURL) as Promise<{ default: BrowserEngine }>,
-      assets ? decode(assets["atlas.lbdb"]!) : fetchAsset(manifest.files.database),
+      assets ? inlineBytes("atlas.lbdb") : fetchAsset(manifest.files.database),
     ]);
     if (snapshot.byteLength !== manifest.bytes) throw new Error("配布DBのサイズが一致しません。");
     if (globalThis.crypto?.subtle) {
@@ -113,18 +126,33 @@ async function openKnowledge(): Promise<KnowledgeDB> {
     // URL objects use a native Worker directly. The package's string-path wrapper
     // nests importScripts(blob:...), which cannot load an opaque-origin file:// blob.
     engine.setWorkerPath(
-      assets ? new URL(blobURL("lbug_wasm_worker.js")) : new URL(manifest.files.worker, base),
+      assets ? new URL(await blobURL("lbug_wasm_worker.js")) : new URL(manifest.files.worker, base),
     );
-    await engine.init();
+    await withDeadline(
+      engine.init(),
+      65000,
+      "DBエンジンの起動がタイムアウトしました。再試行してください。",
+    );
     if (
-      (await engine.getVersion()) !== LADYBUG_VERSION ||
-      String(await engine.getStorageVersion()) !== manifest.storageVersion
+      (await withDeadline(engine.getVersion(), 5000, "DBエンジンが応答しません。")) !==
+        LADYBUG_VERSION ||
+      String(await withDeadline(engine.getStorageVersion(), 5000, "DBエンジンが応答しません。")) !==
+        manifest.storageVersion
     )
       throw new Error("DBエンジンの版が配布データと一致しません。");
-    await engine.FS.writeFile("/atlas.lbdb", snapshot);
+    await withDeadline(
+      engine.FS.writeFile("/atlas.lbdb", snapshot),
+      10000,
+      "DBの読込が応答しません。再試行してください。",
+    );
     db = new engine.Database("/atlas.lbdb", 64 * 1024 * 1024, 1, true, true);
     connection = new engine.Connection(db, 1);
-    await connection.init();
+    await withDeadline(
+      connection.init(),
+      10000,
+      "接続の初期化が応答しません。再試行してください。",
+    );
+    performance.measure("atlas.db.initialize", { start: started, end: performance.now() });
     const conn = connection;
     // Serialize requests on one connection; a failed query must not poison subsequent requests.
     let queue: Promise<unknown> = Promise.resolve();
@@ -132,6 +160,7 @@ async function openKnowledge(): Promise<KnowledgeDB> {
       manifest,
       dispose,
       query(text, parameters = {}) {
+        const queryStarted = performance.now();
         const run = queue.then(() =>
           withDeadline(
             (async () => {
@@ -154,7 +183,15 @@ async function openKnowledge(): Promise<KnowledgeDB> {
           ),
         );
         queue = run.catch(() => {});
-        return run;
+        // Bound queue wait too: after a dead Worker, earlier pending reads must
+        // not postpone the visible failure by five seconds per queued query.
+        return withDeadline(
+          run,
+          5000,
+          "照会が応答しません。再試行して接続を開き直してください。",
+        ).finally(() =>
+          performance.measure("atlas.db.query", { start: queryStarted, end: performance.now() }),
+        );
       },
     };
   } catch (error) {

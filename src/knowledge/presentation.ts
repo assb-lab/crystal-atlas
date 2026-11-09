@@ -9,6 +9,12 @@ export function stepProvenanceLabel(payload: string): string {
     detailState?: string;
     adoptionRound?: string;
   };
+  if (detailState === "source_checked")
+    return "原典の図と本文に基づく限定した操作解釈。模型と検証の範囲は対応するSymmetry記録を参照。";
+  if (detailState === "editorial_composition")
+    return "個別手順を組み合わせた編集上の操作手順。全体のセル対応・実行可能性は未検証です。";
+  if (adoptionRound === "held_label_resolution")
+    return "文献の理想配置へのラベル写像として再照合。実際の元素置換、到達セル・サイト対応の数値検証は未実施です。";
   if (adoptionRound === "held_relation_resolution")
     return "保留後に対象と占有条件を文献の選択箇所で再照合した記録です。座標・セル変換・サイト対応の数値検証は未実施です。";
   if (detailState === "source_context_checked")
@@ -22,6 +28,12 @@ export function assertionProvenanceLabel(
   basis: string,
   adoptionRound?: string,
 ): string {
+  if (status === "source_context_checked")
+    return "文献の選択箇所を限定確認した記述です。検証の対象と未確認事項は個別記録を参照してください。";
+  if (status === "editorial_composition_not_verified")
+    return "編集上の構築レシピ。個別手順の根拠を保持し、全体のセル対応・実行可能性は未検証です。";
+  if (adoptionRound === "held_label_resolution")
+    return "文献の理想配置へのラベル写像として採用。原子種の実変換・合成を意味しません。";
   if (
     status === "source_checked_not_machine_verified" &&
     adoptionRound === "held_relation_resolution"
@@ -35,12 +47,15 @@ export function assertionProvenanceLabel(
 }
 
 export const operationLabels: Record<string, string> = {
+  composite_recipe: "複数手順の構築レシピ",
   interpenetration: "貫入",
-  species_identification: "同種原子によるサイト占有",
+  species_identification: "元素ラベルの同一視",
   void_occupation: "空隙占有",
   coordination_comparison: "配位の比較",
 };
 export const parameterLabels: Record<string, string> = {
+  inputLabels: "入力の原子ラベル",
+  outputLabel: "共通の抽象ラベル",
   shiftInSourceCell: "原文の単位胞に対する相対移動",
   representativeShift: "代表的な軸方向の相対移動",
   species: "部分格子の原子種",
@@ -65,8 +80,20 @@ export function parameterValue(value: unknown): string {
 export const entityKindLabel = (kind: string) =>
   ({
     bravais_lattice_type: "ブラベー格子型",
+    chemical_substance: "化学物質（組成定義）",
+    material_phase: "物質の相",
+    structural_prototype: "原子種付きプロトタイプ",
     structural_motif: "構造モチーフ",
     structure_type: "構造型",
     legacy_material_or_phase: "物質・相（未分離）",
     family: "ファミリー",
+  })[kind] ?? kind;
+
+export const modelKindLabel = (kind: string) =>
+  ({
+    prototype: "プロトタイプ（実験精密化とは別）",
+    literature: "文献由来（精密化の確認状態は別）",
+    computed: "計算由来（緩和状態は別）",
+    average: "平均構造・平均占有",
+    schematic: "模式・理想模型",
   })[kind] ?? kind;

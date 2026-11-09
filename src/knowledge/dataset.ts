@@ -1,8 +1,13 @@
+import { appendSymmetryMapping } from "./symmetry.ts";
+import { mullerReview, diamondMapping } from "../data/symmetry.ts";
+import { appendClassification, appendLegacySchemes } from "./classification.ts";
+import { howardScheme } from "../data/classification-schemes.ts";
 import type { Atlas, AtlasEdge, Ref } from "../types.ts";
 import { CONCEPTS, ROLES } from "../data/packing.ts";
 import { TABLES, type Cell } from "./schema.ts";
 import catalogData from "../data/literature-catalog.json" with { type: "json" };
 import { assetId, validateCatalog, type LiteratureCatalog } from "./catalog.ts";
+import { additionalExtractions } from "../data/additional-extractions.ts";
 import extractionData from "../data/okamoto-extraction.json" with { type: "json" };
 import { appendExtraction, type ExtractionBatch } from "./extraction.ts";
 import decisionData from "../data/okamoto-decisions.json" with { type: "json" };
@@ -18,6 +23,17 @@ import { appendHeldMentionResolution, type HeldMentionResolution } from "./recon
 
 import { fluoriteRoleReference, occupationReconsiderations } from "../data/okamoto-occupation.ts";
 import { appendHeldVoidResolution, type HeldVoidResolution } from "./occupation.ts";
+
+import { identityRegistry } from "../data/identity.ts";
+import { appendIdentity, appendModelContexts } from "./identity.ts";
+
+import { labelReconsiderations } from "../data/derivation.ts";
+import {
+  appendHeldLabelResolution,
+  appendRecipe,
+  appendOperationVocabulary,
+  type HeldLabelResolution,
+} from "./derivation.ts";
 
 /** Explicit annotations of existing statements, not operations inferred from space-group names. */
 const OPERATIONS: Record<string, { operation: string; target: string; parameters: object }> = {
@@ -40,7 +56,7 @@ const json = (value: unknown) => JSON.stringify(value);
 export function knowledgeDataset(
   data: Atlas,
   catalog: LiteratureCatalog = catalogData as LiteratureCatalog,
-  extractions: ExtractionBatch[] = [extractionData as ExtractionBatch],
+  extractions: ExtractionBatch[] = [extractionData as ExtractionBatch, ...additionalExtractions],
   reviews: DecisionBatch[] = extractions.some((e) => e.id === decisionData.extractionId)
     ? [decisionData as DecisionBatch]
     : [],
@@ -54,6 +70,7 @@ export function knowledgeDataset(
   )
     ? occupationReconsiderations
     : [],
+  labelReviews: HeldLabelResolution[] = voidReconsiderations.length ? labelReconsiderations : [],
 ): KnowledgeDataset {
   validateCatalog(catalog, new Set(Object.keys(data.sources)));
   const rows: Record<string, Cell[][]> = Object.fromEntries(TABLES.map((t) => [t.name, []]));
@@ -270,6 +287,10 @@ export function knowledgeDataset(
       add("Reviews", reviewId, id);
     });
   }
+  appendModelContexts(rows, data, identityRegistry);
+  appendLegacySchemes(rows, data);
+  appendClassification(rows, howardScheme);
+  appendIdentity(rows, data, identityRegistry);
   for (const batch of extractions) appendExtraction(rows, data, catalog, batch);
   for (const review of reviews) {
     const extraction = extractions.find((e) => e.id === review.extractionId);
@@ -314,6 +335,70 @@ export function knowledgeDataset(
       if (!extraction) throw new Error("Revision references an unknown extraction");
       appendHeldVoidResolution(rows, extraction, revision);
     }
+  }
+  for (const revision of labelReviews) {
+    const extraction = extractions.find((e) => e.id === revision.extractionId);
+    if (!extraction) throw new Error("Revision references an unknown extraction");
+    appendHeldLabelResolution(rows, extraction, revision);
+  }
+  if (labelReviews.length)
+    appendRecipe(rows, "recipe:fcc-nacl-sc", "fcc → 岩塩型 → 単純立方（編集上の構築レシピ）", [
+      "adopted:pilot:K:2-3:relation:fcc-nacl",
+      "adopted:pilot:K:2-3:relation:nacl-sc",
+    ]);
+  appendOperationVocabulary(rows);
+
+  for (const edge of data.edges.filter((e) => e.strict))
+    appendSymmetryMapping(rows, {
+      id: `mapping:legacy:${edge.id}`,
+      assertionId: `relation:${edge.id}`,
+      parent: { symbol: edge.a, number: null, setting: null },
+      child: { symbol: edge.b, number: null, setting: null },
+      subgroupKind: "unknown",
+      index: null,
+      basis: null,
+      origin: null,
+      convention: "未転記",
+      wyckoff: null,
+      literatureState: "legacy_not_rechecked",
+      transcriptionState: "not_transcribed",
+      interpretation:
+        "既存strictの説明を保持。設定・指数・基底・原点・Wyckoff数値を空間群名から補わない。",
+    });
+  const mullerExtraction = extractions.find((e) => e.id === mullerReview.extractionId);
+  if (mullerExtraction) {
+    appendDecisions(rows, mullerExtraction, mullerReview);
+    appendSymmetryMapping(rows, diamondMapping);
+    const id = "derivation:M13:fig1.1";
+    add(
+      "Assertion",
+      id,
+      "derivation",
+      "species_differentiation",
+      "図の同一位置集合をSとZnで色分け",
+      "Fig.1.1と本文の同じ位置を区別する理想的な構築説明。",
+      "source_context_checked",
+      "literature_context_interpretation",
+      json({
+        scope: "模型のラベルを二分する操作。化学反応・実相転移ではない。",
+        modelId: `declared:${diamondMapping.id}`,
+        reviewer: "Codex",
+        reviewedOn: "2026-11-09",
+      }),
+    );
+    add("Subject", id, "diamond");
+    add("Object", id, "zns");
+    add("HasEvidence", id, "manual:M13:21:span:tree");
+    add(
+      "OperationStep",
+      "step:M13:fig1.1",
+      "species_differentiation",
+      `declared:${diamondMapping.id}`,
+      json({ labels: ["S", "Zn"] }),
+      json({ detailState: "source_checked", scope: "図の理想位置集合のラベル分割" }),
+    );
+    add("HasStep", id, "step:M13:fig1.1", 0);
+    add("ExplainsSymmetryOf", diamondMapping.assertionId, id);
   }
   return { rows };
 }

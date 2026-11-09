@@ -19,7 +19,7 @@ export function RefChips({
     const source = DATA.sources[ref.s];
     if (!source) return null;
     const key = `${ref.s}-${ref.p ?? "web"}-${ref.sec}-${i}`;
-    if (ref.p === undefined)
+    if (ref.p === undefined && ref.pdfPage === undefined)
       return (
         <a
           key={key}
@@ -43,7 +43,7 @@ export function RefChips({
         title={source.citation ?? source.title}
         onClick={() => openSource(ref)}
       >
-        {source.short} · p.{ref.p}
+        {source.short} · {ref.p === undefined ? `PDF ${page}（印刷頁未確認）` : `p.${ref.p}`}
         <span>
           {ref.sec} / PDF {page}
         </span>

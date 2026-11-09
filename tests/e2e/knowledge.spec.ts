@@ -1,3 +1,4 @@
+import { pickEntity, chooseScheme } from "./workspace-helpers.ts";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { expect, test } from "@playwright/test";
@@ -44,23 +45,25 @@ for (const [label, url] of Object.entries({
       "page",
     );
     await page.locator('[data-knowledge-record="relation:e6"]').click();
-    await expect(page.locator(".knowledge-detail")).toContainText("群–部分群関係は文献確認済み");
+    await expect(page.locator(".knowledge-detail")).toContainText("既存strict・未再照合");
     await expect(page.locator(".knowledge-detail")).toContainText("機械検証は未実施");
     await page.locator('[data-atlas-mode="family"]').click();
-    await expect(page.locator("#knowledgeFocus")).toBeEnabled();
-    await page.locator("#knowledgeFocus").selectOption("pyrochlore");
-    await page.locator('[data-knowledge-record="collection:pyro-alpha:pyrochlore"]').click();
-    await expect(page.locator(".knowledge-detail .refchips")).toBeVisible();
+    await expect(page.getByTestId("knowledge-ready")).toBeVisible();
+    await chooseScheme(page, "scheme:legacy:GI+K");
+    await page.locator('[data-atlas-class="collection:pyro-alpha"]').click();
+    await page.locator('[data-atlas-member="pyrochlore"]').click();
+    await page.locator(".atlas-inspector .knowledge-detail").scrollIntoViewIfNeeded();
+    await expect(page.locator(".knowledge-detail .refchips").first()).toBeVisible();
     await page.screenshot({ path: `test-results/${label}-knowledge-desktop.png` });
-    await page.locator("#knowledgeFocus").selectOption("family:fcc");
-    await expect(page.locator(".knowledge-records button")).not.toHaveCount(0);
-    await expect(page.locator("#knowledgeFocus")).toHaveValue("family:fcc");
+    await pickEntity(page, "family:fcc");
+    await expect(page.locator("[data-atlas-member]")).not.toHaveCount(0);
+    await expect(page.getByTestId("atlas-focus")).toHaveAttribute("data-entity-id", "family:fcc");
     await page.setViewportSize({ width: 390, height: 844 });
     await page.locator('[data-atlas-mode="symmetry"]').click();
     await expect(page.getByTestId("knowledge-ready")).toBeVisible();
-    await page.locator("#knowledgeFocus").selectOption("fcc");
-    await page.locator('[data-knowledge-record="relation:e6"]').click();
-    await expect(page.locator(".knowledge-detail")).toContainText("群–部分群関係は文献確認済み");
+    await pickEntity(page, "fcc");
+    await page.locator('[data-atlas-related="relation:e6"]').click();
+    await expect(page.locator(".knowledge-detail")).toContainText("既存strict・未再照合");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
@@ -77,11 +80,11 @@ for (const [label, url] of Object.entries({
     }
     await page.locator('[data-atlas-mode="derivation"]').click();
     await page.locator(".knowledge-atlas > details > summary").click();
-    await expect(page.locator("#knowledgeFocus")).toBeEnabled();
-    await page.locator("#knowledgeFocus").selectOption("nacoo2-p2");
+    await expect(page.getByTestId("knowledge-ready")).toBeVisible();
+    await pickEntity(page, "nacoo2-p2");
     await expect(page.locator('section[aria-label="比較関係"]')).toBeVisible();
     await expect(page.locator(".knowledge-detail")).toContainText("構造の比較です");
-    await expect(page.locator(".knowledge-detail .refchips")).toBeVisible();
+    await expect(page.locator(".knowledge-detail .refchips").first()).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
@@ -116,12 +119,12 @@ test("other Atlas selections preserve the hidden derivation lens and selection",
   await page.locator('[data-packing-node="pyrochlore"] > [role="button"]').first().press("Enter");
   const before = await page.evaluate(() => window.packingDiagnostics!());
   await page.locator('[data-atlas-mode="family"]').click();
-  await expect(page.locator("#knowledgeFocus")).toBeEnabled({ timeout: 30000 });
-  await page.locator("#knowledgeFocus").selectOption("nacoo2-p2");
+  await expect(page.getByTestId("knowledge-ready")).toBeVisible({ timeout: 30000 });
+  await pickEntity(page, "nacoo2-p2");
   await expect(page.getByTestId("knowledge-ready")).toBeVisible();
   await page.locator('[data-atlas-mode="symmetry"]').click();
-  await expect(page.locator("#knowledgeFocus")).toBeEnabled();
-  await page.locator("#knowledgeFocus").selectOption("fcc");
+  await expect(page.getByTestId("knowledge-ready")).toBeVisible();
+  await pickEntity(page, "fcc");
   await expect(page.getByTestId("knowledge-ready")).toBeVisible();
   await page.locator('[data-atlas-mode="derivation"]').click();
   const after = await page.evaluate(() => window.packingDiagnostics!());
@@ -140,11 +143,11 @@ test("a Worker stopped after successful initialization can be recreated by retry
   const worker = page.workers()[0]!;
   await worker.evaluate("setTimeout(() => self.close(), 0)");
   await expect.poll(() => page.workers().length).toBe(0);
-  await page.locator("#knowledgeFocus").selectOption("nacl");
+  await pickEntity(page, "nacl");
   await expect(page.getByRole("alert")).toContainText("照会が応答しません", { timeout: 12000 });
   await page.getByRole("button", { name: "再試行" }).click();
   await expect(page.getByTestId("knowledge-ready")).toBeVisible({ timeout: 15000 });
   await expect(page.getByRole("alert")).toHaveCount(0);
   expect(page.workers()).toHaveLength(1);
-  await expect(page.locator("#knowledgeFocus")).toHaveValue("nacl");
+  await expect(page.getByTestId("atlas-focus")).toHaveAttribute("data-entity-id", "nacl");
 });

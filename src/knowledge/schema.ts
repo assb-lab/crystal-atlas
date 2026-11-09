@@ -1,5 +1,5 @@
 /** Versioned physical schema. Scientific relations are nodes so they can carry evidence. */
-export const KNOWLEDGE_SCHEMA_VERSION = 6;
+export const KNOWLEDGE_SCHEMA_VERSION = 10;
 export const LADYBUG_VERSION = "0.22.3";
 export type AtlasMode = "family" | "derivation" | "symmetry";
 export type Cell = string | number | boolean | null;
@@ -16,6 +16,10 @@ const rel = (name: string, from: string, to: string, extra: [string, string][] =
   endpoints: [from, to],
 });
 export const TABLES: Table[] = [
+  node("SymmetryMapping", ["id", "payload"]),
+  node("DeclaredSymmetryModel", ["id", "payload"]),
+  node("SymmetryValidation", ["id", "payload"]),
+  node("ClassificationScheme", ["id", "title", "payload"]),
   node("Entity", ["id", "title", "kind", "payload"]),
   node("Assertion", [
     "id",
@@ -29,8 +33,11 @@ export const TABLES: Table[] = [
   ]),
   node("OperationStep", ["id", "operation", "target", "parameters", "payload"]),
   node("OccupationSpec", ["id", "hostSpecies", "guestSpecies", "voidKind", "selection", "payload"]),
+  node("LabelMapSpec", ["id", "payload"]),
+  node("OperationDefinition", ["id", "title", "payload"]),
   node("Document", ["id", "title", "payload"]),
   node("SourceSpan", ["id", "payload"]),
+  node("ModelContext", ["id", "kind", "payload"]),
   node("StructureModel", ["id", "payload"]),
   node("DerivationRoute", ["id", "title", "payload"]),
   // Asset inventory and pending coverage are distinct from extracted Mentions and completed reviews.
@@ -40,14 +47,27 @@ export const TABLES: Table[] = [
   node("CandidateDecision", ["id", "candidateKind", "candidateId", "outcome", "reason", "payload"]),
   node("CoverageReview", ["id", "status", "payload"]),
   node("ProcessingRun", ["id", "payload"]),
+  rel("SchemeDocument", "ClassificationScheme", "Document"),
+  rel("SchemeItem", "ClassificationScheme", "Entity"),
+  rel("ClaimInScheme", "Assertion", "ClassificationScheme"),
+  rel("MappingFor", "SymmetryMapping", "Assertion"),
+  rel("MappingEvidence", "SymmetryMapping", "SourceSpan"),
+  rel("MappingModel", "SymmetryMapping", "DeclaredSymmetryModel"),
+  rel("Validates", "SymmetryValidation", "SymmetryMapping"),
   rel("Subject", "Assertion", "Entity"),
   rel("Object", "Assertion", "Entity"),
   rel("HasEvidence", "Assertion", "SourceSpan"),
   rel("InDocument", "SourceSpan", "Document"),
+  rel("HasLabelMap", "OperationStep", "LabelMapSpec"),
+  rel("ComposesAssertion", "OperationStep", "Assertion"),
+  rel("RecipeForRoute", "Assertion", "DerivationRoute"),
+  rel("VocabularyExample", "Assertion", "OperationDefinition"),
   rel("HasOccupationSpec", "OperationStep", "OccupationSpec"),
   rel("HostMotif", "OccupationSpec", "Entity"),
   rel("HasStep", "Assertion", "OperationStep", [["ordinal", "INT64"]]),
   rel("ExplainsSymmetryOf", "Assertion", "Assertion"),
+  rel("ContextFor", "ModelContext", "StructureModel"),
+  rel("IllustratesPrototype", "StructureModel", "Entity", [["note", "STRING"]]),
   rel("Models", "StructureModel", "Entity"),
   rel("RouteMember", "DerivationRoute", "Assertion", [["ordinal", "INT64"]]),
   rel("HasAsset", "Document", "Asset"),

@@ -10,10 +10,26 @@ export interface ExtractionBatch {
   operator: string;
   pdfFrom: number;
   pdfTo: number;
-  pageAnchors: { pdfPage: number; printedPage: number }[];
+  pageAnchors: { pdfPage: number; printedPage: number | null }[];
+  method?: "manual_candidate_extraction" | "text_dictionary_candidate" | "ocr_dictionary_candidate";
+  processing?: {
+    tool: string;
+    version: string;
+    dictionaryHash: string;
+    pages: {
+      pdfPage: number;
+      textHash: string;
+      characters: number;
+      textState: "selectable_text" | "ocr_text" | "no_text";
+    }[];
+  };
   scope: string;
   limitations: string[];
-  spans: { id: string; ref: Ref & { pdfPage: number; p: number }; surface: "body" | "figure" }[];
+  spans: {
+    id: string;
+    ref: Ref & { pdfPage: number };
+    surface: "body" | "figure" | "table" | "index" | "unclassified";
+  }[];
   mentions: {
     id: string;
     rawName: string;
@@ -23,7 +39,7 @@ export interface ExtractionBatch {
   }[];
   relations: {
     id: string;
-    domain: "derivation" | "comparison";
+    domain: "derivation" | "comparison" | "symmetry";
     operation: string;
     basis: "source_paraphrase" | "editorial_comparison";
     subjectMention: string;
@@ -67,6 +83,33 @@ export function appendExtraction(
     !/^\d{4}-\d{2}-\d{2}$/.test(batch.reviewedOn)
   )
     throw new Error("Invalid extraction scope");
+  if (
+    batch.method &&
+    ![
+      "manual_candidate_extraction",
+      "text_dictionary_candidate",
+      "ocr_dictionary_candidate",
+    ].includes(batch.method)
+  )
+    throw new Error("Unknown extraction method");
+  if (
+    batch.processing &&
+    (!batch.processing.tool.trim() ||
+      !batch.processing.version.trim() ||
+      !/^[a-f0-9]{64}$/.test(batch.processing.dictionaryHash) ||
+      batch.processing.pages.length !== batch.pdfTo - batch.pdfFrom + 1 ||
+      batch.processing.pages.some(
+        (p, i) =>
+          p.pdfPage !== batch.pdfFrom + i ||
+          !/^[a-f0-9]{64}$/.test(p.textHash) ||
+          !Number.isSafeInteger(p.characters) ||
+          p.characters < 0 ||
+          !["selectable_text", "ocr_text", "no_text"].includes(p.textState),
+      ))
+  )
+    throw new Error("Invalid processing observation");
+  if (batch.method && batch.method !== "manual_candidate_extraction" && !batch.processing)
+    throw new Error("Machine candidates require processing observations");
   const existing = (table: string) => new Set(rows[table]!.map((row) => row[0]));
   if (existing("ProcessingRun").has(batch.id)) throw new Error("Duplicate extraction run");
   const spans = unique(
@@ -92,8 +135,7 @@ export function appendExtraction(
         !Number.isSafeInteger(a.pdfPage) ||
         a.pdfPage < batch.pdfFrom ||
         a.pdfPage > batch.pdfTo ||
-        !Number.isSafeInteger(a.printedPage) ||
-        a.printedPage < 1,
+        (a.printedPage !== null && (!Number.isSafeInteger(a.printedPage) || a.printedPage < 1)),
     )
   )
     throw new Error("Invalid page anchors");
@@ -104,16 +146,20 @@ export function appendExtraction(
       !Number.isSafeInteger(span.ref.pdfPage) ||
       span.ref.pdfPage < batch.pdfFrom ||
       span.ref.pdfPage > batch.pdfTo ||
-      !Number.isSafeInteger(span.ref.p) ||
-      span.ref.p < 1 ||
-      anchors.get(span.ref.pdfPage) !== span.ref.p ||
+      (span.ref.p !== undefined && (!Number.isSafeInteger(span.ref.p) || span.ref.p < 1)) ||
+      (anchors.get(span.ref.pdfPage) ?? undefined) !== span.ref.p ||
       !span.ref.sec.trim() ||
-      !["body", "figure"].includes(span.surface)
+      !["body", "figure", "table", "index", "unclassified"].includes(span.surface)
     )
       throw new Error("Invalid extraction locator");
   }
   for (const mention of batch.mentions) {
-    if (!spans.has(mention.spanId) || !mention.rawName.trim() || !mention.identityNote.trim())
+    if (
+      existing("Mention").has(mention.id) ||
+      !spans.has(mention.spanId) ||
+      !mention.rawName.trim() ||
+      !mention.identityNote.trim()
+    )
       throw new Error("Invalid mention locator/name");
     unique(
       mention.candidates.map((c) => c.entityId),
@@ -125,6 +171,7 @@ export function appendExtraction(
   }
   for (const relation of batch.relations) {
     if (
+      existing("RelationCandidate").has(relation.id) ||
       !mentions.has(relation.subjectMention) ||
       !mentions.has(relation.objectMention) ||
       !relation.evidenceSpanIds.length ||
@@ -134,7 +181,7 @@ export function appendExtraction(
     )
       throw new Error("Invalid relation candidate evidence/endpoint");
     if (
-      !["derivation", "comparison"].includes(relation.domain) ||
+      !["derivation", "comparison", "symmetry"].includes(relation.domain) ||
       !["source_paraphrase", "editorial_comparison"].includes(relation.basis) ||
       (relation.basis === "editorial_comparison" && relation.domain !== "comparison")
     )
@@ -159,7 +206,8 @@ export function appendExtraction(
     "ProcessingRun",
     batch.id,
     JSON.stringify({
-      activity: "manual_candidate_extraction",
+      activity: batch.method ?? "manual_candidate_extraction",
+      ...(batch.processing ? { processing: batch.processing } : {}),
       sourceId: batch.sourceId,
       assetHash: batch.assetHash,
       pdfFrom: batch.pdfFrom,

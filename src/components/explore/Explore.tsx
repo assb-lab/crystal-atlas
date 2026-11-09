@@ -1,14 +1,20 @@
+import { FamilyWorkspace } from "./FamilyWorkspace.tsx";
+import { RelationshipWorkspace } from "./RelationshipWorkspace.tsx";
+import { useAtlas } from "../../store.ts";
 import { KnowledgeExplorer } from "./KnowledgeExplorer.tsx";
 import { PackingExplorer } from "./PackingExplorer.tsx";
-import { useAtlas } from "../../store.ts";
 
 export function Explore() {
   const { state } = useAtlas();
   return (
     <>
-      <KnowledgeExplorer
-        key={`${state.atlasMode}:${state.knowledgeAssertion ?? "ordinary"}:${state.knowledgeAssertion ? state.tab : ""}`}
-      />
+      {state.atlasMode === "derivation" ? (
+        <KnowledgeExplorer key={state.atlasMode} mode={state.atlasMode} />
+      ) : state.atlasMode === "family" ? (
+        <FamilyWorkspace />
+      ) : (
+        <RelationshipWorkspace key={state.atlasMode} mode={state.atlasMode} />
+      )}
       <PackingExplorer />
     </>
   );

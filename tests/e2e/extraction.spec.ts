@@ -1,3 +1,4 @@
+import { pickEntity, openModelContext } from "./workspace-helpers.ts";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { expect, test } from "@playwright/test";
@@ -26,7 +27,7 @@ for (const [label, url] of Object.entries({
     await expect(page.getByTestId("extraction-ready")).toContainText(
       "登場記録 10 件 ／ 関係候補 10 件",
     );
-    await expect(page.getByTestId("extraction-ready")).toContainText("採用 17 件 ／ 保留 3 件");
+    await expect(page.getByTestId("extraction-ready")).toContainText("採用 20 件 ／ 保留 0 件");
     const selector = page.locator("#extractionCandidate");
     const detail = page.getByTestId("extraction-detail");
     await expect(selector.locator("option")).toHaveCount(20);
@@ -64,14 +65,14 @@ for (const [label, url] of Object.entries({
     await selector.selectOption(prefix + "relation:nacl-zns-comparison");
     await expect(detail).toContainText("編集上の比較候補（派生操作ではない）");
     await page.setViewportSize({ width: 390, height: 844 });
-    await expect(page.locator(".catalog-range")).toHaveCount(3);
+    await expect(page.locator(".catalog-range")).toHaveCount(4);
     await expect(page.locator(".catalog-range").nth(1).locator("dd")).toHaveText([
       "調査中",
       "調査中",
       "対象なし（確認済み）",
       "対象なし（確認済み）",
     ]);
-    await expect(page.locator(".catalog-range").last()).toContainText("PDF 4–31");
+    await expect(page.locator(".catalog-range").last()).toContainText("PDF 5–31");
     await expect(page.locator(".catalog-range").last().locator("dd")).toHaveText([
       "未調査",
       "未調査",
@@ -128,7 +129,7 @@ for (const [label, url] of Object.entries({
       "面心立方部分格子の貫入で岩塩型を構築",
     );
     await page.setViewportSize({ width: 1440, height: 1050 });
-    await page.locator("#knowledgeFocus").selectOption("bravais:cF");
+    await pickEntity(page, "bravais:cF");
     await expect(page.locator(".knowledge-panel .entity-profile")).toContainText("ブラベー格子型");
     await expect(page.locator(".knowledge-panel .entity-profile")).toContainText("記述上の対応");
     await expect(page.locator("[data-knowledge-record]")).toHaveCount(0);
@@ -137,8 +138,9 @@ for (const [label, url] of Object.entries({
     for (const name of ["Family", "Symmetry"]) {
       await page.locator(`[data-atlas-mode="${name.toLowerCase()}"]`).click();
       await expect(page.getByTestId("knowledge-ready")).toBeVisible();
-      await page.locator("#knowledgeFocus").selectOption("bravais:cF");
-      await expect(page.locator(".knowledge-panel .entity-profile")).toContainText(
+      await pickEntity(page, "bravais:cF");
+      await openModelContext(page);
+      await expect(page.locator(".atlas-inspector .entity-profile")).toContainText(
         "ブラベー格子型",
       );
       await expect(page.locator("[data-knowledge-record]")).toHaveCount(0);

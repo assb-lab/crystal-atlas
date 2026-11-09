@@ -1,0 +1,494 @@
+{
+  "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4",
+  "sourceId": "K",
+  "assetHash": "89e53b92d39ab682ec8dd1b6931e580ccb0de19fe07524d91d51d47ea9688e27",
+  "operator": "unreviewed_machine",
+  "reviewedOn": "2026-11-09",
+  "pdfFrom": 4,
+  "pdfTo": 4,
+  "method": "text_dictionary_candidate",
+  "processing": {
+    "tool": "pdftotext-layout",
+    "version": "pdftotext version 26.10.0",
+    "dictionaryHash": "abdc3afa3d6c0bb78cf023657a262a1809990dd5c6a56cbf8673e071cdfd03c3",
+    "pages": [
+      {
+        "pdfPage": 4,
+        "textHash": "15ff5ffd2efa4d090673e7b6db99ae7a9d0f6949460b83d7d3ff1dd5c47bf215",
+        "characters": 2646,
+        "textState": "selectable_text"
+      }
+    ]
+  },
+  "pageAnchors": [
+    {
+      "pdfPage": 4,
+      "printedPage": null
+    }
+  ],
+  "scope": "指定したPDF頁に対する辞書の逐語一致候補。本文／図／表／索引の分類・採否は未実施。",
+  "limitations": [
+    "自動候補。名前の一致を対象の同一性・採用と扱わない。",
+    "候補0件やテキストなしは未掲載・調査完了を意味しない。",
+    "重なった語の候補も保持する。印刷頁は明示したアンカーがある場合だけ記録。",
+    "OCR誤読・欠落・見開き・図中文字の確認が必要。全文と頁画像はこの出力に含めない。"
+  ],
+  "spans": [
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "ref": {
+        "s": "K",
+        "pdfPage": 4,
+        "sec": "自動辞書候補・テキスト領域（表面分類未確認）"
+      },
+      "surface": "unclassified"
+    }
+  ],
+  "mentions": [
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:0",
+      "rawName": "面心立方",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 419–423。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "fcc",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:1",
+      "rawName": "単純六方構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 940–946。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "simple-hex",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:2",
+      "rawName": "WC構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 968–972。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "wc",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:3",
+      "rawName": "六方最密充填",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 997–1003。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:4",
+      "rawName": "六方最密充填構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 997–1005。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:5",
+      "rawName": "単純六方構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1089–1095。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "simple-hex",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:6",
+      "rawName": "六方最密充填",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1124–1130。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:7",
+      "rawName": "六方最密充填構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1124–1132。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:8",
+      "rawName": "六方最密充填",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1571–1577。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:9",
+      "rawName": "六方最密充填構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1571–1579。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:10",
+      "rawName": "ウルツ鉱",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1603–1607。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "wurtzite",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:11",
+      "rawName": "ウルツ鉱構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1603–1609。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "wurtzite",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:12",
+      "rawName": "ダイヤモンド",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1635–1641。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "diamond",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:13",
+      "rawName": "六方最密充填",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1651–1657。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:14",
+      "rawName": "六方最密充填構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1651–1659。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:15",
+      "rawName": "ウルツ鉱",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1678–1682。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "wurtzite",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:16",
+      "rawName": "ウルツ鉱構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1678–1684。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "wurtzite",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:17",
+      "rawName": "ダイヤモンド",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1691–1697。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "diamond",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:18",
+      "rawName": "単純六方格子",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1797–1803。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "simple-hex",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:19",
+      "rawName": "六方最密充填",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1873–1879。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:20",
+      "rawName": "六方最密充填構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 1873–1881。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:21",
+      "rawName": "六方最密充填",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2062–2068。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:22",
+      "rawName": "六方最密充填構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2062–2070。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:23",
+      "rawName": "単純六方格子",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2108–2114。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "simple-hex",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:24",
+      "rawName": "面心立方",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2294–2298。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "fcc",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:25",
+      "rawName": "六方最密充填",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2386–2392。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:26",
+      "rawName": "六方最密充填構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2386–2394。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:27",
+      "rawName": "ウルツ鉱",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2425–2429。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "wurtzite",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:28",
+      "rawName": "ウルツ鉱構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2425–2431。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "wurtzite",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:29",
+      "rawName": "ZnS",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2446–2449。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "zns",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:30",
+      "rawName": "ZnS",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2463–2466。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "zns",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:31",
+      "rawName": "ウルツ鉱",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2500–2504。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "wurtzite",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:32",
+      "rawName": "ウルツ鉱構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2500–2506。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "wurtzite",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:33",
+      "rawName": "六方最密充填",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2509–2515。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:34",
+      "rawName": "六方最密充填構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2509–2517。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:35",
+      "rawName": "六方最密充填",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2542–2548。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    },
+    {
+      "id": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:mention:36",
+      "rawName": "六方最密充填構造",
+      "spanId": "extraction:auto:daf2f3d3eee0dc4ebb39efc4:page:4",
+      "identityNote": "逐語一致・UTF-16位置 2542–2550。原典の文字列・対象・表面分類を未照合。",
+      "candidates": [
+        {
+          "entityId": "hcp",
+          "note": "辞書一致による対応候補。名前だけでは確定しない。"
+        }
+      ]
+    }
+  ],
+  "relations": []
+}

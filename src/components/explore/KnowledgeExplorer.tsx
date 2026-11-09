@@ -1,8 +1,12 @@
+import { referenceHash } from "../../knowledge/navigation.ts";
+import { useViewState } from "../../lib/view-state.ts";
+import { SymmetryDetails } from "./SymmetryDetails.tsx";
 import {
   EVIDENCE_QUERY,
   STEP_QUERY,
   COUNTERPART_QUERY,
   OCCUPATION_QUERY,
+  LABEL_MAP_QUERY,
 } from "../../knowledge/queries.ts";
 import {
   missingEvidenceLabel,
@@ -12,7 +16,7 @@ import {
   parameterLabels,
   parameterValue,
 } from "../../knowledge/presentation.ts";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { DATA } from "../../data/atlas.ts";
 import {
   getKnowledgeDB,
@@ -24,6 +28,9 @@ import {
 import type { AtlasMode } from "../../knowledge/schema.ts";
 import { useAtlas } from "../../store.ts";
 import type { Ref } from "../../types.ts";
+import { DerivationRoutes } from "./DerivationRoutes.tsx";
+import { LabelMapDetails } from "../LabelMapDetails.tsx";
+import type { LabelMapSpec } from "../../knowledge/derivation.ts";
 import { OccupationDetails } from "../OccupationDetails.tsx";
 import type { OccupationSpec } from "../../knowledge/occupation.ts";
 import { EntityProfile } from "../EntityProfile.tsx";
@@ -62,28 +69,42 @@ interface Detail {
   steps: Record<string, unknown>[];
   counterparts: Record<string, unknown>[];
   occupations: OccupationSpec[];
+  labelMaps: LabelMapSpec[];
 }
 
-export function KnowledgeExplorer() {
+export function KnowledgeExplorer({ mode }: { mode: AtlasMode }) {
   const { state } = useAtlas();
-  const [expanded, setExpanded] = useState(state.knowledgeAssertion !== null);
-  const mode = state.atlasMode;
+  const [expanded, setExpanded] = useViewState(
+    "derivation:expanded",
+    state.knowledgeAssertion !== null,
+  );
+  const visible = state.tab === "explore" && state.atlasMode === mode;
+
+  useEffect(() => {
+    if (mode === "derivation" && visible && state.knowledgeTarget?.mode === mode) setExpanded(true);
+  }, [visible, state.knowledgeTarget, mode, setExpanded]);
   const title = COPY[mode][0];
   return (
-    <section
-      className={`knowledge-atlas knowledge-${mode}`}
-      hidden={state.tab !== "explore"}
-      aria-label={title}
-    >
+    <section className={`knowledge-atlas knowledge-${mode}`} hidden={!visible} aria-label={title}>
       {mode === "derivation" ? (
-        <details open={expanded} onToggle={(e) => setExpanded(e.currentTarget.open)}>
+        <details
+          open={expanded}
+          onToggle={(e) => {
+            setExpanded(e.currentTarget.open);
+          }}
+        >
           <summary>{title} — 操作と根拠のレコードを探索</summary>
-          {expanded && state.tab === "explore" && (
-            <KnowledgePanel key={`${mode}:${state.selected}`} mode={mode} />
+          {expanded && visible && (
+            <>
+              <KnowledgePanel key={mode} mode={mode} />
+              <DerivationRoutes />
+            </>
           )}
         </details>
-      ) : state.tab === "explore" ? (
-        <KnowledgePanel key={`${mode}:${state.selected}`} mode={mode} />
+      ) : visible ? (
+        <>
+          <KnowledgePanel key={mode} mode={mode} />
+        </>
       ) : null}
     </section>
   );
@@ -91,27 +112,81 @@ export function KnowledgeExplorer() {
 
 function KnowledgePanel({ mode }: { mode: AtlasMode }) {
   const { state, dispatch } = useAtlas();
-  const [focus, setFocus] = useState(state.selected);
+  const [focus, setFocus] = useViewState(
+    mode + ":focus",
+    state.knowledgeTarget?.mode === mode ? state.knowledgeTarget.id : state.selected,
+  );
+  const [history, setHistory] = useViewState<string[]>(mode + ":history", []);
+  const consumed = useRef(0);
   const [db, setDB] = useState<KnowledgeDB | null>(null);
-  const [entities, setEntities] = useState<{ id: string; title: string }[]>([]);
+  const [entities, setEntities] = useState<{ id: string; title: string; kind: string }[]>([]);
   const [records, setRecords] = useState<RelationshipRecord[]>([]);
+  const [loadedFocus, setLoadedFocus] = useState("");
   const [comparisons, setComparisons] = useState<RelationshipRecord[]>([]);
-  const [active, setActive] = useState<string | null>(state.knowledgeAssertion);
+  const [active, setActive] = useViewState<string | null>(
+    mode + ":active",
+    state.knowledgeAssertion,
+  );
   const [storedDetail, setDetail] = useState<Detail | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [retry, setRetry] = useState(0);
+  const busy = loading || loadedFocus !== focus;
   const selected =
-    [...records, ...comparisons].find((r) => r.id === active) ?? records[0] ?? comparisons[0];
+    loadedFocus === focus
+      ? ([...records, ...comparisons].find((r) => r.id === active) ?? records[0] ?? comparisons[0])
+      : undefined;
   const detail = storedDetail?.id === selected?.id ? storedDetail : null;
 
+  useEffect(() => {
+    if (state.tab === "explore" && state.atlasMode === mode && !state.recordReference)
+      window.history.replaceState(
+        null,
+        "",
+        referenceHash({ kind: active ? "assertion" : "entity", id: active ?? focus, mode }),
+      );
+  }, [state.tab, state.atlasMode, state.recordReference, mode, active, focus]);
+  useEffect(() => {
+    const target = state.knowledgeTarget;
+    if (!target || target.mode !== mode || target.seq === consumed.current) return;
+    consumed.current = target.seq;
+    const cancellation = new AbortController();
+
+    if (target.assertionId)
+      void getKnowledgeDB()
+        .then((db) =>
+          db.query("MATCH (a:Assertion {id:$id})-[:Subject]->(e:Entity) RETURN e.id AS id", {
+            id: target.assertionId,
+          }),
+        )
+        .then((rows) => {
+          if (!cancellation.signal.aborted) {
+            setError("");
+            setFocus(typeof rows[0]?.id === "string" ? rows[0].id : target.id);
+            setActive(target.assertionId ?? null);
+          }
+        })
+        .catch((e) => {
+          if (!cancellation.signal.aborted) {
+            setError(String(e));
+            setLoading(false);
+          }
+        });
+    else {
+      setFocus(target.id);
+      setActive(null);
+    }
+    return () => {
+      cancellation.abort();
+    };
+  }, [state.knowledgeTarget, mode, setFocus, setActive]);
   useEffect(() => {
     let cancelled = false;
     void getKnowledgeDB()
       .then(async (database) => {
         const [list, rows, comparisonRows] = await Promise.all([
           database.query(
-            "MATCH (n:Entity) WHERE n.kind <> 'editorial_concept' RETURN n.id AS id, n.title AS title ORDER BY title",
+            "MATCH (n:Entity) WHERE n.kind <> 'editorial_concept' RETURN n.id AS id, n.title AS title, n.kind AS kind ORDER BY title",
           ),
           queryRelationships(database, mode, focus),
           mode === "derivation"
@@ -120,8 +195,9 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
         ]);
         if (cancelled) return;
         setDB(database);
-        setEntities(list as unknown as { id: string; title: string }[]);
+        setEntities(list as unknown as { id: string; title: string; kind: string }[]);
         setRecords(rows);
+        setLoadedFocus(focus);
         setComparisons(comparisonRows);
         setLoading(false);
       })
@@ -145,14 +221,16 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
       db.query(STEP_QUERY, { id }),
       db.query(COUNTERPART_QUERY, { id }),
       db.query(OCCUPATION_QUERY, { id }),
+      db.query(LABEL_MAP_QUERY, { id }),
     ])
-      .then(([refs, steps, counterparts, occupations]) => {
+      .then(([refs, steps, counterparts, occupations, labelMaps]) => {
         if (!cancelled)
           setDetail({
             id,
             refs: refs.map((r) => JSON.parse(String(r.reference)) as Ref),
             steps,
             counterparts,
+            labelMaps: labelMaps.map((r) => JSON.parse(String(r.payload)) as LabelMapSpec),
             occupations: occupations.map((r) => JSON.parse(String(r.payload)) as OccupationSpec),
           });
       })
@@ -168,8 +246,10 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
     if (id === focus) return;
     setLoading(true);
     setError("");
+    setHistory((old) => [...old, focus]);
     setFocus(id);
-    if (DATA.nodes.some((n) => n.id === id))
+    dispatch({ type: "atlasMode", mode, focusId: id });
+    if (mode === "derivation" && DATA.nodes.some((n) => n.id === id))
       dispatch({ type: "selectNode", id, jump: mode === "derivation" });
   }
   const payload = selected ? (JSON.parse(selected.payload) as Record<string, unknown>) : {};
@@ -192,7 +272,7 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
           id="knowledgeFocus"
           value={focus}
           onChange={(e) => pick(e.target.value)}
-          disabled={!db || loading}
+          disabled={!db || busy}
         >
           {!entities.length && (
             <option value={focus}>{DATA.nodes.find((n) => n.id === focus)?.name ?? focus}</option>
@@ -215,8 +295,28 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
             選択構造に戻る
           </button>
         )}
+        <button
+          className="small"
+          disabled={!history.length}
+          onClick={() => {
+            const id = history.at(-1)!;
+            setHistory((old) => old.slice(0, -1));
+            setFocus(id);
+            dispatch({ type: "atlasMode", mode, focusId: id });
+          }}
+        >
+          対象の履歴を戻る
+        </button>
+        <button
+          className="small"
+          onClick={() =>
+            dispatch({ type: "recordReference", reference: { kind: "entity", id: focus, mode } })
+          }
+        >
+          対象の直接リンク・レコード
+        </button>
         <span role="status">
-          {loading
+          {busy
             ? "出典付きレコードを読み込んでいます…"
             : `${records.length} 件の直接関係${comparisons.length ? ` / 比較 ${comparisons.length} 件` : ""}`}
         </span>
@@ -241,8 +341,15 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
           </button>
         </div>
       )}
-      {!loading && !error && <EntityProfile key={focus} id={focus} onSelect={pick} />}
-      {!loading && !error && (
+      {!busy && !error && (
+        <p data-testid="identity-inventory">
+          対象の識別状況：物質・相を未分離の既存カード{" "}
+          {entities.filter((e) => e.kind === "legacy_material_or_phase").length}{" "}
+          件。未分離は同一性が確認済みという意味ではありません。
+        </p>
+      )}
+      {!busy && !error && <EntityProfile key={focus} id={focus} onSelect={pick} />}
+      {!busy && !error && (
         <div className="knowledge-body">
           <div className="knowledge-records" aria-label="関係レコード">
             {records.length === 0 && (
@@ -260,7 +367,10 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                         key={r.id}
                         className={selected?.id === r.id ? "active" : ""}
                         data-knowledge-record={r.id}
-                        onClick={() => setActive(r.id)}
+                        onClick={() => {
+                          setActive(r.id);
+                          dispatch({ type: "atlasMode", mode, focusId: focus, assertionId: r.id });
+                        }}
                         aria-pressed={selected?.id === r.id}
                       >
                         <span>
@@ -295,7 +405,8 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                 <div className="knowledge-review">
                   <p>
                     {String(payload.reviewedOn)} · {String(payload.reviewer)} ·{" "}
-                    {payload.adoptionRound === "held_relation_resolution"
+                    {typeof payload.adoptionRound === "string" &&
+                    payload.adoptionRound.startsWith("held_")
                       ? "保留後の再照合による採用"
                       : "初回採用"}
                   </p>
@@ -321,20 +432,32 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                   {selected.objectTitle}
                 </button>
               </div>
-              {mode === "symmetry" && (
-                <div className="knowledge-symmetry">
-                  <p>
-                    <strong>
-                      {payload.verification === "literature_confirmed"
-                        ? "群–部分群関係は文献確認済み"
-                        : "群–部分群関係は未確認"}
-                    </strong>
-                  </p>
-                  {typeof payload.index === "string" && <p>部分群の種類・指数：{payload.index}</p>}
-                  {typeof payload.basis === "string" && <p>基底・原点の記述：{payload.basis}</p>}
-                  {typeof payload.split === "string" && <p>サイト対応の記述：{payload.split}</p>}
-                  <p>変換行列・Wyckoff対応の機械検証は未実施です。</p>
-                </div>
+              {mode === "symmetry" &&
+                selected.id !== "adopted:manual:M13:21:relation:diamond-zns" && (
+                  <div className="knowledge-symmetry">
+                    <p>
+                      <strong>
+                        {payload.verification === "literature_confirmed"
+                          ? "群–部分群関係は文献確認済み"
+                          : "群–部分群関係は未確認"}
+                      </strong>
+                    </p>
+                    {typeof payload.index === "string" && (
+                      <p>部分群の種類・指数：{payload.index}</p>
+                    )}
+                    {typeof payload.basis === "string" && <p>基底・原点の記述：{payload.basis}</p>}
+                    {typeof payload.split === "string" && <p>サイト対応の記述：{payload.split}</p>}
+                    <p>変換行列・Wyckoff対応の機械検証は未実施です。</p>
+                  </div>
+                )}
+              {mode === "symmetry" && <SymmetryDetails assertionId={selected.id} />}
+              {detail?.labelMaps.map((spec) => (
+                <LabelMapDetails key={spec.id} spec={spec} />
+              ))}
+              {selected.status === "editorial_composition_not_verified" && (
+                <p>
+                  編集上の複数手順の組み合わせです。下記の根拠は個別手順の根拠で、レシピ全体の実行可能性を検証したものではありません。
+                </p>
               )}
               {detail?.occupations.map((spec) => (
                 <OccupationDetails key={spec.id} spec={spec} />
@@ -351,8 +474,10 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                   <p>
                     対象：
                     {typeof s.target === "string"
-                      ? detail?.occupations.some((spec) => spec.id === s.target)
-                        ? "上記の骨格・空隙集合を参照"
+                      ? [...(detail?.occupations ?? []), ...(detail?.labelMaps ?? [])].some(
+                          (spec) => spec.id === s.target,
+                        )
+                        ? "上記の操作対象仕様を参照"
                         : (TARGET_LABELS[s.target] ?? s.target)
                       : "詳細未転記"}
                   </p>
@@ -408,11 +533,13 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                 <p role="status">根拠を読み込んでいます…</p>
               )}
               <small>
-                {assertionProvenanceLabel(
-                  selected.status,
-                  selected.basis,
-                  typeof payload.adoptionRound === "string" ? payload.adoptionRound : undefined,
-                )}
+                {selected.id === "adopted:manual:M13:21:relation:diamond-zns"
+                  ? "文献の限定確認と、宣言した理想模型の検証は上記の別記録を参照。"
+                  : assertionProvenanceLabel(
+                      selected.status,
+                      selected.basis,
+                      typeof payload.adoptionRound === "string" ? payload.adoptionRound : undefined,
+                    )}
               </small>
             </article>
           )}

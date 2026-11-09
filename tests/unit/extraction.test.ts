@@ -84,7 +84,8 @@ test("only new pilot spans are located in the verified asset and ledger scope st
     [
       [1, 1],
       [2, 3],
-      [4, 31],
+      [4, 4],
+      [5, 31],
     ],
   );
   assert.deepEqual(asset.coverage[1]!.channels, {
@@ -93,7 +94,12 @@ test("only new pilot spans are located in the verified asset and ledger scope st
     tables: "not_applicable",
     index: "not_applicable",
   });
-  for (const other of catalog.assets.filter((a) => a !== asset))
+  for (const other of catalog.assets.filter(
+    (a) =>
+      a !== asset &&
+      !a.mapping.documentIds.includes("M13") &&
+      !a.mapping.documentIds.includes("HS"),
+  ))
     assert.ok(
       other.coverage.every((r) => Object.values(r.channels).every((s) => s === "not_started")),
     );

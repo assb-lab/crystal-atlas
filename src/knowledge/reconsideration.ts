@@ -136,3 +136,14 @@ export function appendHeldMentionResolution(
   add("ResolvedEntity", revision.id, revision.resolution.entityId);
   add("RefersTo", revision.candidateId, revision.resolution.entityId);
 }
+
+export function resolvedCurrentMention(rows: Record<string, Cell[][]>, mentionId: string): string {
+  const superseded = new Set(rows.SupersedesDecision!.map(([, id]) => id));
+  const current = rows.CandidateDecision!.filter(
+    (r) => r[1] === "mention" && r[2] === mentionId && !superseded.has(r[0]),
+  );
+  const resolved = rows.ResolvedEntity!.filter(([d]) => d === current[0]?.[0]);
+  if (current.length !== 1 || current[0]?.[3] !== "accepted" || resolved.length !== 1)
+    throw new Error("Adoption requires both endpoints currently accepted");
+  return String(resolved[0]![1]);
+}

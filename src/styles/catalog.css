@@ -71,3 +71,16 @@
   padding: 14px;
   margin-top: 16px;
 }
+
+.catalog-progress table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  overflow-wrap: anywhere;
+}
+.catalog-progress th,
+.catalog-progress td {
+  padding: 5px;
+  border: 1px solid var(--line);
+  text-align: right;
+}

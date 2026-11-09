@@ -152,19 +152,23 @@ test("ledger validates channel status, page partitions, evidence notes and relat
 test("identified assets connect to documents without reusing legacy page offsets", () => {
   const initial = knowledgeDataset(DATA);
   assert.equal(initial.rows.Asset!.length, 16);
-  assert.equal(initial.rows.CandidateAsset!.length, 0);
+  assert.equal(initial.rows.CandidateAsset!.length, 1);
   assert.equal(initial.rows.HasAsset!.length, 15);
-  assert.equal(initial.rows.LocatedIn!.length, 13);
-  assert.ok(initial.rows.LocatedIn!.every((r) => String(r[0]).startsWith("pilot:K:2-3:")));
-  assert.equal(initial.rows.CoverageReview!.filter((row) => row[1] === "recorded").length, 1);
+  assert.equal(initial.rows.LocatedIn!.length, 26);
+  assert.ok(
+    initial.rows.LocatedIn!.every((r) =>
+      /^(pilot:K:2-3:|manual:K:4:|manual:M13:21:|extraction:auto:)/.test(String(r[0])),
+    ),
+  );
+  assert.equal(initial.rows.CoverageReview!.filter((row) => row[1] === "recorded").length, 4);
   const changed = structuredClone(catalogData) as LiteratureCatalog;
   const asset = changed.assets.find((a) => a.mapping.documentIds.length)!;
   asset.mapping.state = "candidate";
   asset.mapping.basis = "filename_only_not_edition_verified";
   const candidate = knowledgeDataset(DATA, changed);
   assert.equal(candidate.rows.HasAsset!.length, 14);
-  assert.equal(candidate.rows.CandidateAsset!.length, 1);
-  assert.equal(candidate.rows.LocatedIn!.length, 13);
+  assert.equal(candidate.rows.CandidateAsset!.length, 2);
+  assert.equal(candidate.rows.LocatedIn!.length, 26);
 });
 test("confirmation requires in-bounds identification checks and retains unresolved notes on rescan", async () => {
   const catalog = structuredClone(catalogData) as LiteratureCatalog;
