@@ -1,5 +1,5 @@
 /** Versioned physical schema. Scientific relations are nodes so they can carry evidence. */
-export const KNOWLEDGE_SCHEMA_VERSION = 4;
+export const KNOWLEDGE_SCHEMA_VERSION = 5;
 export const LADYBUG_VERSION = "0.22.3";
 export type AtlasMode = "family" | "derivation" | "symmetry";
 export type Cell = string | number | boolean | null;
@@ -63,6 +63,7 @@ export const TABLES: Table[] = [
   rel("DecisionAboutMention", "CandidateDecision", "Mention"),
   rel("DecisionAboutRelation", "CandidateDecision", "RelationCandidate"),
   rel("DecisionEvidence", "CandidateDecision", "SourceSpan"),
+  rel("SupersedesDecision", "CandidateDecision", "CandidateDecision"),
   rel("DecisionByRun", "CandidateDecision", "ProcessingRun"),
   rel("ResolvedEntity", "CandidateDecision", "Entity"),
   rel("AdoptedAssertion", "CandidateDecision", "Assertion"),

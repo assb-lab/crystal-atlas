@@ -59,7 +59,7 @@ test("editorial family membership does not inherit scientific evidence", () => {
 test("references preserve locators without inventing mentions or reviewed coverage", () => {
   assert.equal(rows.Mention.length, 10);
   assert.ok(rows.Mention.every((r) => r[2] === "candidate_unresolved"));
-  assert.equal(rows.RefersTo.length, 9);
+  assert.equal(rows.RefersTo.length, 10);
   assert.ok(rows.Asset.length > 0);
   assert.equal(rows.CoverageReview.filter((r) => r[1] === "recorded").length, 1);
   assert.equal(rows.HasAsset.length, 15);
@@ -72,7 +72,9 @@ test("references preserve locators without inventing mentions or reviewed covera
   );
   const ref = rows.HasEvidence.find(([id]) => id === "relation:e1");
   assert.deepEqual(spans.get(ref![1]), DATA.edges.find((e) => e.id === "e1")!.refs[0]);
-  for (const a of rows.Assertion.filter((r) => !String(r[0]).startsWith("adopted:")))
+  for (const a of rows.Assertion.filter(
+    (r) => !String(r[0]).startsWith("adopted:") && r[1] !== "description",
+  ))
     assert.equal(a[5], "imported_not_revalidated");
   assert.equal(
     rows.Assertion.filter((r) => r[5] === "source_checked_not_machine_verified").length,

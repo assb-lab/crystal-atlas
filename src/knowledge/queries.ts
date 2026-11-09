@@ -31,8 +31,14 @@ RETURN a.id AS id, a.label AS label, c.note AS note ORDER BY a.id`;
 export const DECISIONS_QUERY = `MATCH (d:CandidateDecision)-[:DecisionEvidence]->(s:SourceSpan)-[:LocatedIn]->(a:Asset {id: $id})
 RETURN DISTINCT d.id AS id, d.candidateId AS candidateId, d.candidateKind AS candidateKind, d.outcome AS outcome, d.reason AS reason, d.payload AS payload ORDER BY d.id`;
 export const DECISION_RESULT_QUERY = `MATCH (d:CandidateDecision {id: $id})-[:ResolvedEntity]->(e:Entity)
-RETURN e.id AS id, e.title AS title`;
+RETURN e.id AS id, e.title AS title, e.kind AS kind, e.payload AS payload`;
 export const ADOPTED_ASSERTION_QUERY = `MATCH (d:CandidateDecision {id: $id})-[:AdoptedAssertion]->(a:Assertion)-[:Subject]->(s:Entity)
 RETURN a.id AS id, a.label AS title, a.domain AS domain, s.id AS subjectId`;
 export const DECISION_EVIDENCE_QUERY = `MATCH (d:CandidateDecision {id: $id})-[:DecisionEvidence]->(s:SourceSpan)
 RETURN s.payload AS reference ORDER BY s.id`;
+
+/** A current decision has no later decision pointing to it. History stays queryable. */
+export const CURRENT_DECISIONS_QUERY = `MATCH (d:CandidateDecision)-[:DecisionEvidence]->(s:SourceSpan)-[:LocatedIn]->(a:Asset {id: $id})
+WHERE NOT EXISTS { MATCH (:CandidateDecision)-[:SupersedesDecision]->(d) }
+RETURN DISTINCT d.id AS id, d.candidateId AS candidateId, d.candidateKind AS candidateKind, d.outcome AS outcome, d.reason AS reason, d.payload AS payload ORDER BY d.id`;
+export const ENTITY_PROFILE_QUERY = `MATCH (e:Entity {id: $id}) RETURN e.id AS id, e.title AS title, e.kind AS kind, e.payload AS payload`;

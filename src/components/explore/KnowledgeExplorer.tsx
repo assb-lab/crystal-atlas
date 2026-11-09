@@ -19,6 +19,7 @@ import {
 import type { AtlasMode } from "../../knowledge/schema.ts";
 import { useAtlas } from "../../store.ts";
 import type { Ref } from "../../types.ts";
+import { EntityProfile } from "../EntityProfile.tsx";
 import { RefChips } from "../RefChips.tsx";
 import "../../styles/knowledge.css";
 
@@ -230,6 +231,7 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
           </button>
         </div>
       )}
+      {!loading && !error && <EntityProfile key={focus} id={focus} onSelect={pick} />}
       {!loading && !error && (
         <div className="knowledge-body">
           <div className="knowledge-records" aria-label="関係レコード">
