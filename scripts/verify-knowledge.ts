@@ -1,4 +1,9 @@
-import { FAMILY_ITEM_SCHEMES_QUERY } from "../src/knowledge/queries.ts";
+import {
+  FAMILY_ENTITIES_QUERY,
+  FAMILY_ITEMS_QUERY,
+  FAMILY_CLAIMS_QUERY,
+  FAMILY_ITEM_SCHEMES_QUERY,
+} from "../src/knowledge/queries.ts";
 import { recordQuery } from "../src/knowledge/records.ts";
 import { recordKinds } from "../src/knowledge/navigation.ts";
 import { ASSERTION_ENDPOINT_QUERY } from "../src/knowledge/queries.ts";
@@ -101,6 +106,23 @@ try {
       `${t.name} full round-trip`,
     );
   }
+  const familyEntities = query(FAMILY_ENTITIES_QUERY);
+  const familyItems = query(FAMILY_ITEMS_QUERY);
+  const familyClaims = query(FAMILY_CLAIMS_QUERY);
+  assert.equal(
+    familyEntities.length,
+    expected.rows.Entity!.filter((r) => r[2] !== "editorial_concept").length,
+  );
+  assert.equal(familyItems.length, expected.rows.SchemeItem!.length);
+  assert.equal(familyClaims.length, expected.rows.ClaimInScheme!.length);
+  assert.ok(
+    familyClaims.some(
+      (r) =>
+        r.subjectId === "collection:glazer" &&
+        r.objectId === "collection:perovskites" &&
+        r.schemeId === "scheme:legacy:GL+HS",
+    ),
+  );
   assert.ok(query(CLASSIFICATION_SCHEMES_QUERY).length > 2);
   assert.equal(query(CLASSIFICATION_ITEMS_QUERY, { id: "scheme:HS:1998:table1" }).length, 16);
   assert.equal(query(CLASSIFICATION_CLAIMS_QUERY, { id: "scheme:HS:1998:table1" }).length, 16);

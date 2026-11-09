@@ -30,7 +30,10 @@ for (const [label, url] of Object.entries({
       .first()
       .click();
     await page.locator('[data-atlas-mode="family"]').click();
-    await expect(page.getByTestId("atlas-focus")).toHaveAttribute("data-entity-id", "perov");
+    await expect(page.getByTestId("family-content")).toHaveAttribute(
+      "data-subject-id",
+      "scheme:legacy:GL+HS",
+    );
     await expect(page.locator('[data-atlas-scheme="scheme:legacy:GL+HS"]')).toHaveAttribute(
       "aria-pressed",
       "true",

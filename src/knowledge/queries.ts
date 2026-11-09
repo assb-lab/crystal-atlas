@@ -70,3 +70,8 @@ export const SYMMETRY_MODEL_QUERY = `MATCH (m:SymmetryMapping {id:$id})-[:Mappin
 export const SYMMETRY_TREE_QUERY = `MATCH (m:SymmetryMapping)-[:MappingFor]->(a:Assertion)-[:Subject]->(s:Entity), (a)-[:Object]->(t:Entity) RETURN a.id AS id,a.label AS label,a.status AS status,m.id AS mappingId,m.payload AS payload,s.id AS subjectId,s.title AS subjectTitle,t.id AS objectId,t.title AS objectTitle ORDER BY a.id`;
 export const ASSERTION_ENDPOINT_QUERY = `MATCH (a:Assertion {id:$id})-[:Subject]->(s:Entity), (a)-[:Object]->(t:Entity) RETURN a.domain AS domain,s.id AS subjectId,s.title AS subjectTitle,t.id AS objectId,t.title AS objectTitle`;
 export const FAMILY_ITEM_SCHEMES_QUERY = `MATCH (s:ClassificationScheme)-[:SchemeItem]->(e:Entity {id:$id}) RETURN s.id AS schemeId ORDER BY s.id`;
+
+/** Family display graph retains each inclusion's own scheme and provenance. */
+export const FAMILY_ENTITIES_QUERY = `MATCH (e:Entity) WHERE e.kind <> 'editorial_concept' RETURN e.id AS id,e.title AS title,e.kind AS kind,e.payload AS payload ORDER BY e.title`;
+export const FAMILY_ITEMS_QUERY = `MATCH (s:ClassificationScheme)-[:SchemeItem]->(e:Entity) RETURN s.id AS schemeId,e.id AS id ORDER BY s.id,e.id`;
+export const FAMILY_CLAIMS_QUERY = `MATCH (a:Assertion)-[:ClaimInScheme]->(scheme:ClassificationScheme), (a)-[:Subject]->(s:Entity), (a)-[:Object]->(t:Entity) RETURN a.id AS id,scheme.id AS schemeId,a.operation AS operation,a.status AS status,a.basis AS basis,a.description AS description,s.id AS subjectId,s.title AS subjectTitle,t.id AS objectId,t.title AS objectTitle ORDER BY a.id`;

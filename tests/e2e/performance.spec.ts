@@ -39,10 +39,14 @@ for (const format of ["modular", "standalone"] as const)
       const start = Date.now();
       await page.locator('[data-atlas-mode="family"]').click();
       await expect(page.getByTestId("knowledge-ready")).toBeVisible({ timeout: 70000 });
-      await expect(page.getByTestId("scheme-ready")).toBeVisible({ timeout: 30000 });
+      await expect(page.getByTestId("family-content")).toContainText("この構造はどこに属する", {
+        timeout: 30000,
+      });
       const readyMs = Date.now() - start;
       await pickEntity(page, "perov");
-      await expect(page.getByTestId("atlas-focus")).toContainText("立方ペロブスカイト");
+      await expect(
+        page.getByTestId("family-content").getByRole("heading", { level: 3 }),
+      ).toContainText("立方ペロブスカイト");
       const entries = await page.evaluate(() => ({
         initialization: performance.getEntriesByName("atlas.db.initialize").map((e) => e.duration),
         queries: performance.getEntriesByName("atlas.db.query").map((e) => e.duration),

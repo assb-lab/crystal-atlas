@@ -73,7 +73,9 @@ export function RelationshipDetail({
       {detail.endpoints.map((e, i) => (
         <div className="atlas-endpoint-pair" key={i}>
           <button onClick={() => onFocus(String(e.subjectId))}>{String(e.subjectTitle)}</button>
-          <span aria-hidden="true">{r.domain === "family" ? "∈" : "↓"}</span>
+          <span aria-hidden="true">
+            {r.domain === "family" ? (r.operation === "included_in" ? "⊂" : "∈") : "↓"}
+          </span>
           <button onClick={() => onFocus(String(e.objectId))}>{String(e.objectTitle)}</button>
         </div>
       ))}

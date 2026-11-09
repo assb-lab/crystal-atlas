@@ -123,6 +123,16 @@ export function RecordInspector() {
               <EntityProfile id={ref.id} onSelect={(id) => open({ kind: "entity", id })} />
             </>
           )}
+          {ref.kind === "scheme" && (
+            <button
+              onClick={() => {
+                dispatch({ type: "atlasMode", mode: "family", focusId: ref.id });
+                openClose();
+              }}
+            >
+              Familyでこの体系を見る
+            </button>
+          )}
           {ref.kind === "document" && (
             <button
               onClick={() => {

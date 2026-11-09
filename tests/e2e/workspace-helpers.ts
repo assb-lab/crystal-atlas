@@ -10,11 +10,22 @@ export async function pickEntity(page: Page, id: string) {
 }
 export async function chooseScheme(page: Page, id: string) {
   const item = page.locator(`[data-atlas-scheme="${id}"]`);
+  if (await page.locator(".family-workspace").isVisible()) {
+    if (!(await page.locator("#atlasEntitySearch").isVisible()))
+      await page.locator(".atlas-browse-toggle").click();
+    const all = page.locator(".family-all-schemes");
+    if ((await all.getAttribute("open")) === null) await all.locator("summary").click();
+  }
   if (!(await item.isVisible())) await page.locator(".atlas-browse-toggle").click();
   await item.click();
   await expect(page.getByTestId("scheme-ready")).toHaveAttribute("data-scheme", id);
 }
 export async function openModelContext(page: Page) {
+  if (await page.locator(".family-workspace").isVisible()) {
+    const details = page.locator(".family-evidence > details");
+    if (!(await details.isVisible()))
+      await page.getByRole("button", { name: "出典・詳しい説明", exact: true }).click();
+  }
   const details = page
     .locator(".atlas-inspector > details")
     .filter({ has: page.locator("summary", { hasText: "構造の説明・模型の由来" }) });

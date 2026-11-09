@@ -1,3 +1,4 @@
+import { FamilyWorkspace } from "./FamilyWorkspace.tsx";
 import { RelationshipWorkspace } from "./RelationshipWorkspace.tsx";
 import { useAtlas } from "../../store.ts";
 import { KnowledgeExplorer } from "./KnowledgeExplorer.tsx";
@@ -9,6 +10,8 @@ export function Explore() {
     <>
       {state.atlasMode === "derivation" ? (
         <KnowledgeExplorer key={state.atlasMode} mode={state.atlasMode} />
+      ) : state.atlasMode === "family" ? (
+        <FamilyWorkspace />
       ) : (
         <RelationshipWorkspace key={state.atlasMode} mode={state.atlasMode} />
       )}

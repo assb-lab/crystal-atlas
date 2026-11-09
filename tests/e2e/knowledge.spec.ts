@@ -52,7 +52,6 @@ for (const [label, url] of Object.entries({
     await chooseScheme(page, "scheme:legacy:GI+K");
     await page.locator('[data-atlas-class="collection:pyro-alpha"]').click();
     await page.locator('[data-atlas-member="pyrochlore"]').click();
-    await page.getByText("選択した所属の根拠", { exact: true }).click();
     await page.locator(".atlas-inspector .knowledge-detail").scrollIntoViewIfNeeded();
     await expect(page.locator(".knowledge-detail .refchips").first()).toBeVisible();
     await page.screenshot({ path: `test-results/${label}-knowledge-desktop.png` });
