@@ -9,6 +9,8 @@ export function stepProvenanceLabel(payload: string): string {
     detailState?: string;
     adoptionRound?: string;
   };
+  if (detailState === "source_checked")
+    return "原典の図と本文に基づく限定した操作解釈。模型と検証の範囲は対応するSymmetry記録を参照。";
   if (detailState === "editorial_composition")
     return "個別手順を組み合わせた編集上の操作手順。全体のセル対応・実行可能性は未検証です。";
   if (adoptionRound === "held_label_resolution")
@@ -26,6 +28,8 @@ export function assertionProvenanceLabel(
   basis: string,
   adoptionRound?: string,
 ): string {
+  if (status === "source_context_checked")
+    return "文献の選択箇所を限定確認した記述です。検証の対象と未確認事項は個別記録を参照してください。";
   if (status === "editorial_composition_not_verified")
     return "編集上の構築レシピ。個別手順の根拠を保持し、全体のセル対応・実行可能性は未検証です。";
   if (adoptionRound === "held_label_resolution")

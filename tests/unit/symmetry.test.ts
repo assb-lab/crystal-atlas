@@ -58,11 +58,30 @@ test("wrong origin, cell, color, index and split fail validation", () => {
   }
 });
 test("mapping transcription cannot claim a different model result or mutate on failure", () => {
-  const { rows } = knowledgeDataset(DATA);
-  const before = structuredClone(rows);
-  const mapping = structuredClone(diamondMapping);
-  mapping.id = "bad-mapping";
-  mapping.index = 3;
-  assert.throws(() => appendSymmetryMapping(rows, mapping));
-  assert.deepEqual(rows, before);
+  for (const mutate of [
+    (m: typeof diamondMapping) => {
+      m.index = 3;
+    },
+    (m: typeof diamondMapping) => {
+      m.basis = [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+      ];
+    },
+    (m: typeof diamondMapping) => {
+      m.parent.number = 0;
+    },
+    (m: typeof diamondMapping) => {
+      m.wyckoff!.to = ["4a", "4a"];
+    },
+  ]) {
+    const { rows } = knowledgeDataset(DATA);
+    const before = structuredClone(rows);
+    const mapping = structuredClone(diamondMapping);
+    mapping.id = "bad-mapping";
+    mutate(mapping);
+    assert.throws(() => appendSymmetryMapping(rows, mapping));
+    assert.deepEqual(rows, before);
+  }
 });

@@ -166,6 +166,38 @@ export function appendSymmetryMapping(rows: Record<string, Cell[][]>, mapping: S
     !mapping.interpretation
   )
     throw new Error("Incomplete setting provenance");
+  if (
+    !["t", "k", "i", "unknown"].includes(mapping.subgroupKind) ||
+    !mapping.parent.symbol ||
+    !mapping.child.symbol ||
+    [mapping.parent.number, mapping.child.number].some(
+      (n) => n !== null && (!Number.isInteger(n) || n < 1 || n > 230),
+    )
+  )
+    throw new Error("Invalid group type or kind");
+  if (mapping.basis) {
+    const p = mapping.basis;
+    if (p.length !== 3 || p.some((row) => row.length !== 3 || row.some((n) => !Number.isFinite(n))))
+      throw new Error("Invalid basis shape");
+    const det =
+      p[0]![0]! * (p[1]![1]! * p[2]![2]! - p[1]![2]! * p[2]![1]!) -
+      p[0]![1]! * (p[1]![0]! * p[2]![2]! - p[1]![2]! * p[2]![0]!) +
+      p[0]![2]! * (p[1]![0]! * p[2]![1]! - p[1]![1]! * p[2]![0]!);
+    if (Math.abs(det) < 1e-12) throw new Error("Singular basis");
+  }
+  if (
+    mapping.origin &&
+    (mapping.origin.length !== 3 || mapping.origin.some((n) => !Number.isFinite(n)))
+  )
+    throw new Error("Invalid origin");
+  if (
+    mapping.wyckoff &&
+    (!mapping.wyckoff.from ||
+      !mapping.wyckoff.to.length ||
+      mapping.wyckoff.to.some((w) => !w) ||
+      new Set(mapping.wyckoff.to).size !== mapping.wyckoff.to.length)
+  )
+    throw new Error("Invalid Wyckoff transcription");
   let validation: ReturnType<typeof verifyIdealCubicSplit> | null = null;
   if (mapping.model) {
     if (
