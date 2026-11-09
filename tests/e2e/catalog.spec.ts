@@ -47,8 +47,15 @@ for (const [label, url] of Object.entries({
     await detail.scrollIntoViewIfNeeded();
     await page.screenshot({ path: `test-results/${label}-catalog-mobile.png` });
     await selector.selectOption({ label: "Ulrich_Müller.pdf" });
-    await expect(detail).toContainText("PDF 1–349");
-    await expect(detail.locator("dd")).toHaveText(["未調査", "未調査", "未調査", "未調査"]);
+    await expect(detail).toContainText("PDF 1–20");
+    await expect(detail).toContainText("PDF 21–21");
+    await expect(detail).toContainText("PDF 22–349");
+    await expect(detail.locator(".catalog-range").nth(1).locator("dd")).toHaveText([
+      "調査中",
+      "調査中",
+      "対象なし（確認済み）",
+      "対象なし（確認済み）",
+    ]);
     await expect(detail).toContainText("IUCr Texts on Crystallography 18");
     await selector.selectOption({ label: "Perovskite_modern_and_ancient.pdf" });
     await expect(detail).toContainText("本文抜粋（書誌未解決）");

@@ -22,7 +22,12 @@ const before = knowledgeDataset(
   occupationReconsiderations,
   [],
 ).rows;
-const rows = knowledgeDataset(DATA).rows;
+const rows = knowledgeDataset(
+  DATA,
+  catalog as LiteratureCatalog,
+  [extraction],
+  [decisionsData as DecisionBatch],
+).rows;
 test("all original candidates and first judgments survive symbolic label adoption", () => {
   for (const table of [
     "Entity",

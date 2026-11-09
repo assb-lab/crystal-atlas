@@ -2,6 +2,19 @@ import type { Source } from "../types.ts";
 
 /** Bibliographic additions identified from local PDF title/publication pages; content unextracted. */
 export const literatureSources: Record<string, Source> = {
+  MI02: {
+    short: "Mitchell 2002（書誌候補）",
+    title: "Perovskites: Modern and Ancient",
+    author: "Roger H. Mitchell",
+    year: "2002",
+    edition: "Almaz Press, Thunder Bay",
+    citation:
+      "R. H. Mitchell, Perovskites: Modern and Ancient (Almaz Press, Thunder Bay, 2002). ISBN: 0-9689411-0-9. 書誌の存在はIUCr刊行案内 J. Appl. Cryst. 36, 170 (2003), DOI: 10.1107/S0021889803001420で確認。",
+    article: "https://journals.iucr.org/j/issues/2003/01/00/ht5033/",
+    filename: "Perovskite_modern_and_ancient.pdf",
+    coverage:
+      "書誌候補。手元の132頁の画像PDFとの同一性・版は未確定。PDF 1頁の章見出しは整合するが表紙・奥付・ISBNを確認できず、確定した本文出典には使わない。",
+  },
   T16: {
     short: "Tilley 2016",
     title: "Perovskites: Structure–Property Relationships",

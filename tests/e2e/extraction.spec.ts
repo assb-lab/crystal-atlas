@@ -64,14 +64,14 @@ for (const [label, url] of Object.entries({
     await selector.selectOption(prefix + "relation:nacl-zns-comparison");
     await expect(detail).toContainText("編集上の比較候補（派生操作ではない）");
     await page.setViewportSize({ width: 390, height: 844 });
-    await expect(page.locator(".catalog-range")).toHaveCount(3);
+    await expect(page.locator(".catalog-range")).toHaveCount(4);
     await expect(page.locator(".catalog-range").nth(1).locator("dd")).toHaveText([
       "調査中",
       "調査中",
       "対象なし（確認済み）",
       "対象なし（確認済み）",
     ]);
-    await expect(page.locator(".catalog-range").last()).toContainText("PDF 4–31");
+    await expect(page.locator(".catalog-range").last()).toContainText("PDF 5–31");
     await expect(page.locator(".catalog-range").last().locator("dd")).toHaveText([
       "未調査",
       "未調査",

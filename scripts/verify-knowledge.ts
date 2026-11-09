@@ -145,21 +145,22 @@ try {
     "supplement",
   );
   assert.equal(query(DOCUMENT_ASSETS_QUERY, { id: "T16" }).length, 1);
+  assert.equal(query(DOCUMENT_ASSETS_QUERY, { id: "MI02" }).length, 1);
   assert.equal(query(DOCUMENT_ASSETS_QUERY, { id: "HCG79" }).length, 1);
   assert.deepEqual(query(DOCUMENT_ASSETS_QUERY, { id: "M06' OR true //" }), []);
   const pilotAssetId = "asset:89e53b92d39ab682ec8dd1b6931e580ccb0de19fe07524d91d51d47ea9688e27";
-  assert.equal(query(EXTRACTION_RUN_QUERY, { id: pilotAssetId }).length, 1);
+  assert.equal(query(EXTRACTION_RUN_QUERY, { id: pilotAssetId }).length, 2);
   const mentions = query(MENTIONS_QUERY, { id: pilotAssetId });
-  assert.equal(mentions.length, 10);
+  assert.equal(mentions.length, 16);
   for (const mention of mentions) {
     assert.equal(mention.status, "candidate_unresolved");
     const ref = JSON.parse(mention.reference as string);
-    assert.ok([2, 3].includes(ref.pdfPage));
+    assert.ok([2, 3, 4].includes(ref.pdfPage));
     assert.equal(ref.p, ref.pdfPage + 155);
     assert.equal(query(ENTITY_CANDIDATES_QUERY, { id: mention.id }).length, 1);
   }
   const candidates = query(RELATION_CANDIDATES_QUERY, { id: pilotAssetId });
-  assert.equal(candidates.length, 10);
+  assert.equal(candidates.length, 13);
   for (const candidate of candidates) {
     const payload = JSON.parse(candidate.payload as string);
     assert.equal(candidate.status, "candidate_unresolved");

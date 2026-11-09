@@ -3,6 +3,7 @@ import { CONCEPTS, ROLES } from "../data/packing.ts";
 import { TABLES, type Cell } from "./schema.ts";
 import catalogData from "../data/literature-catalog.json" with { type: "json" };
 import { assetId, validateCatalog, type LiteratureCatalog } from "./catalog.ts";
+import { additionalExtractions } from "../data/additional-extractions.ts";
 import extractionData from "../data/okamoto-extraction.json" with { type: "json" };
 import { appendExtraction, type ExtractionBatch } from "./extraction.ts";
 import decisionData from "../data/okamoto-decisions.json" with { type: "json" };
@@ -51,7 +52,7 @@ const json = (value: unknown) => JSON.stringify(value);
 export function knowledgeDataset(
   data: Atlas,
   catalog: LiteratureCatalog = catalogData as LiteratureCatalog,
-  extractions: ExtractionBatch[] = [extractionData as ExtractionBatch],
+  extractions: ExtractionBatch[] = [extractionData as ExtractionBatch, ...additionalExtractions],
   reviews: DecisionBatch[] = extractions.some((e) => e.id === decisionData.extractionId)
     ? [decisionData as DecisionBatch]
     : [],

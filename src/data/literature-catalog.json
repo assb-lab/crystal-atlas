@@ -171,6 +171,30 @@
       "coverage": [
         {
           "from": 1,
+          "to": 20,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        },
+        {
+          "from": 21,
+          "to": 21,
+          "channels": {
+            "body": "in_progress",
+            "figures": "in_progress",
+            "tables": "not_applicable",
+            "index": "not_applicable"
+          },
+          "note": "2026-11-09、PDF 21頁（印刷4頁）・§1.2とFig.1.1を全頁画像で確認し、diamond／zinc blendeの選択例を候補化。表・索引はない。原子座標・群対応の採否・数値検証はこの抽出段階では未実施。",
+          "printedPageMapping": "PDF 21 = 印刷4（この頁のみ確認）"
+        },
+        {
+          "from": 22,
           "to": 349,
           "channels": {
             "body": "not_started",
@@ -429,9 +453,9 @@
       "pageCount": 132,
       "readState": "readable",
       "mapping": {
-        "state": "unmatched",
-        "documentIds": [],
-        "basis": "冒頭の見開き本文を確認したが、書誌・版を確定する識別情報を得られず保留。"
+        "state": "candidate",
+        "documentIds": ["MI02"],
+        "basis": "ファイル名・第1章見出しはMitchell 2002の書誌候補と整合。IUCrの刊行案内で書誌の存在を確認したが、PDFに表紙・奥付・著者・ISBNを確認できず版とファイルの同一性は未確定。"
       },
       "coverage": [
         {
@@ -462,12 +486,18 @@
             "pdfPages": [1],
             "field": "document_part",
             "finding": "章見出しは理想ペロブスカイト構造を扱うが、ファイル名だけから書籍タイトル・著者・版を確定していない。"
+          },
+          {
+            "pdfPages": [1],
+            "field": "identity_limits",
+            "finding": "再確認: 画像変換PDFで選択可能テキストなし。第1章の理想ペロブスカイトの見開き本文・印刷頁1のみ確認。IUCr刊行案内 DOI:10.1107/S0021889803001420と書名・著者の候補を対応させたが、表紙・奥付・ISBNを含む資料が必要。"
           }
         ],
         "limitations": [
           "著者・正式書名・出版年・版は未確認。",
           "1 PDF頁を1印刷頁として換算しない。",
-          "確認は冒頭6 PDF頁のみ。全132頁の内容照合は未実施。"
+          "確認は冒頭6 PDF頁のみ。全132頁の内容照合は未実施。",
+          "Mitchell 2002は書誌候補で、確定したSourceSpan–Document対応には使用しない。全132頁の内容照合は未実施。"
         ]
       }
     },
@@ -514,6 +544,18 @@
         },
         {
           "from": 4,
+          "to": 4,
+          "channels": {
+            "body": "in_progress",
+            "figures": "in_progress",
+            "tables": "not_applicable",
+            "index": "not_applicable"
+          },
+          "note": "2026-11-09、PDF 4頁（印刷159頁）の全頁画像で図3–5と本文を確認し、選択パネル・本文を候補化。全語の網羅・採否は未完了。表・索引はこの頁にないことを確認。",
+          "printedPageMapping": "PDF 4 = 印刷159（この頁のみ確認）"
+        },
+        {
+          "from": 5,
           "to": 31,
           "channels": {
             "body": "not_started",

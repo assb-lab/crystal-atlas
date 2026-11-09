@@ -154,7 +154,9 @@ async function openKnowledge(): Promise<KnowledgeDB> {
           ),
         );
         queue = run.catch(() => {});
-        return run;
+        // Bound queue wait too: after a dead Worker, earlier pending reads must
+        // not postpone the visible failure by five seconds per queued query.
+        return withDeadline(run, 5000, "照会が応答しません。再試行して接続を開き直してください。");
       },
     };
   } catch (error) {
