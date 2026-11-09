@@ -71,6 +71,30 @@
       "coverage": [
         {
           "from": 1,
+          "to": 3,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        },
+        {
+          "from": 4,
+          "to": 4,
+          "channels": {
+            "body": "in_progress",
+            "figures": "not_applicable",
+            "tables": "in_progress",
+            "index": "not_applicable"
+          },
+          "note": "Codex 2026-11-09: PDF4（印刷785）の全頁画像でTable 1と本文を確認。15回転系・理想空間群と無回転基準を限定転記。全頁の全語・構造・セル対応の網羅照合は未完了。この頁に図・索引がないことを確認。",
+          "printedPageMapping": "PDF4 = 印刷785（この頁のみ確認）"
+        },
+        {
+          "from": 5,
           "to": 9,
           "channels": {
             "body": "not_started",

@@ -95,7 +95,10 @@ test("only new pilot spans are located in the verified asset and ledger scope st
     index: "not_applicable",
   });
   for (const other of catalog.assets.filter(
-    (a) => a !== asset && !a.mapping.documentIds.includes("M13"),
+    (a) =>
+      a !== asset &&
+      !a.mapping.documentIds.includes("M13") &&
+      !a.mapping.documentIds.includes("HS"),
   ))
     assert.ok(
       other.coverage.every((r) => Object.values(r.channels).every((s) => s === "not_started")),

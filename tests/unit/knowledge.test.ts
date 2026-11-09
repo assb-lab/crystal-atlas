@@ -61,7 +61,7 @@ test("references preserve locators without inventing mentions or reviewed covera
   assert.ok(rows.Mention.every((r) => r[2] === "candidate_unresolved"));
   assert.equal(rows.RefersTo.length, 12);
   assert.ok(rows.Asset.length > 0);
-  assert.equal(rows.CoverageReview.filter((r) => r[1] === "recorded").length, 3);
+  assert.equal(rows.CoverageReview.filter((r) => r[1] === "recorded").length, 4);
   assert.equal(rows.HasAsset.length, 15);
   assert.equal(rows.CandidateAsset.length, 1);
   assert.equal(rows.LocatedIn.length, 26);

@@ -160,7 +160,7 @@ test("identified assets connect to documents without reusing legacy page offsets
       /^(pilot:K:2-3:|manual:K:4:|manual:M13:21:|extraction:auto:)/.test(String(r[0])),
     ),
   );
-  assert.equal(initial.rows.CoverageReview!.filter((row) => row[1] === "recorded").length, 3);
+  assert.equal(initial.rows.CoverageReview!.filter((row) => row[1] === "recorded").length, 4);
   const changed = structuredClone(catalogData) as LiteratureCatalog;
   const asset = changed.assets.find((a) => a.mapping.documentIds.length)!;
   asset.mapping.state = "candidate";
