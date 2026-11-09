@@ -72,7 +72,7 @@ export interface State {
   /** Bumped when the map should move its camera to the selection ("選択位置へ"). */
   mapSeq: number;
   /** Citation the guide should reveal. */
-  sourceFocus: { id: string; page: number; pdfPage: number; seq: number } | null;
+  sourceFocus: { id: string; page: number | null; pdfPage: number; seq: number } | null;
   /** Object URLs of PDFs the reader associated locally, per source id. */
   pdfs: Record<string, string>;
 }
@@ -141,7 +141,7 @@ export type Action =
   | { type: "occ"; t: number; o: number }
   | { type: "toast"; msg: string }
   | { type: "toastHide" }
-  | { type: "source"; id: string; page: number; pdfPage: number }
+  | { type: "source"; id: string; page: number | null; pdfPage: number }
   | { type: "pdf"; id: string; url: string };
 
 const toast = (s: State, msg: string): State["toast"] => ({ msg, seq: (s.toast?.seq ?? 0) + 1 });

@@ -120,6 +120,48 @@ export function LiteratureCatalog() {
                 ファイル配置 ／ ページ数判明分 {knownPages.toLocaleString()} ページ ／ ページ数不明{" "}
                 {unknown} 資産
               </p>
+              <details className="catalog-progress">
+                <summary>調査状態別のPDF頁数（母数と未調査）</summary>
+                <p>
+                  母数はページ数が判明した {knownPages.toLocaleString()}{" "}
+                  PDF頁です。構造数・全出現数の網羅率とは異なります。不明資産は {unknown}{" "}
+                  件、候補0件で照合済みにしません。
+                </p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>項目</th>
+                      <th>未調査</th>
+                      <th>調査中</th>
+                      <th>照合済み</th>
+                      <th>対象なし</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {CHANNELS.map((channel) => (
+                      <tr key={channel}>
+                        <th>{channelNames[channel]}</th>
+                        {(
+                          ["not_started", "in_progress", "reviewed", "not_applicable"] as const
+                        ).map((status) => (
+                          <td key={status}>
+                            {entries
+                              .reduce(
+                                (sum, e) =>
+                                  sum +
+                                  e.asset.coverage
+                                    .filter((r) => r.to !== null && r.channels[channel] === status)
+                                    .reduce((n, r) => n + r.to! - r.from + 1, 0),
+                                0,
+                              )
+                              .toLocaleString()}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </details>
               <label htmlFor="catalogAsset">資料ファイル</label>
               <select
                 id="catalogAsset"
@@ -169,7 +211,7 @@ export function LiteratureCatalog() {
                     {current.mapping.state === "confirmed"
                       ? "書誌対応確認済み（照合範囲は下記）"
                       : current.mapping.state === "candidate"
-                        ? "ファイル名による書誌候補（版の対応は未確認）"
+                        ? "書誌対応候補（版・ファイルの同一性は未確認）"
                         : "書誌未対応"}
                   </p>
                   {current.mapping.documentIds.map((id) => (

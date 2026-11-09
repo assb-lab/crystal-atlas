@@ -1,3 +1,4 @@
+import autoK4 from "./K4-auto-extraction.json" with { type: "json" };
 import type { ExtractionBatch } from "../knowledge/extraction.ts";
 const K = "manual:K:4:";
 const M = "manual:M13:21:";
@@ -176,4 +177,5 @@ export const additionalExtractions: ExtractionBatch[] = [
       },
     ],
   },
+  autoK4 as ExtractionBatch,
 ];

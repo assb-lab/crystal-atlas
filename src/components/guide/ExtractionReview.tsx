@@ -40,6 +40,7 @@ interface Records {
     operator: string;
     reviewedOn: string;
     activity: string;
+    processing?: ExtractionBatch["processing"];
   }[];
   mentions: Mention[];
   relations: Candidate[];
@@ -259,6 +260,32 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
                   {run.reviewedOn} · {run.operator}
                 </p>
                 <p>{run.scope}</p>
+                {run.processing && (
+                  <div>
+                    <p>
+                      処理方法：{run.processing.tool} · {run.processing.version}
+                    </p>
+                    <p>
+                      辞書SHA-256：<code>{run.processing.dictionaryHash}</code>
+                    </p>
+                    <ul>
+                      {run.processing.pages.map((p) => (
+                        <li key={p.pdfPage}>
+                          PDF {p.pdfPage} ·{" "}
+                          {p.textState === "no_text"
+                            ? "テキストなし（画像・OCRの確認が必要）"
+                            : p.textState === "ocr_text"
+                              ? "OCR候補（誤読確認が必要）"
+                              : "選択可能なテキスト"}{" "}
+                          · {p.characters}文字 · <code>{p.textHash}</code>
+                        </li>
+                      ))}
+                    </ul>
+                    <p>
+                      全文は同梱していません。処理の成功や文字数は、内容の照合完了を意味しません。
+                    </p>
+                  </div>
+                )}
                 <ul>
                   {run.limitations.map((item) => (
                     <li key={item}>{item}</li>

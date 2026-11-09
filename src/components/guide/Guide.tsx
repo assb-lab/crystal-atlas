@@ -176,7 +176,7 @@ function SourceCard({ id, source: s }: { id: string; source: Source }) {
                 </a>
               </>
             ) : (
-              `参照箇所：印刷 p.${focus.page} ／ PDF ${focus.pdfPage}ページ。下のボタンでPDFを関連付けると、このページを開けます。`
+              `参照箇所：${focus.page === null ? "印刷頁未確認" : `印刷 p.${focus.page}`} ／ PDF ${focus.pdfPage}ページ。下のボタンでPDFを関連付けると、このページを開けます。`
             ))}
         </div>
       </div>

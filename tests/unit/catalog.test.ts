@@ -154,10 +154,10 @@ test("identified assets connect to documents without reusing legacy page offsets
   assert.equal(initial.rows.Asset!.length, 16);
   assert.equal(initial.rows.CandidateAsset!.length, 1);
   assert.equal(initial.rows.HasAsset!.length, 15);
-  assert.equal(initial.rows.LocatedIn!.length, 25);
+  assert.equal(initial.rows.LocatedIn!.length, 26);
   assert.ok(
     initial.rows.LocatedIn!.every((r) =>
-      /^(pilot:K:2-3:|manual:K:4:|manual:M13:21:)/.test(String(r[0])),
+      /^(pilot:K:2-3:|manual:K:4:|manual:M13:21:|extraction:auto:)/.test(String(r[0])),
     ),
   );
   assert.equal(initial.rows.CoverageReview!.filter((row) => row[1] === "recorded").length, 3);
@@ -168,7 +168,7 @@ test("identified assets connect to documents without reusing legacy page offsets
   const candidate = knowledgeDataset(DATA, changed);
   assert.equal(candidate.rows.HasAsset!.length, 14);
   assert.equal(candidate.rows.CandidateAsset!.length, 2);
-  assert.equal(candidate.rows.LocatedIn!.length, 25);
+  assert.equal(candidate.rows.LocatedIn!.length, 26);
 });
 test("confirmation requires in-bounds identification checks and retains unresolved notes on rescan", async () => {
   const catalog = structuredClone(catalogData) as LiteratureCatalog;

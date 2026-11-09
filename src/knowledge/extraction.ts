@@ -154,7 +154,12 @@ export function appendExtraction(
       throw new Error("Invalid extraction locator");
   }
   for (const mention of batch.mentions) {
-    if (!spans.has(mention.spanId) || !mention.rawName.trim() || !mention.identityNote.trim())
+    if (
+      existing("Mention").has(mention.id) ||
+      !spans.has(mention.spanId) ||
+      !mention.rawName.trim() ||
+      !mention.identityNote.trim()
+    )
       throw new Error("Invalid mention locator/name");
     unique(
       mention.candidates.map((c) => c.entityId),
@@ -166,6 +171,7 @@ export function appendExtraction(
   }
   for (const relation of batch.relations) {
     if (
+      existing("RelationCandidate").has(relation.id) ||
       !mentions.has(relation.subjectMention) ||
       !mentions.has(relation.objectMention) ||
       !relation.evidenceSpanIds.length ||

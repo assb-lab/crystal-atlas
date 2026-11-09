@@ -46,11 +46,11 @@ export function useOpenSource() {
   return useCallback(
     (ref: Ref) => {
       const source = DATA.sources[ref.s];
-      if (!source || ref.p === undefined) return;
+      if (!source || (ref.p === undefined && ref.pdfPage === undefined)) return;
       const pdfPage = sourcePdfPage(source, ref);
       const url = state.pdfs[ref.s] ?? source.url;
       if (url) window.open(`${url.split("#")[0]}#page=${pdfPage}`, "_blank", "noopener");
-      else dispatch({ type: "source", id: ref.s, page: ref.p, pdfPage });
+      else dispatch({ type: "source", id: ref.s, page: ref.p ?? null, pdfPage });
     },
     [state.pdfs, dispatch],
   );
