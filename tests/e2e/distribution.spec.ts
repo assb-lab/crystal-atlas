@@ -1,3 +1,4 @@
+import { pickEntity, chooseScheme } from "./workspace-helpers.ts";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { readFile } from "node:fs/promises";
@@ -17,20 +18,26 @@ for (const [label, url] of Object.entries({
     if (label === "standalone") await context.setOffline(true);
     await page.goto(url);
     await page.locator('[data-atlas-mode="family"]').click();
-    await expect(page.locator("#knowledgeFocus")).toBeEnabled({ timeout: 30000 });
-    await page.locator("#knowledgeFocus").selectOption("perov");
-    await page.locator("#classificationScheme").selectOption("scheme:legacy:GL+HS");
+    await expect(page.getByTestId("knowledge-ready")).toBeVisible({ timeout: 30000 });
+    await pickEntity(page, "perov");
+    await chooseScheme(page, "scheme:legacy:GL+HS");
     await page.locator('[data-atlas-mode="symmetry"]').click();
-    await expect(page.locator("#knowledgeFocus")).toBeEnabled();
-    await page.locator("#knowledgeFocus").selectOption("diamond");
-    const old = page.locator('[data-tree-edge="relation:e8"]');
-    await old.getByRole("button", { name: "− 折り畳む", exact: true }).first().click();
+    await expect(page.getByTestId("knowledge-ready")).toBeVisible();
+    await pickEntity(page, "diamond");
+    const old = page.locator('[data-atlas-node="diamond"]').locator("..");
+    await old
+      .getByRole("button", { name: /の枝を折り畳む/ })
+      .first()
+      .click();
     await page.locator('[data-atlas-mode="family"]').click();
-    await expect(page.locator("#knowledgeFocus")).toHaveValue("perov");
-    await expect(page.locator("#classificationScheme")).toHaveValue("scheme:legacy:GL+HS");
+    await expect(page.getByTestId("atlas-focus")).toHaveAttribute("data-entity-id", "perov");
+    await expect(page.locator('[data-atlas-scheme="scheme:legacy:GL+HS"]')).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
     await page.locator('[data-atlas-mode="symmetry"]').click();
-    await expect(page.locator("#knowledgeFocus")).toHaveValue("diamond");
-    await expect(old.getByRole("button", { name: "＋ 展開", exact: true }).first()).toBeVisible();
+    await expect(page.getByTestId("atlas-focus")).toHaveAttribute("data-entity-id", "diamond");
+    await expect(old.getByRole("button", { name: /の枝を展開/ }).first()).toBeVisible();
     await page.locator("#openSearch").click();
     await page.locator("#searchScope").selectOption("mention");
     await page.locator("#globalQuery").fill("六方晶ダイヤモンド");

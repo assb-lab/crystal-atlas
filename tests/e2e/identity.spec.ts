@@ -1,3 +1,4 @@
+import { pickEntity, openModelContext } from "./workspace-helpers.ts";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { expect, test } from "@playwright/test";
@@ -20,8 +21,9 @@ for (const [label, url] of Object.entries({
     await page.locator('[data-atlas-mode="family"]').click();
     await expect(page.getByTestId("knowledge-ready")).toBeVisible({ timeout: 30000 });
     await expect(page.getByTestId("identity-inventory")).toContainText("未分離の既存カード");
-    await page.locator("#knowledgeFocus").selectOption("material:TiO2");
-    const profile = page.locator(".knowledge-panel .entity-profile");
+    await pickEntity(page, "material:TiO2");
+    await openModelContext(page);
+    const profile = page.locator(".atlas-inspector .entity-profile");
     await expect(profile).toContainText("化学物質（組成定義）");
     await expect(profile.getByTestId("entity-description")).toHaveCount(2);
     await profile
@@ -33,7 +35,7 @@ for (const [label, url] of Object.entries({
     await expect(profile.getByRole("link", { name: /^AFLOW · TiO₂/ }).first()).toBeVisible();
     await page.screenshot({ path: `test-results/${label}-identity-desktop.png` });
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.locator("#knowledgeFocus").selectOption("prototype:TiO2:anatase");
+    await pickEntity(page, "prototype:TiO2:anatase");
     await expect(profile).toContainText("原子種付きプロトタイプ");
     const model = profile.getByTestId("model-provenance");
     await model.locator("summary").click();
@@ -46,7 +48,7 @@ for (const [label, url] of Object.entries({
     );
     await model.scrollIntoViewIfNeeded();
     await page.screenshot({ path: `test-results/${label}-identity-mobile.png` });
-    await page.locator("#knowledgeFocus").selectOption("anatase");
+    await pickEntity(page, "anatase");
     await expect(profile).toContainText("構造型");
     await expect(profile.getByTestId("model-provenance")).toContainText(
       "プロトタイプ（実験精密化とは別）",

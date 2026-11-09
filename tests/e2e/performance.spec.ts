@@ -1,3 +1,4 @@
+import { pickEntity } from "./workspace-helpers.ts";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { readFile, stat, writeFile } from "node:fs/promises";
@@ -40,8 +41,8 @@ for (const format of ["modular", "standalone"] as const)
       await expect(page.getByTestId("knowledge-ready")).toBeVisible({ timeout: 70000 });
       await expect(page.getByTestId("scheme-ready")).toBeVisible({ timeout: 30000 });
       const readyMs = Date.now() - start;
-      await page.locator("#knowledgeFocus").selectOption("perov");
-      await expect(page.locator(".entity-profile")).toContainText("立方ペロブスカイト");
+      await pickEntity(page, "perov");
+      await expect(page.getByTestId("atlas-focus")).toContainText("立方ペロブスカイト");
       const entries = await page.evaluate(() => ({
         initialization: performance.getEntriesByName("atlas.db.initialize").map((e) => e.duration),
         queries: performance.getEntriesByName("atlas.db.query").map((e) => e.duration),

@@ -1,8 +1,6 @@
 import { referenceHash } from "../../knowledge/navigation.ts";
 import { useViewState } from "../../lib/view-state.ts";
 import { SymmetryDetails } from "./SymmetryDetails.tsx";
-import { SymmetryTree } from "./SymmetryTree.tsx";
-import { FamilySchemes } from "./FamilySchemes.tsx";
 import {
   EVIDENCE_QUERY,
   STEP_QUERY,
@@ -106,7 +104,6 @@ export function KnowledgeExplorer({ mode }: { mode: AtlasMode }) {
       ) : visible ? (
         <>
           <KnowledgePanel key={mode} mode={mode} />
-          {mode === "symmetry" && <SymmetryTree />}
         </>
       ) : null}
     </section>
@@ -351,7 +348,6 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
           件。未分離は同一性が確認済みという意味ではありません。
         </p>
       )}
-      {!busy && !error && mode === "family" && <FamilySchemes focus={focus} onSelect={pick} />}
       {!busy && !error && <EntityProfile key={focus} id={focus} onSelect={pick} />}
       {!busy && !error && (
         <div className="knowledge-body">

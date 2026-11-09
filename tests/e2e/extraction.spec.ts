@@ -1,3 +1,4 @@
+import { pickEntity, openModelContext } from "./workspace-helpers.ts";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { expect, test } from "@playwright/test";
@@ -128,7 +129,7 @@ for (const [label, url] of Object.entries({
       "面心立方部分格子の貫入で岩塩型を構築",
     );
     await page.setViewportSize({ width: 1440, height: 1050 });
-    await page.locator("#knowledgeFocus").selectOption("bravais:cF");
+    await pickEntity(page, "bravais:cF");
     await expect(page.locator(".knowledge-panel .entity-profile")).toContainText("ブラベー格子型");
     await expect(page.locator(".knowledge-panel .entity-profile")).toContainText("記述上の対応");
     await expect(page.locator("[data-knowledge-record]")).toHaveCount(0);
@@ -137,8 +138,9 @@ for (const [label, url] of Object.entries({
     for (const name of ["Family", "Symmetry"]) {
       await page.locator(`[data-atlas-mode="${name.toLowerCase()}"]`).click();
       await expect(page.getByTestId("knowledge-ready")).toBeVisible();
-      await page.locator("#knowledgeFocus").selectOption("bravais:cF");
-      await expect(page.locator(".knowledge-panel .entity-profile")).toContainText(
+      await pickEntity(page, "bravais:cF");
+      await openModelContext(page);
+      await expect(page.locator(".atlas-inspector .entity-profile")).toContainText(
         "ブラベー格子型",
       );
       await expect(page.locator("[data-knowledge-record]")).toHaveCount(0);

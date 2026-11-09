@@ -1,3 +1,4 @@
+import { FAMILY_ITEM_SCHEMES_QUERY } from "../src/knowledge/queries.ts";
 import { recordQuery } from "../src/knowledge/records.ts";
 import { recordKinds } from "../src/knowledge/navigation.ts";
 import { ASSERTION_ENDPOINT_QUERY } from "../src/knowledge/queries.ts";
@@ -128,6 +129,10 @@ try {
     assert.deepEqual(query(recordQuery(kind), { id: "' OR true //" }), []);
   }
   assert.equal(query(ASSERTION_ENDPOINT_QUERY, { id: "relation:e8" })[0]!.subjectId, "diamond");
+  assert.deepEqual(query(FAMILY_ITEM_SCHEMES_QUERY, { id: "family:fcc" }), [
+    { schemeId: "scheme:atlas" },
+  ]);
+  assert.deepEqual(query(FAMILY_ITEM_SCHEMES_QUERY, { id: "' OR true //" }), []);
   const contexts = query(MODEL_CONTEXT_QUERY, { id: "anatase" });
   assert.equal(contexts.length, 1);
   const context = JSON.parse(String(contexts[0]!.payload));
