@@ -1,0 +1,509 @@
+{
+  "id": "extraction:K:pdf2-3:v1",
+  "sourceId": "K",
+  "assetHash": "89e53b92d39ab682ec8dd1b6931e580ccb0de19fe07524d91d51d47ea9688e27",
+  "reviewedOn": "2026-11-09",
+  "operator": "Codex",
+  "pdfFrom": 2,
+  "pdfTo": 3,
+  "scope": "図1(a–c)・図2(a–e)の各パネル、§2.1の選択した本文箇所。全ての繰り返し表記の出現回数を数えたものではない。",
+  "limitations": [
+    "全ての候補は対応未確定。RefersToや新規Assertionへの昇格は未実施。",
+    "図1(b)のCs/Clサイトを等価とする本文の用語は、部分格子の幾何学的対応と元素を区別した構造の対称性を混同せず、解釈を保留する。",
+    "図の球の大きさは実際の原子半径を示すものではない。",
+    "同じ空間群名や空間群の変化の記述を、機械検証済み群–部分群対応とは扱わない。",
+    "図3はPDF 4頁にあり今回の対象外。本文が図3を参照する記述はPDF 3頁上の説明としてだけ記録する。"
+  ],
+  "spans": [
+    {
+      "id": "pilot:K:2-3:span:1a",
+      "ref": {
+        "s": "K",
+        "p": 157,
+        "pdfPage": 2,
+        "sec": "図1(a)"
+      },
+      "surface": "figure"
+    },
+    {
+      "id": "pilot:K:2-3:span:1b",
+      "ref": {
+        "s": "K",
+        "p": 157,
+        "pdfPage": 2,
+        "sec": "図1(b)"
+      },
+      "surface": "figure"
+    },
+    {
+      "id": "pilot:K:2-3:span:1c",
+      "ref": {
+        "s": "K",
+        "p": 157,
+        "pdfPage": 2,
+        "sec": "図1(c)"
+      },
+      "surface": "figure"
+    },
+    {
+      "id": "pilot:K:2-3:span:2a",
+      "ref": {
+        "s": "K",
+        "p": 158,
+        "pdfPage": 3,
+        "sec": "図2(a)"
+      },
+      "surface": "figure"
+    },
+    {
+      "id": "pilot:K:2-3:span:2b",
+      "ref": {
+        "s": "K",
+        "p": 158,
+        "pdfPage": 3,
+        "sec": "図2(b)"
+      },
+      "surface": "figure"
+    },
+    {
+      "id": "pilot:K:2-3:span:2c",
+      "ref": {
+        "s": "K",
+        "p": 158,
+        "pdfPage": 3,
+        "sec": "図2(c)"
+      },
+      "surface": "figure"
+    },
+    {
+      "id": "pilot:K:2-3:span:2d",
+      "ref": {
+        "s": "K",
+        "p": 158,
+        "pdfPage": 3,
+        "sec": "図2(d)"
+      },
+      "surface": "figure"
+    },
+    {
+      "id": "pilot:K:2-3:span:2e",
+      "ref": {
+        "s": "K",
+        "p": 158,
+        "pdfPage": 3,
+        "sec": "図2(e)"
+      },
+      "surface": "figure"
+    },
+    {
+      "id": "pilot:K:2-3:span:fluorite",
+      "ref": {
+        "s": "K",
+        "p": 158,
+        "pdfPage": 3,
+        "sec": "§2.1末尾・正四面体空孔の占有の説明"
+      },
+      "surface": "body"
+    },
+    {
+      "id": "pilot:K:2-3:span:fcc-lattice",
+      "ref": {
+        "s": "K",
+        "p": 158,
+        "pdfPage": 3,
+        "sec": "§2.1・面心立方格子を4組の単純立方格子で説明する箇所"
+      },
+      "surface": "body"
+    },
+    {
+      "id": "pilot:K:2-3:span:sc-operation",
+      "ref": {
+        "s": "K",
+        "p": 158,
+        "pdfPage": 3,
+        "sec": "§2.1冒頭・CsClサイトと同種原子の場合の説明"
+      },
+      "surface": "body"
+    },
+    {
+      "id": "pilot:K:2-3:span:fcc-operation",
+      "ref": {
+        "s": "K",
+        "p": 158,
+        "pdfPage": 3,
+        "sec": "§2.1・NaClと単純立方構造への重ね合わせの説明"
+      },
+      "surface": "body"
+    },
+    {
+      "id": "pilot:K:2-3:span:tetrahedral-operation",
+      "ref": {
+        "s": "K",
+        "p": 158,
+        "pdfPage": 3,
+        "sec": "§2.1・閃亜鉛鉱とダイヤモンド、空孔占有の説明"
+      },
+      "surface": "body"
+    }
+  ],
+  "mentions": [
+    {
+      "id": "pilot:K:2-3:mention:1a",
+      "rawName": "単純立方構造",
+      "spanId": "pilot:K:2-3:span:1a",
+      "identityNote": "図示された幾何学的な構造の登場。実試料・組成・相・条件を同定したものではない。",
+      "candidates": [
+        {
+          "entityId": "simple-cubic",
+          "note": "図・本文の構造上の文脈に基づく候補。名称一致だけでの確定リンクではない。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:mention:1b",
+      "rawName": "CsCl構造",
+      "spanId": "pilot:K:2-3:span:1b",
+      "identityNote": "図示された幾何学的な構造の登場。実試料・組成・相・条件を同定したものではない。",
+      "candidates": [
+        {
+          "entityId": "b2",
+          "note": "図・本文の構造上の文脈に基づく候補。名称一致だけでの確定リンクではない。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:mention:1c",
+      "rawName": "体心立方構造",
+      "spanId": "pilot:K:2-3:span:1c",
+      "identityNote": "図示された幾何学的な構造の登場。実試料・組成・相・条件を同定したものではない。",
+      "candidates": [
+        {
+          "entityId": "bcc",
+          "note": "図・本文の構造上の文脈に基づく候補。名称一致だけでの確定リンクではない。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:mention:2a",
+      "rawName": "面心立方構造",
+      "spanId": "pilot:K:2-3:span:2a",
+      "identityNote": "図示された幾何学的な構造の登場。実試料・組成・相・条件を同定したものではない。",
+      "candidates": [
+        {
+          "entityId": "fcc",
+          "note": "図・本文の構造上の文脈に基づく候補。名称一致だけでの確定リンクではない。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:mention:2b",
+      "rawName": "NaCl構造",
+      "spanId": "pilot:K:2-3:span:2b",
+      "identityNote": "図示された幾何学的な構造の登場。実試料・組成・相・条件を同定したものではない。",
+      "candidates": [
+        {
+          "entityId": "nacl",
+          "note": "図・本文の構造上の文脈に基づく候補。名称一致だけでの確定リンクではない。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:mention:2c",
+      "rawName": "単純立方構造",
+      "spanId": "pilot:K:2-3:span:2c",
+      "identityNote": "図示された幾何学的な構造の登場。実試料・組成・相・条件を同定したものではない。",
+      "candidates": [
+        {
+          "entityId": "simple-cubic",
+          "note": "図・本文の構造上の文脈に基づく候補。名称一致だけでの確定リンクではない。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:mention:2d",
+      "rawName": "閃亜鉛鉱構造",
+      "spanId": "pilot:K:2-3:span:2d",
+      "identityNote": "図示された幾何学的な構造の登場。実試料・組成・相・条件を同定したものではない。",
+      "candidates": [
+        {
+          "entityId": "zns",
+          "note": "図・本文の構造上の文脈に基づく候補。名称一致だけでの確定リンクではない。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:mention:2e",
+      "rawName": "ダイヤモンド構造",
+      "spanId": "pilot:K:2-3:span:2e",
+      "identityNote": "図示された幾何学的な構造の登場。実試料・組成・相・条件を同定したものではない。",
+      "candidates": [
+        {
+          "entityId": "diamond",
+          "note": "図・本文の構造上の文脈に基づく候補。名称一致だけでの確定リンクではない。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:mention:fluorite",
+      "rawName": "蛍石構造",
+      "spanId": "pilot:K:2-3:span:fluorite",
+      "identityNote": "図2のパネルにはなく、本文中でCaF₂構造とも記述される。空隙占有の模型と実試料を区別する。",
+      "candidates": [
+        {
+          "entityId": "fluorite",
+          "note": "図・本文の構造上の文脈に基づく候補。名称一致だけでの確定リンクではない。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:mention:fcc-lattice",
+      "rawName": "面心立方格子",
+      "spanId": "pilot:K:2-3:span:fcc-lattice",
+      "identityNote": "本文は格子と構造の用語を区別している。図2(a)の構造型と同一の対象かは確定せず候補として保持。",
+      "candidates": [
+        {
+          "entityId": "fcc",
+          "note": "図・本文の構造上の文脈に基づく候補。名称一致だけでの確定リンクではない。"
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "id": "pilot:K:2-3:relation:sc-cscl",
+      "domain": "derivation",
+      "operation": "interpenetration",
+      "basis": "source_paraphrase",
+      "subjectMention": "pilot:K:2-3:mention:1a",
+      "objectMention": "pilot:K:2-3:mention:1b",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:1a",
+        "pilot:K:2-3:span:1b",
+        "pilot:K:2-3:span:sc-operation"
+      ],
+      "description": "異種原子の単純立方部分格子を半対角だけずらして重ねる構築の候補。",
+      "parameters": {
+        "shiftInSourceCell": ["1/2", "1/2", "1/2"],
+        "species": "different"
+      },
+      "symmetryNote": "図1(a,b)はともにPm−3m。原子の追加・重ね合わせを、同じ空間群という理由で群–部分群操作とは扱わない。",
+      "existingAssertions": [
+        {
+          "assertionId": "relation:okamoto-lattices-simple-cubic-b2",
+          "note": "既存ではstacking分類。貫入操作との用語・操作分類の照合が必要。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:relation:cscl-bcc",
+      "domain": "derivation",
+      "operation": "species_identification",
+      "basis": "source_paraphrase",
+      "subjectMention": "pilot:K:2-3:mention:1b",
+      "objectMention": "pilot:K:2-3:mention:1c",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:1b",
+        "pilot:K:2-3:span:1c",
+        "pilot:K:2-3:span:sc-operation"
+      ],
+      "description": "CsとClのサイトを同じ原子が占有する場合を本文が説明する。",
+      "parameters": {
+        "species": "same"
+      },
+      "symmetryNote": "本文はIm−3mへの変化を記述。数値的な群対応やWyckoff対応は未検証。",
+      "existingAssertions": [
+        {
+          "assertionId": "relation:e24",
+          "note": "既存はbcc→CsClの規則化に伴う対称性説明。逆向きで操作の意味も異なるため、同一主張ではない。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:relation:fcc-nacl",
+      "domain": "derivation",
+      "operation": "interpenetration",
+      "basis": "source_paraphrase",
+      "subjectMention": "pilot:K:2-3:mention:2a",
+      "objectMention": "pilot:K:2-3:mention:2b",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:2a",
+        "pilot:K:2-3:span:2b",
+        "pilot:K:2-3:span:fcc-operation"
+      ],
+      "description": "異種原子の二組の面心立方部分格子を慣用セルの軸方向に半分ずらして重ねる。",
+      "parameters": {
+        "representativeShift": ["1/2", "0", "0"],
+        "species": "different"
+      },
+      "symmetryNote": "本文は面心立方から対称性低下なし、Fm−3mと記述する。群–部分群の新規主張を作らない。",
+      "existingAssertions": [
+        {
+          "assertionId": "relation:okamoto-lattices-fcc-nacl",
+          "note": "既存ではstacking分類。貫入の記述として照合候補。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:relation:nacl-sc",
+      "domain": "derivation",
+      "operation": "species_identification",
+      "basis": "source_paraphrase",
+      "subjectMention": "pilot:K:2-3:mention:2b",
+      "objectMention": "pilot:K:2-3:mention:2c",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:2b",
+        "pilot:K:2-3:span:2c",
+        "pilot:K:2-3:span:fcc-operation"
+      ],
+      "description": "NaサイトとClサイトを同種原子が占有する場合に単純立方構造とする本文記述。",
+      "parameters": {
+        "species": "same"
+      },
+      "symmetryNote": "図2(c)はPm−3m。基底変換・原点・Wyckoff対応は未検証。",
+      "existingAssertions": [
+        {
+          "assertionId": "relation:okamoto-lattices-fcc-simple-cubic",
+          "note": "既存はfccを出発点とする重ね合わせ。今回の出発点はNaClで異なる。経路の対応を要照合。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:relation:fcc-zns",
+      "domain": "derivation",
+      "operation": "interpenetration",
+      "basis": "source_paraphrase",
+      "subjectMention": "pilot:K:2-3:mention:2a",
+      "objectMention": "pilot:K:2-3:mention:2d",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:2a",
+        "pilot:K:2-3:span:2d",
+        "pilot:K:2-3:span:tetrahedral-operation"
+      ],
+      "description": "二組の面心立方部分格子を四分の一対角だけずらして重ねる。",
+      "parameters": {
+        "shiftInSourceCell": ["1/4", "1/4", "1/4"],
+        "species": "different"
+      },
+      "symmetryNote": "本文は4回回転対称の消失とF−43mを記述。群–部分群の指数・行列・原点・Wyckoff対応は未検証。",
+      "existingAssertions": [
+        {
+          "assertionId": "relation:okamoto-lattices-fcc-zns",
+          "note": "既存の貫入記述との照合候補。空孔占有の候補とは統合しない。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:relation:zns-diamond",
+      "domain": "derivation",
+      "operation": "species_identification",
+      "basis": "source_paraphrase",
+      "subjectMention": "pilot:K:2-3:mention:2d",
+      "objectMention": "pilot:K:2-3:mention:2e",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:2d",
+        "pilot:K:2-3:span:2e",
+        "pilot:K:2-3:span:tetrahedral-operation"
+      ],
+      "description": "ZnサイトとSサイトを同種原子が占有する場合をダイヤモンド構造と呼ぶ本文記述。",
+      "parameters": {
+        "species": "same"
+      },
+      "symmetryNote": "本文は反転中心の出現とFd−3mを記述。正式な群対応は未検証。",
+      "existingAssertions": [
+        {
+          "assertionId": "relation:e8",
+          "note": "既存はdiamond→znsの色分けによる対称性低下。逆向きで、同一の操作・主張として扱わない。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:relation:fcc-fluorite-voids",
+      "domain": "derivation",
+      "operation": "void_occupation",
+      "basis": "source_paraphrase",
+      "subjectMention": "pilot:K:2-3:mention:2a",
+      "objectMention": "pilot:K:2-3:mention:fluorite",
+      "evidenceSpanIds": ["pilot:K:2-3:span:tetrahedral-operation"],
+      "description": "両方の向きの正四面体空孔の占有を蛍石構造とする本文の構築説明。",
+      "parameters": {
+        "voidKind": "tetrahedral",
+        "occupiedOrientationClasses": "both"
+      },
+      "symmetryNote": null,
+      "existingAssertions": [
+        {
+          "assertionId": "relation:e4",
+          "note": "既存のカチオンccp＋四面体空孔全占有と照合する候補。元素役割・サイト対応は未確定。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:relation:fcc-zns-voids",
+      "domain": "derivation",
+      "operation": "void_occupation",
+      "basis": "source_paraphrase",
+      "subjectMention": "pilot:K:2-3:mention:2a",
+      "objectMention": "pilot:K:2-3:mention:2d",
+      "evidenceSpanIds": ["pilot:K:2-3:span:tetrahedral-operation"],
+      "description": "二種類の向きの正四面体空孔のうち一方が占有された場合を閃亜鉛鉱構造とする。",
+      "parameters": {
+        "voidKind": "tetrahedral",
+        "occupiedOrientationClasses": "one_of_two"
+      },
+      "symmetryNote": null,
+      "existingAssertions": [
+        {
+          "assertionId": "relation:e2",
+          "note": "同じ端点の空孔占有の既存記述。貫入候補とは操作が異なるため別候補として保持。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:relation:fcc-nacl-voids",
+      "domain": "derivation",
+      "operation": "void_occupation",
+      "basis": "source_paraphrase",
+      "subjectMention": "pilot:K:2-3:mention:2a",
+      "objectMention": "pilot:K:2-3:mention:2b",
+      "evidenceSpanIds": ["pilot:K:2-3:span:tetrahedral-operation"],
+      "description": "正八面体空孔の全占有をNaCl構造とする本文の説明。",
+      "parameters": {
+        "voidKind": "octahedral",
+        "occupation": "all"
+      },
+      "symmetryNote": null,
+      "existingAssertions": [
+        {
+          "assertionId": "relation:e1",
+          "note": "既存の八面体空孔占有の記述との照合候補。貫入候補とは別の説明。"
+        }
+      ]
+    },
+    {
+      "id": "pilot:K:2-3:relation:nacl-zns-comparison",
+      "domain": "comparison",
+      "operation": "coordination_comparison",
+      "basis": "editorial_comparison",
+      "subjectMention": "pilot:K:2-3:mention:2b",
+      "objectMention": "pilot:K:2-3:mention:2d",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:fcc-operation",
+        "pilot:K:2-3:span:tetrahedral-operation"
+      ],
+      "description": "NaClの六配位と閃亜鉛鉱の四配位という本文中の記述を、比較として編集上整理した候補。原文の派生矢印ではない。",
+      "parameters": {},
+      "symmetryNote": null,
+      "existingAssertions": []
+    }
+  ],
+  "pageAnchors": [
+    {
+      "pdfPage": 2,
+      "printedPage": 157
+    },
+    {
+      "pdfPage": 3,
+      "printedPage": 158
+    }
+  ]
+}

@@ -3,6 +3,8 @@ import { CONCEPTS, ROLES } from "../data/packing.ts";
 import { TABLES, type Cell } from "./schema.ts";
 import catalogData from "../data/literature-catalog.json" with { type: "json" };
 import { assetId, validateCatalog, type LiteratureCatalog } from "./catalog.ts";
+import extractionData from "../data/okamoto-extraction.json" with { type: "json" };
+import { appendExtraction, type ExtractionBatch } from "./extraction.ts";
 
 /** Explicit annotations of existing statements, not operations inferred from space-group names. */
 const OPERATIONS: Record<string, { operation: string; target: string; parameters: object }> = {
@@ -25,6 +27,7 @@ const json = (value: unknown) => JSON.stringify(value);
 export function knowledgeDataset(
   data: Atlas,
   catalog: LiteratureCatalog = catalogData as LiteratureCatalog,
+  extractions: ExtractionBatch[] = [extractionData as ExtractionBatch],
 ): KnowledgeDataset {
   validateCatalog(catalog, new Set(Object.keys(data.sources)));
   const rows: Record<string, Cell[][]> = Object.fromEntries(TABLES.map((t) => [t.name, []]));
@@ -241,5 +244,6 @@ export function knowledgeDataset(
       add("Reviews", reviewId, id);
     });
   }
+  for (const batch of extractions) appendExtraction(rows, data, catalog, batch);
   return { rows };
 }

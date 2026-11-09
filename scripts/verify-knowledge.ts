@@ -10,6 +10,12 @@ import {
   CATALOG_QUERY,
   COVERAGE_QUERY,
   DOCUMENT_ASSETS_QUERY,
+  EXTRACTION_RUN_QUERY,
+  MENTIONS_QUERY,
+  RELATION_CANDIDATES_QUERY,
+  ENTITY_CANDIDATES_QUERY,
+  CANDIDATE_EVIDENCE_QUERY,
+  ASSERTION_MATCHES_QUERY,
 } from "../src/knowledge/queries.ts";
 import { TABLES, type KnowledgeManifest } from "../src/knowledge/schema.ts";
 import { DATA } from "../src/data/atlas.ts";
@@ -112,6 +118,33 @@ try {
   assert.equal(query(DOCUMENT_ASSETS_QUERY, { id: "T16" }).length, 1);
   assert.equal(query(DOCUMENT_ASSETS_QUERY, { id: "HCG79" }).length, 1);
   assert.deepEqual(query(DOCUMENT_ASSETS_QUERY, { id: "M06' OR true //" }), []);
+  const pilotAssetId = "asset:89e53b92d39ab682ec8dd1b6931e580ccb0de19fe07524d91d51d47ea9688e27";
+  assert.equal(query(EXTRACTION_RUN_QUERY, { id: pilotAssetId }).length, 1);
+  const mentions = query(MENTIONS_QUERY, { id: pilotAssetId });
+  assert.equal(mentions.length, 10);
+  for (const mention of mentions) {
+    assert.equal(mention.status, "candidate_unresolved");
+    const ref = JSON.parse(mention.reference as string);
+    assert.ok([2, 3].includes(ref.pdfPage));
+    assert.equal(ref.p, ref.pdfPage + 155);
+    assert.equal(query(ENTITY_CANDIDATES_QUERY, { id: mention.id }).length, 1);
+  }
+  const candidates = query(RELATION_CANDIDATES_QUERY, { id: pilotAssetId });
+  assert.equal(candidates.length, 10);
+  for (const candidate of candidates) {
+    const payload = JSON.parse(candidate.payload as string);
+    assert.equal(candidate.status, "candidate_unresolved");
+    assert.equal(payload.basisMatrix, null);
+    assert.equal(
+      query(CANDIDATE_EVIDENCE_QUERY, { id: candidate.id }).length,
+      payload.evidenceSpanIds.length,
+    );
+    assert.equal(
+      query(ASSERTION_MATCHES_QUERY, { id: candidate.id }).length,
+      payload.existingAssertions.length,
+    );
+  }
+  assert.deepEqual(query(MENTIONS_QUERY, { id: pilotAssetId + "' OR true //" }), []);
   assert.throws(() => query("CREATE (:Entity {id: 'forbidden-write'})"), /read.only/i);
   console.log(
     "Snapshot verified: all rows/columns, Atlas/comparison/operation/counterpart queries, evidence, parameter binding, read-only writes rejected",

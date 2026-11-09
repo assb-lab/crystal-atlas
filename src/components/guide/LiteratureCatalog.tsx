@@ -4,6 +4,7 @@ import { CHANNELS, type CatalogAsset, type CoverageRange } from "../../knowledge
 import { getKnowledgeDB, resetKnowledgeDB } from "../../knowledge/client.ts";
 import { CATALOG_QUERY, COVERAGE_QUERY } from "../../knowledge/queries.ts";
 import "../../styles/catalog.css";
+import { ExtractionReview } from "./ExtractionReview.tsx";
 
 const channelNames = { body: "本文", figures: "図", tables: "表", index: "索引" };
 const states = {
@@ -227,6 +228,7 @@ export function LiteratureCatalog() {
                   <p>
                     PDFページは1始まりです。印刷ページとの対応は、各範囲で別途確認します。既存の出典リンクにあるページ換算を、この資産の確認結果として引き継いではいません。
                   </p>
+                  <ExtractionReview key={selected} assetId={selected} />
                   {ranges === null ? (
                     <p role="status">調査範囲を照会中…</p>
                   ) : (

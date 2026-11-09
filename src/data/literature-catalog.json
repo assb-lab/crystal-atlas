@@ -490,6 +490,30 @@
       "coverage": [
         {
           "from": 1,
+          "to": 1,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        },
+        {
+          "from": 2,
+          "to": 3,
+          "channels": {
+            "body": "in_progress",
+            "figures": "in_progress",
+            "tables": "not_applicable",
+            "index": "not_applicable"
+          },
+          "note": "Codex 2026-11-09: 対象PDF 2–3頁をテキスト・全頁画像で確認。本文・図1–2の選択箇所を登場記録／関係の候補として抽出（extraction:K:pdf2-3:v1）。全出現の網羅・名寄せ・科学的照合は未完了。両頁に表と索引はないことを画像で個別確認。",
+          "printedPageMapping": "PDF 2→印刷157、PDF 3→印刷158を頁画像で個別確認。範囲外への換算は未確認。"
+        },
+        {
+          "from": 4,
           "to": 31,
           "channels": {
             "body": "not_started",

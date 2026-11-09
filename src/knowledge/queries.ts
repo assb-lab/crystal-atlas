@@ -16,3 +16,15 @@ export const COVERAGE_QUERY = `MATCH (r:CoverageReview)-[:Reviews]->(a:Asset {id
 RETURN r.id AS id, r.status AS status, r.payload AS payload ORDER BY r.id`;
 export const DOCUMENT_ASSETS_QUERY = `MATCH (d:Document {id: $id})-[r:HasAsset|CandidateAsset]->(a:Asset)
 RETURN a.id AS id, a.payload AS payload ORDER BY a.id`;
+export const EXTRACTION_RUN_QUERY = `MATCH (m:Mention)-[:MentionByRun]->(r:ProcessingRun), (s:SourceSpan)-[:ContainsMention]->(m), (s)-[:LocatedIn]->(a:Asset {id: $id})
+RETURN DISTINCT r.id AS id, r.payload AS payload ORDER BY r.id`;
+export const MENTIONS_QUERY = `MATCH (s:SourceSpan)-[:LocatedIn]->(a:Asset {id: $id}), (s)-[:ContainsMention]->(m:Mention)
+RETURN m.id AS id, m.rawName AS rawName, m.status AS status, m.payload AS payload, s.payload AS reference ORDER BY m.id`;
+export const ENTITY_CANDIDATES_QUERY = `MATCH (m:Mention {id: $id})-[c:CandidateRefersTo]->(e:Entity)
+RETURN e.id AS id, e.title AS title, c.note AS note ORDER BY e.id`;
+export const RELATION_CANDIDATES_QUERY = `MATCH (r:RelationCandidate)-[:CandidateEvidence]->(s:SourceSpan)-[:LocatedIn]->(a:Asset {id: $id})
+RETURN DISTINCT r.id AS id, r.domain AS domain, r.operation AS operation, r.status AS status, r.payload AS payload ORDER BY r.id`;
+export const CANDIDATE_EVIDENCE_QUERY = `MATCH (r:RelationCandidate {id: $id})-[:CandidateEvidence]->(s:SourceSpan)
+RETURN s.payload AS reference ORDER BY s.id`;
+export const ASSERTION_MATCHES_QUERY = `MATCH (r:RelationCandidate {id: $id})-[c:CandidateMatches]->(a:Assertion)
+RETURN a.id AS id, a.label AS label, c.note AS note ORDER BY a.id`;

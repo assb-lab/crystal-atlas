@@ -154,8 +154,9 @@ test("identified assets connect to documents without reusing legacy page offsets
   assert.equal(initial.rows.Asset!.length, 16);
   assert.equal(initial.rows.CandidateAsset!.length, 0);
   assert.equal(initial.rows.HasAsset!.length, 15);
-  assert.equal(initial.rows.LocatedIn!.length, 0);
-  assert.ok(initial.rows.CoverageReview!.every((row) => row[1] === "not_started"));
+  assert.equal(initial.rows.LocatedIn!.length, 13);
+  assert.ok(initial.rows.LocatedIn!.every((r) => String(r[0]).startsWith("pilot:K:2-3:")));
+  assert.equal(initial.rows.CoverageReview!.filter((row) => row[1] === "recorded").length, 1);
   const changed = structuredClone(catalogData) as LiteratureCatalog;
   const asset = changed.assets.find((a) => a.mapping.documentIds.length)!;
   asset.mapping.state = "candidate";
@@ -163,7 +164,7 @@ test("identified assets connect to documents without reusing legacy page offsets
   const candidate = knowledgeDataset(DATA, changed);
   assert.equal(candidate.rows.HasAsset!.length, 14);
   assert.equal(candidate.rows.CandidateAsset!.length, 1);
-  assert.equal(candidate.rows.LocatedIn!.length, 0);
+  assert.equal(candidate.rows.LocatedIn!.length, 13);
 });
 test("confirmation requires in-bounds identification checks and retains unresolved notes on rescan", async () => {
   const catalog = structuredClone(catalogData) as LiteratureCatalog;
