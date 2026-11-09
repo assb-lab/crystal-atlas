@@ -12,6 +12,14 @@ const states = {
   reviewed: "照合済み",
   not_applicable: "対象なし（確認済み）",
 };
+const identificationFields = {
+  title_authors: "タイトル・著者",
+  publication: "出版・版情報",
+  doi: "DOI",
+  document_part: "資料の区分",
+  series: "シリーズ",
+  identity_limits: "識別上の制限",
+};
 interface Entry {
   id: string;
   asset: CatalogAsset;
@@ -158,7 +166,7 @@ export function LiteratureCatalog() {
                   </ul>
                   <p>
                     {current.mapping.state === "confirmed"
-                      ? "書誌・版の対応確認済み"
+                      ? "書誌対応確認済み（照合範囲は下記）"
                       : current.mapping.state === "candidate"
                         ? "ファイル名による書誌候補（版の対応は未確認）"
                         : "書誌未対応"}
@@ -172,6 +180,49 @@ export function LiteratureCatalog() {
                   ))}
                   {current.mapping.basis && (
                     <p className="muted">対応根拠: {current.mapping.basis}</p>
+                  )}
+                  {current.identification && (
+                    <section aria-label="書誌識別の確認記録">
+                      <h4>書誌識別の確認記録</h4>
+                      <p>
+                        {current.identification.reviewedOn} · {current.identification.reviewer} ·{" "}
+                        {current.identification.method === "page_image"
+                          ? "ページ画像を確認"
+                          : "テキストとページ画像を確認"}
+                      </p>
+                      <p>
+                        {
+                          {
+                            main: "資料区分：本体",
+                            supplement: "資料区分：補足資料（主論文とは別PDF）",
+                            excerpt: "資料区分：本文抜粋（書誌未解決）",
+                          }[current.identification.documentPart]
+                        }
+                      </p>
+                      <ul>
+                        {current.identification.checks.map((check, i) => (
+                          <li key={i}>
+                            <strong>
+                              {identificationFields[check.field]} · PDF {check.pdfPages.join(", ")}
+                            </strong>
+                            <p>{check.finding}</p>
+                          </li>
+                        ))}
+                      </ul>
+                      {current.identification.limitations.length > 0 && (
+                        <>
+                          <h4>未確認・適用範囲</h4>
+                          <ul>
+                            {current.identification.limitations.map((limitation) => (
+                              <li key={limitation}>{limitation}</li>
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                      <p>
+                        これは書誌の識別記録です。これらのページの構造情報を抽出・照合済みとする記録ではありません。
+                      </p>
+                    </section>
                   )}
                   <p>
                     PDFページは1始まりです。印刷ページとの対応は、各範囲で別途確認します。既存の出典リンクにあるページ換算を、この資産の確認結果として引き継いではいません。

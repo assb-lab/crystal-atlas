@@ -32,7 +32,7 @@ export const sources: Record<string, Source> = {
     title: "Symmetry Relationships between Crystal Structures",
     author: "Ulrich Müller",
     citation:
-      "U. Müller, Symmetry Relationships between Crystal Structures: Applications of Crystallographic Group Theory in Crystal Chemistry, IUCr Monographs on Crystallography 18 (Oxford University Press, Oxford, 2013).",
+      "U. Müller, Symmetry Relationships between Crystal Structures: Applications of Crystallographic Group Theory in Crystal Chemistry, IUCr Texts on Crystallography 18 (Oxford University Press, Oxford, 2013).",
     year: "2013",
     edition: "First edition, Oxford University Press / IUCr",
     filename: "Ulrich_Müller.pdf",

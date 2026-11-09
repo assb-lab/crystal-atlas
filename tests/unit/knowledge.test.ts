@@ -60,7 +60,8 @@ test("references preserve locators without inventing mentions or reviewed covera
   assert.equal(rows.Mention.length, 0);
   assert.ok(rows.Asset.length > 0);
   assert.ok(rows.CoverageReview.every((r) => r[1] === "not_started"));
-  assert.equal(rows.HasAsset.length, 0);
+  assert.equal(rows.HasAsset.length, 15);
+  assert.equal(rows.CandidateAsset.length, 0);
   assert.equal(rows.LocatedIn.length, 0);
   assert.equal(rows.ByRun.length, 0);
   const spans = new Map(
