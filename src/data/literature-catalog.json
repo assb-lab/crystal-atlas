@@ -6,14 +6,17 @@
       "sha256": "18545c23f64feced0306148246b9a11342837895606db133845720b5af0c4d2b",
       "bytes": 13572279,
       "locations": [
-        { "path": "inorganic-structural-chemistry-2ed-2006-muller.pdf", "roles": ["primary"] }
+        {
+          "path": "inorganic-structural-chemistry-2ed-2006-muller.pdf",
+          "roles": ["primary"]
+        }
       ],
       "pageCount": 281,
       "readState": "readable",
       "mapping": {
-        "state": "candidate",
+        "state": "confirmed",
         "documentIds": ["M06"],
-        "basis": "filename_only_not_edition_verified"
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
       },
       "coverage": [
         {
@@ -28,7 +31,26 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [6],
+            "field": "title_authors",
+            "finding": "Ulrich Müller / Inorganic Structural Chemistryを確認。"
+          },
+          {
+            "pdfPages": [6, 7],
+            "field": "publication",
+            "finding": "英語版Second Edition、John Wiley & Sons、2006年を確認。奥付に列挙されたドイツ語版の各版とは区別。"
+          }
+        ],
+        "limitations": []
+      }
     },
     {
       "sha256": "1d4bef149c4b2704b0f86749d4ae8f1f306fbb00f7b3008410ca2f5473d96107",
@@ -41,7 +63,11 @@
       ],
       "pageCount": 9,
       "readState": "readable",
-      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "mapping": {
+        "state": "confirmed",
+        "documentIds": ["HS"],
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
+      },
       "coverage": [
         {
           "from": 1,
@@ -55,7 +81,26 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [1],
+            "field": "title_authors",
+            "finding": "Christopher J. Howard / Harold T. Stokesと既存タイトルが一致。"
+          },
+          {
+            "pdfPages": [1],
+            "field": "publication",
+            "finding": "Acta Crystallographica B54、782–789、1998年を確認。"
+          }
+        ],
+        "limitations": ["DOIはこの識別頁では確認していない。"]
+      }
     },
     {
       "sha256": "284ebef1e498aeec4a5682c426ebd7d6a0314dfcb1c38db00f3c11ac9a54a581",
@@ -69,9 +114,9 @@
       "pageCount": 218,
       "readState": "readable",
       "mapping": {
-        "state": "candidate",
+        "state": "confirmed",
         "documentIds": ["G"],
-        "basis": "filename_only_not_edition_verified"
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
       },
       "coverage": [
         {
@@ -86,18 +131,42 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [1],
+            "field": "title_authors",
+            "finding": "Francis S. Galassoと既存タイトルが一致。"
+          },
+          {
+            "pdfPages": [1, 2],
+            "field": "publication",
+            "finding": "Pergamon Press、First edition 1969を確認。ファイル名に含まれる他の人名を著者として追加していない。"
+          }
+        ],
+        "limitations": ["シリーズ名・巻番号はこの確認箇所では照合していない。"]
+      }
     },
     {
       "sha256": "2ad1dbc5bc7e41f7cc4c7bbd61136d6ead30f76c4001f543e22fba0bfc2c84e9",
       "bytes": 7181180,
-      "locations": [{ "path": "Ulrich_Müller.pdf", "roles": ["primary"] }],
+      "locations": [
+        {
+          "path": "Ulrich_Müller.pdf",
+          "roles": ["primary"]
+        }
+      ],
       "pageCount": 349,
       "readState": "readable",
       "mapping": {
-        "state": "candidate",
+        "state": "confirmed",
         "documentIds": ["M13"],
-        "basis": "filename_only_not_edition_verified"
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
       },
       "coverage": [
         {
@@ -112,7 +181,31 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [4],
+            "field": "title_authors",
+            "finding": "Ulrich Müller、既存タイトルおよび副題を確認。"
+          },
+          {
+            "pdfPages": [5],
+            "field": "publication",
+            "finding": "Oxford University Press、First Edition published in 2013、Impression 1を確認。"
+          },
+          {
+            "pdfPages": [3],
+            "field": "series",
+            "finding": "IUCr Texts on Crystallography 18を確認。既存書誌のMonographs表記を訂正。"
+          }
+        ],
+        "limitations": []
+      }
     },
     {
       "sha256": "3c049ebbfadc9efa6f427ab24518bd9fc10e2aef4342d44ae5697cc383215f41",
@@ -125,7 +218,11 @@
       ],
       "pageCount": 8,
       "readState": "readable",
-      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "mapping": {
+        "state": "confirmed",
+        "documentIds": ["VC07"],
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
+      },
       "coverage": [
         {
           "from": 1,
@@ -139,7 +236,31 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [1],
+            "field": "title_authors",
+            "finding": "L. Viciuら著者7名、Na₂Co₂TeO₆ / Na₃Co₂SbO₆を含む既存タイトルを確認。"
+          },
+          {
+            "pdfPages": [1],
+            "field": "publication",
+            "finding": "Journal of Solid State Chemistry 180、1060–1067、2007年を確認。"
+          },
+          {
+            "pdfPages": [1],
+            "field": "doi",
+            "finding": "10.1016/j.jssc.2007.01.002を確認。"
+          }
+        ],
+        "limitations": []
+      }
     },
     {
       "sha256": "3ebf97ee1d6c5a04dbd29a2c17b8aa964452fb1852f83205a840b23b5a847aee",
@@ -152,7 +273,11 @@
       ],
       "pageCount": 330,
       "readState": "readable",
-      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "mapping": {
+        "state": "confirmed",
+        "documentIds": ["T16"],
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
+      },
       "coverage": [
         {
           "from": 1,
@@ -166,20 +291,42 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [5],
+            "field": "title_authors",
+            "finding": "Richard J. D. Tilley / Perovskites: Structure–Property Relationshipsを確認。"
+          },
+          {
+            "pdfPages": [6],
+            "field": "publication",
+            "finding": "John Wiley & Sons、First Edition published in 2016、ISBN 9781118935668を確認。"
+          }
+        ],
+        "limitations": []
+      }
     },
     {
       "sha256": "50f853a55e52dc1cfc2b9d4eda9f9bd76a3a5c516a85fa0fe1c3abbb123474d6",
       "bytes": 62810803,
       "locations": [
-        { "path": "solid-state-chemistry-and-its-applications.pdf", "roles": ["primary"] }
+        {
+          "path": "solid-state-chemistry-and-its-applications.pdf",
+          "roles": ["primary"]
+        }
       ],
       "pageCount": 893,
       "readState": "readable",
       "mapping": {
-        "state": "candidate",
+        "state": "confirmed",
         "documentIds": ["W"],
-        "basis": "filename_only_not_edition_verified"
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
       },
       "coverage": [
         {
@@ -194,18 +341,42 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [5],
+            "field": "title_authors",
+            "finding": "Anthony R. Westと既存タイトルを確認。"
+          },
+          {
+            "pdfPages": [5, 6],
+            "field": "publication",
+            "finding": "Second Edition、This edition first published 2022を確認。版履歴の2014年Student editionと現在の2022年版を区別。"
+          }
+        ],
+        "limitations": []
+      }
     },
     {
       "sha256": "5343649f2d5ef4e5bb6ef86ca5d4002ef58d90262286656624a239b8965399eb",
       "bytes": 254355,
-      "locations": [{ "path": "Chem.Mat-15-2651-2003.pdf", "roles": ["primary"] }],
+      "locations": [
+        {
+          "path": "Chem.Mat-15-2651-2003.pdf",
+          "roles": ["primary"]
+        }
+      ],
       "pageCount": 10,
       "readState": "readable",
       "mapping": {
-        "state": "candidate",
+        "state": "confirmed",
         "documentIds": ["CA03"],
-        "basis": "filename_only_not_edition_verified"
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
       },
       "coverage": [
         {
@@ -220,15 +391,48 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [1],
+            "field": "title_authors",
+            "finding": "D. Carlier、A. Van der Ven、C. Delmas、G. CederとO2-LiCoO₂の既存タイトルを確認。"
+          },
+          {
+            "pdfPages": [1],
+            "field": "publication",
+            "finding": "Chemistry of Materials 15、2651–2660、2003年を確認。"
+          },
+          {
+            "pdfPages": [1],
+            "field": "doi",
+            "finding": "10.1021/cm030002tを確認。"
+          }
+        ],
+        "limitations": []
+      }
     },
     {
       "sha256": "715240dfc5db0ddb4abdaf7159b8f1ffe950bb6d6036eddbbbe80ff1fce8e6d0",
       "bytes": 57078084,
-      "locations": [{ "path": "Perovskite_modern_and_ancient.pdf", "roles": ["primary"] }],
+      "locations": [
+        {
+          "path": "Perovskite_modern_and_ancient.pdf",
+          "roles": ["primary"]
+        }
+      ],
       "pageCount": 132,
       "readState": "readable",
-      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "mapping": {
+        "state": "unmatched",
+        "documentIds": [],
+        "basis": "冒頭の見開き本文を確認したが、書誌・版を確定する識別情報を得られず保留。"
+      },
       "coverage": [
         {
           "from": 1,
@@ -242,18 +446,46 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "page_image",
+        "documentPart": "excerpt",
+        "checks": [
+          {
+            "pdfPages": [1, 2, 3, 4, 5, 6],
+            "field": "identity_limits",
+            "finding": "冒頭6 PDF頁はChapter 1本文の見開きスキャン。PDF 1頁は左側が白紙で右側に印刷頁1、PDF 2頁には印刷頁2と3が含まれる。タイトル頁・奥付はこの確認範囲にない。"
+          },
+          {
+            "pdfPages": [1],
+            "field": "document_part",
+            "finding": "章見出しは理想ペロブスカイト構造を扱うが、ファイル名だけから書籍タイトル・著者・版を確定していない。"
+          }
+        ],
+        "limitations": [
+          "著者・正式書名・出版年・版は未確認。",
+          "1 PDF頁を1印刷頁として換算しない。",
+          "確認は冒頭6 PDF頁のみ。全132頁の内容照合は未実施。"
+        ]
+      }
     },
     {
       "sha256": "89e53b92d39ab682ec8dd1b6931e580ccb0de19fe07524d91d51d47ea9688e27",
       "bytes": 2840076,
-      "locations": [{ "path": "bussei_el_061206.pdf", "roles": ["primary"] }],
+      "locations": [
+        {
+          "path": "bussei_el_061206.pdf",
+          "roles": ["primary"]
+        }
+      ],
       "pageCount": 31,
       "readState": "readable",
       "mapping": {
-        "state": "candidate",
+        "state": "confirmed",
         "documentIds": ["K"],
-        "basis": "filename_only_not_edition_verified"
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
       },
       "coverage": [
         {
@@ -268,17 +500,46 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [1],
+            "field": "title_authors",
+            "finding": "岡本佳比古と「物質探索のための5d遷移金属化合物の結晶化学」を確認。"
+          },
+          {
+            "pdfPages": [1],
+            "field": "publication",
+            "finding": "物性研究・電子版Vol.6 No.1、061206、2016年11月・2017年2月合併号の表記を確認。"
+          }
+        ],
+        "limitations": [
+          "DOIはこの識別頁では確認していない。",
+          "既存の印刷頁/PDF頁換算を全31頁に対して再照合したものではない。"
+        ]
+      }
     },
     {
       "sha256": "b11590e6fd58aa94ebbe93b0da0bef7e2a8e9806292b9d45ff1e3c33d71e8760",
       "bytes": 1208560,
       "locations": [
-        { "path": "Systematics of the Spinel Structure Type.pdf", "roles": ["primary"] }
+        {
+          "path": "Systematics of the Spinel Structure Type.pdf",
+          "roles": ["primary"]
+        }
       ],
       "pageCount": 23,
       "readState": "readable",
-      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "mapping": {
+        "state": "confirmed",
+        "documentIds": ["HCG79"],
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
+      },
       "coverage": [
         {
           "from": 1,
@@ -292,7 +553,26 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [1],
+            "field": "title_authors",
+            "finding": "Roderick J. Hill、James R. Craig、G. V. Gibbs / Systematics of the Spinel Structure Typeを確認。"
+          },
+          {
+            "pdfPages": [1],
+            "field": "publication",
+            "finding": "Physics and Chemistry of Minerals 4、317–339、1979年を確認。"
+          }
+        ],
+        "limitations": ["DOIは未照合。"]
+      }
     },
     {
       "sha256": "d138db598997e33bcdb6c6b035f68f463da98869d673af73ba87fa0eca7fa788",
@@ -305,7 +585,11 @@
       ],
       "pageCount": 7,
       "readState": "readable",
-      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "mapping": {
+        "state": "confirmed",
+        "documentIds": ["AL24"],
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
+      },
       "coverage": [
         {
           "from": 1,
@@ -319,18 +603,55 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [1, 2],
+            "field": "title_authors",
+            "finding": "Elisabeth K. Albrechtら著者7名、CaMnTi₂O₆低温構造の既存タイトルを確認。"
+          },
+          {
+            "pdfPages": [1, 2],
+            "field": "publication",
+            "finding": "ChemistrySelect 9、e202402132、2024年。PDF 1頁はAaltoリポジトリの表紙、本文第1頁はPDF 2頁。"
+          },
+          {
+            "pdfPages": [1, 2],
+            "field": "doi",
+            "finding": "10.1002/slct.202402132を確認。"
+          },
+          {
+            "pdfPages": [1],
+            "field": "document_part",
+            "finding": "リポジトリ表紙が付いた論文本体。Supporting Informationではない。"
+          }
+        ],
+        "limitations": [
+          "本文・構造パラメータの照合は未実施。",
+          "リポジトリ表紙による頁ずれを他の資料へ一般化しない。"
+        ]
+      }
     },
     {
       "sha256": "d52c2ca47ad8305b6969d04772ad8298239ed9b0f8dd5eadafeb7f99d037790c",
       "bytes": 5415365,
-      "locations": [{ "path": "ng4c00010.pdf", "roles": ["primary"] }],
+      "locations": [
+        {
+          "path": "ng4c00010.pdf",
+          "roles": ["primary"]
+        }
+      ],
       "pageCount": 27,
       "readState": "readable",
       "mapping": {
-        "state": "candidate",
+        "state": "confirmed",
         "documentIds": ["BS"],
-        "basis": "filename_only_not_edition_verified"
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
       },
       "coverage": [
         {
@@ -345,7 +666,31 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [1],
+            "field": "title_authors",
+            "finding": "Katelyn J. Baumler / Raymond E. Schaakと既存タイトルを確認。"
+          },
+          {
+            "pdfPages": [1],
+            "field": "publication",
+            "finding": "ACS Nanoscience Au 4、290–316、2024年を確認。"
+          },
+          {
+            "pdfPages": [1],
+            "field": "doi",
+            "finding": "10.1021/acsnanoscienceau.4c00010を確認。"
+          }
+        ],
+        "limitations": []
+      }
     },
     {
       "sha256": "e98fd7f797706b568dfb53c402d78c04ed33a97c427f1dfd59e76a32ee2c9f4a",
@@ -359,9 +704,9 @@
       "pageCount": 300,
       "readState": "readable",
       "mapping": {
-        "state": "candidate",
+        "state": "confirmed",
         "documentIds": ["GI"],
-        "basis": "filename_only_not_edition_verified"
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
       },
       "coverage": [
         {
@@ -376,18 +721,42 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [1],
+            "field": "title_authors",
+            "finding": "Francis S. Galasso / Structure and Properties of Inorganic Solidsを確認。W. Darbyはillustrated byの表記。"
+          },
+          {
+            "pdfPages": [1, 2],
+            "field": "publication",
+            "finding": "Pergamon Press、First edition 1970を確認。"
+          }
+        ],
+        "limitations": ["シリーズ名・巻番号はこの確認箇所では照合していない。"]
+      }
     },
     {
       "sha256": "f2906c602bba3a9036948684749d9a79c0587767cfd7016e892374c4bf950296",
       "bytes": 22055921,
-      "locations": [{ "path": "StructuralInorganicChemistry.pdf", "roles": ["primary"] }],
+      "locations": [
+        {
+          "path": "StructuralInorganicChemistry.pdf",
+          "roles": ["primary"]
+        }
+      ],
       "pageCount": 1127,
       "readState": "readable",
       "mapping": {
-        "state": "candidate",
+        "state": "confirmed",
         "documentIds": ["AW"],
-        "basis": "filename_only_not_edition_verified"
+        "basis": "識別頁のタイトル・著者と出版情報を実資料で照合。下記の確認箇所・制限を参照。"
       },
       "coverage": [
         {
@@ -402,7 +771,26 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "main",
+        "checks": [
+          {
+            "pdfPages": [1],
+            "field": "title_authors",
+            "finding": "A. F. Wells / Structural Inorganic Chemistryを確認。"
+          },
+          {
+            "pdfPages": [1, 3],
+            "field": "publication",
+            "finding": "Fourth Edition、Clarendon Press / Oxford University Press、1975年を確認。"
+          }
+        ],
+        "limitations": []
+      }
     },
     {
       "sha256": "ff302ddc11395df6ba455aaf665cd782d9542bb80a8c6a34626625e577b04993",
@@ -415,7 +803,11 @@
       ],
       "pageCount": 15,
       "readState": "readable",
-      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "mapping": {
+        "state": "confirmed",
+        "documentIds": ["CM14"],
+        "basis": "Supporting Informationのタイトル・著者でCM14との対応を照合。主論文のPDFではない。"
+      },
       "coverage": [
         {
           "from": 1,
@@ -429,7 +821,29 @@
           "note": "",
           "printedPageMapping": null
         }
-      ]
+      ],
+      "identification": {
+        "reviewedOn": "2026-11-09",
+        "reviewer": "Codex",
+        "method": "text_and_page_image",
+        "documentPart": "supplement",
+        "checks": [
+          {
+            "pdfPages": [1],
+            "field": "title_authors",
+            "finding": "Akihisa Aimiら著者8名と既存CM14の論文タイトルを確認。"
+          },
+          {
+            "pdfPages": [1],
+            "field": "document_part",
+            "finding": "Supporting Informationと明示された別PDF。CM14の補足資料として対応づけ、論文本体とは区別する。"
+          }
+        ],
+        "limitations": [
+          "識別頁には年・巻頁・DOIの記載がないため、このPDF単独でそれらを確認したとは扱わない。",
+          "補足のS頁番号とPDF頁の対応は未照合。"
+        ]
+      }
     }
   ]
 }

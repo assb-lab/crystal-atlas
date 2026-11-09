@@ -92,9 +92,11 @@ export async function scanCatalog(
       if (
         prior &&
         prior.pageCount !== pages &&
-        prior.coverage.some(
-          (r) => r.printedPageMapping || Object.values(r.channels).some((s) => s !== "not_started"),
-        )
+        (prior.identification ||
+          prior.coverage.some(
+            (r) =>
+              r.printedPageMapping || Object.values(r.channels).some((s) => s !== "not_started"),
+          ))
       )
         throw new Error(`Page count changed for reviewed asset: ${relative}`);
       grouped.set(sha256, {
@@ -112,10 +114,20 @@ export async function scanCatalog(
                 basis: candidates.length ? "filename_only_not_edition_verified" : "",
               },
         coverage: prior && prior.pageCount === pages ? prior.coverage : initialCoverage(pages),
+        ...(prior?.identification ? { identification: prior.identification } : {}),
       });
     }
   }
   await visit(root);
+  // Preserve an unresolved identification note too, if the candidate set is unchanged.
+  for (const asset of grouped.values()) {
+    const prior = old.get(asset.sha256);
+    if (
+      prior?.identification &&
+      JSON.stringify(prior.mapping.documentIds) === JSON.stringify(asset.mapping.documentIds)
+    )
+      asset.mapping = prior.mapping;
+  }
   const catalog: LiteratureCatalog = {
     version: 1,
     probe,

@@ -103,6 +103,14 @@ try {
     );
   }
   assert.equal(query(DOCUMENT_ASSETS_QUERY, { id: "M06" }).length, 1);
+  const supplement = query(DOCUMENT_ASSETS_QUERY, { id: "CM14" });
+  assert.equal(supplement.length, 1);
+  assert.equal(
+    JSON.parse(supplement[0]!.payload as string).identification.documentPart,
+    "supplement",
+  );
+  assert.equal(query(DOCUMENT_ASSETS_QUERY, { id: "T16" }).length, 1);
+  assert.equal(query(DOCUMENT_ASSETS_QUERY, { id: "HCG79" }).length, 1);
   assert.deepEqual(query(DOCUMENT_ASSETS_QUERY, { id: "M06' OR true //" }), []);
   assert.throws(() => query("CREATE (:Entity {id: 'forbidden-write'})"), /read.only/i);
   console.log(

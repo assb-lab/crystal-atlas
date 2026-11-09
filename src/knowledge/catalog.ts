@@ -7,6 +7,18 @@ export interface CoverageRange {
   note: string;
   printedPageMapping: string | null;
 }
+export interface BibliographicIdentification {
+  reviewedOn: string;
+  reviewer: string;
+  method: "text_and_page_image" | "page_image";
+  documentPart: "main" | "supplement" | "excerpt";
+  checks: {
+    pdfPages: number[];
+    field: "title_authors" | "publication" | "doi" | "document_part" | "series" | "identity_limits";
+    finding: string;
+  }[];
+  limitations: string[];
+}
 export interface CatalogAsset {
   sha256: string;
   bytes: number;
@@ -19,6 +31,8 @@ export interface CatalogAsset {
     basis: string;
   };
   coverage: CoverageRange[];
+  /** Identity checks do not count as review of structural content on these pages. */
+  identification?: BibliographicIdentification;
 }
 export interface LiteratureCatalog {
   version: 1;
@@ -88,6 +102,52 @@ export function validateCatalog(catalog: LiteratureCatalog, documentIds: Set<str
       (m.state === "confirmed" && (m.documentIds.length !== 1 || !m.basis.trim()))
     )
       throw new Error("Mapping requires explicit basis");
+    const identification = a.identification;
+    if (m.state === "confirmed" && !identification)
+      throw new Error("Confirmed mapping requires page-level identification checks");
+    if (identification) {
+      if (
+        !/^\d{4}-\d{2}-\d{2}$/.test(identification.reviewedOn) ||
+        !identification.reviewer.trim() ||
+        !["text_and_page_image", "page_image"].includes(identification.method) ||
+        !["main", "supplement", "excerpt"].includes(identification.documentPart) ||
+        !identification.checks.length ||
+        identification.limitations.some((s) => !s.trim())
+      )
+        throw new Error("Invalid bibliographic identification");
+      for (const check of identification.checks) {
+        if (
+          !check.finding.trim() ||
+          ![
+            "title_authors",
+            "publication",
+            "doi",
+            "document_part",
+            "series",
+            "identity_limits",
+          ].includes(check.field) ||
+          !check.pdfPages.length ||
+          new Set(check.pdfPages).size !== check.pdfPages.length ||
+          check.pdfPages.some(
+            (page) =>
+              !Number.isSafeInteger(page) || page < 1 || a.pageCount === null || page > a.pageCount,
+          )
+        )
+          throw new Error("Invalid identification page/field");
+      }
+      if (
+        m.state === "confirmed" &&
+        (!identification.checks.some((c) => c.field === "title_authors") ||
+          !identification.checks.some(
+            (c) =>
+              c.field ===
+              (identification.documentPart === "supplement" ? "document_part" : "publication"),
+          ))
+      )
+        throw new Error(
+          "Confirmed mapping requires title/authors and publication or supplement checks",
+        );
+    }
     let next = 1;
     for (const range of a.coverage) {
       if (

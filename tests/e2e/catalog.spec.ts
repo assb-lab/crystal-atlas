@@ -26,7 +26,7 @@ for (const [label, url] of Object.entries({
     await selector.selectOption({ label: "inorganic-structural-chemistry-2ed-2006-muller.pdf" });
     const detail = page.getByTestId("catalog-detail");
     await expect(detail).toContainText("PDF 1–281");
-    await expect(detail).toContainText("版の対応は未確認");
+    await expect(detail).toContainText("書誌対応確認済み");
     await expect(detail.locator("dd")).toHaveText(["未調査", "未調査", "未調査", "未調査"]);
     await expect(detail.getByRole("link", { name: /M06/ })).toHaveAttribute("href", "#source-M06");
     await detail.scrollIntoViewIfNeeded();
@@ -37,7 +37,9 @@ for (const [label, url] of Object.entries({
     });
     await expect(detail).toContainText("PDF 1–15");
     await expect(detail).toContainText("補足資料 / curation配置");
-    await expect(detail).toContainText("書誌未対応");
+    await expect(detail).toContainText("資料区分：補足資料（主論文とは別PDF）");
+    await expect(detail).toContainText("CM14");
+    await expect(detail).toContainText("年・巻頁・DOIの記載がない");
     await expect(detail).toContainText("印刷頁対応: 未確認");
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
@@ -46,6 +48,11 @@ for (const [label, url] of Object.entries({
     await page.screenshot({ path: `test-results/${label}-catalog-mobile.png` });
     await selector.selectOption({ label: "Ulrich_Müller.pdf" });
     await expect(detail).toContainText("PDF 1–349");
+    await expect(detail.locator("dd")).toHaveText(["未調査", "未調査", "未調査", "未調査"]);
+    await expect(detail).toContainText("IUCr Texts on Crystallography 18");
+    await selector.selectOption({ label: "Perovskite_modern_and_ancient.pdf" });
+    await expect(detail).toContainText("本文抜粋（書誌未解決）");
+    await expect(detail).toContainText("全132頁の内容照合は未実施");
     await expect(detail.locator("dd")).toHaveText(["未調査", "未調査", "未調査", "未調査"]);
     expect(errors).toEqual([]);
   });

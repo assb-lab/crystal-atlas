@@ -20,7 +20,7 @@ if (result.error || result.status !== 0)
 const probe = (result.stdout + result.stderr).split("\n")[0]!.trim();
 const catalog = await scanCatalog(root, DATA.sources, previous, probe);
 const formatted = execFileSync("pnpm", ["exec", "vp", "fmt", `--stdin-filepath=${output}`], {
-  input: JSON.stringify(catalog),
+  input: JSON.stringify(catalog, null, 2),
   encoding: "utf8",
 });
 // Keep the generated JSON identical to the repository formatter's canonical output.

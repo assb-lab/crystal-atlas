@@ -8,7 +8,10 @@ import { validateCatalog } from "../../src/knowledge/catalog.ts";
 import { knowledgeDataset } from "../../src/knowledge/dataset.ts";
 import { DATA } from "../../src/data/atlas.ts";
 import catalogData from "../../src/data/literature-catalog.json" with { type: "json" };
-import type { LiteratureCatalog } from "../../src/knowledge/catalog.ts";
+import type {
+  LiteratureCatalog,
+  BibliographicIdentification,
+} from "../../src/knowledge/catalog.ts";
 
 async function fixture(run: (root: string) => Promise<void>) {
   const root = await mkdtemp(join(tmpdir(), "atlas-catalog-test-"));
@@ -20,6 +23,17 @@ async function fixture(run: (root: string) => Promise<void>) {
 }
 const sources = { M: { filename: "Müller.pdf" } };
 const pages = async () => 4;
+const identification = (): BibliographicIdentification => ({
+  reviewedOn: "2026-11-09",
+  reviewer: "test fixture",
+  method: "text_and_page_image",
+  documentPart: "main",
+  checks: [
+    { pdfPages: [1], field: "title_authors", finding: "Synthetic title/author" },
+    { pdfPages: [2], field: "publication", finding: "Synthetic edition" },
+  ],
+  limitations: [],
+});
 test("inventory is deterministic, deduplicates bytes, and matches Unicode candidates across copies", async () => {
   await fixture(async (root) => {
     await mkdir(join(root, "curation"));
@@ -46,6 +60,7 @@ test("review records follow bytes through moves, but never transfer to replaceme
     await writeFile(path, "old");
     const original = await scanCatalog(root, sources, undefined, "test", pages);
     const asset = original.assets[0]!;
+    asset.identification = identification();
     asset.mapping = {
       state: "confirmed",
       documentIds: ["M"],
@@ -134,19 +149,38 @@ test("ledger validates channel status, page partitions, evidence notes and relat
   second.from = 2;
   assert.throws(() => validateCatalog(base, docs), /partition/);
 });
-test("candidate files do not confirm editions or reuse legacy page offsets", () => {
+test("identified assets connect to documents without reusing legacy page offsets", () => {
   const initial = knowledgeDataset(DATA);
   assert.equal(initial.rows.Asset!.length, 16);
-  assert.equal(initial.rows.CandidateAsset!.length, 9);
-  assert.equal(initial.rows.HasAsset!.length, 0);
+  assert.equal(initial.rows.CandidateAsset!.length, 0);
+  assert.equal(initial.rows.HasAsset!.length, 15);
   assert.equal(initial.rows.LocatedIn!.length, 0);
   assert.ok(initial.rows.CoverageReview!.every((row) => row[1] === "not_started"));
   const changed = structuredClone(catalogData) as LiteratureCatalog;
   const asset = changed.assets.find((a) => a.mapping.documentIds.length)!;
-  asset.mapping.state = "confirmed";
-  asset.mapping.basis = "Title page and edition inspected, PDF p.1";
-  const confirmed = knowledgeDataset(DATA, changed);
-  assert.equal(confirmed.rows.HasAsset!.length, 1);
-  assert.equal(confirmed.rows.CandidateAsset!.length, 8);
-  assert.equal(confirmed.rows.LocatedIn!.length, 0);
+  asset.mapping.state = "candidate";
+  asset.mapping.basis = "filename_only_not_edition_verified";
+  const candidate = knowledgeDataset(DATA, changed);
+  assert.equal(candidate.rows.HasAsset!.length, 14);
+  assert.equal(candidate.rows.CandidateAsset!.length, 1);
+  assert.equal(candidate.rows.LocatedIn!.length, 0);
+});
+test("confirmation requires in-bounds identification checks and retains unresolved notes on rescan", async () => {
+  const catalog = structuredClone(catalogData) as LiteratureCatalog;
+  const docs = new Set(Object.keys(DATA.sources));
+  const first = catalog.assets.find((a) => a.mapping.state === "confirmed")!;
+  const saved = first.identification;
+  delete first.identification;
+  assert.throws(() => validateCatalog(catalog, docs), /page-level identification/);
+  first.identification = structuredClone(saved)!;
+  first.identification.checks[0]!.pdfPages = [first.pageCount! + 1];
+  assert.throws(() => validateCatalog(catalog, docs), /identification page/);
+  await fixture(async (root) => {
+    await writeFile(join(root, "unknown.pdf"), "unidentified");
+    const original = await scanCatalog(root, {}, undefined, "test", pages);
+    original.assets[0]!.identification = identification();
+    original.assets[0]!.mapping.basis =
+      "Identification examined but the edition remains unresolved";
+    assert.deepEqual(await scanCatalog(root, {}, original, "test", pages), original);
+  });
 });
