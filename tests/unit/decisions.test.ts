@@ -13,7 +13,7 @@ const catalog = catalogData as LiteratureCatalog;
 const extraction = extractionData as ExtractionBatch;
 const review = decisionData as DecisionBatch;
 const base = knowledgeDataset(DATA, catalog, [extraction], []).rows;
-const current = knowledgeDataset(DATA).rows;
+const current = knowledgeDataset(DATA, catalog, [extraction], [review], []).rows;
 test("all original candidates and source records survive their first decisions unchanged", () => {
   for (const table of [
     "Entity",
@@ -75,7 +75,7 @@ test("held and rejected decisions never generate results", () => {
   comparison.outcome = "rejected";
   comparison.reason = "Synthetic rejection for the projection test";
   comparison.resolution = null;
-  const rows = knowledgeDataset(DATA, catalog, [extraction], [changed]).rows;
+  const rows = knowledgeDataset(DATA, catalog, [extraction], [changed], []).rows;
   assert.equal(rows.AdoptedAssertion!.length, 3);
   assert.ok(!rows.Assertion!.some((r) => r[0] === adoptedAssertionId(comparison.candidateId)));
 });
@@ -83,7 +83,7 @@ test("missing decisions, invalid evidence and unaccepted endpoints cannot produc
   const invalid = (mutate: (r: DecisionBatch) => void, pattern: RegExp) => {
     const r = structuredClone(review);
     mutate(r);
-    assert.throws(() => knowledgeDataset(DATA, catalog, [extraction], [r]), pattern);
+    assert.throws(() => knowledgeDataset(DATA, catalog, [extraction], [r], []), pattern);
   };
   invalid((r) => {
     r.decisions.pop();

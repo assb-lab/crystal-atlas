@@ -8,6 +8,14 @@ import { appendExtraction, type ExtractionBatch } from "./extraction.ts";
 import decisionData from "../data/okamoto-decisions.json" with { type: "json" };
 import { appendDecisions, type DecisionBatch } from "./decisions.ts";
 
+import {
+  latticeEntity,
+  latticeReferences,
+  latticeDescription,
+  latticeReconsideration,
+} from "../data/lattice-interpretation.ts";
+import { appendHeldMentionResolution, type HeldMentionResolution } from "./reconsideration.ts";
+
 /** Explicit annotations of existing statements, not operations inferred from space-group names. */
 const OPERATIONS: Record<string, { operation: string; target: string; parameters: object }> = {
   e1: {
@@ -32,6 +40,11 @@ export function knowledgeDataset(
   extractions: ExtractionBatch[] = [extractionData as ExtractionBatch],
   reviews: DecisionBatch[] = extractions.some((e) => e.id === decisionData.extractionId)
     ? [decisionData as DecisionBatch]
+    : [],
+  reconsiderations: HeldMentionResolution[] = reviews.some((r) =>
+    r.decisions.some((d) => d.id === latticeReconsideration.predecessorId),
+  )
+    ? [latticeReconsideration]
     : [],
 ): KnowledgeDataset {
   validateCatalog(catalog, new Set(Object.keys(data.sources)));
@@ -254,6 +267,34 @@ export function knowledgeDataset(
     const extraction = extractions.find((e) => e.id === review.extractionId);
     if (!extraction) throw new Error("Review references an unknown extraction");
     appendDecisions(rows, extraction, review);
+  }
+  if (reconsiderations.length) {
+    entity(latticeEntity.id, latticeEntity.title, latticeEntity.kind, latticeEntity);
+    for (const { id, reference } of latticeReferences) {
+      if (!data.sources[reference.s]) throw new Error(`Unknown definition source ${reference.s}`);
+      add("SourceSpan", id, json(reference));
+      add("InDocument", id, reference.s);
+    }
+    add(
+      "Assertion",
+      latticeDescription.id,
+      "description",
+      "has_bravais_lattice_type",
+      latticeDescription.label,
+      latticeDescription.description,
+      "source_context_checked",
+      "literature_context_interpretation",
+      json({ ...latticeDescription, reviewer: "Codex", reviewedOn: "2026-11-09" }),
+    );
+    add("Subject", latticeDescription.id, "fcc");
+    add("Object", latticeDescription.id, latticeEntity.id);
+    for (const id of ["pilot:K:2-3:span:fcc-lattice", ...latticeReferences.map((r) => r.id)])
+      add("HasEvidence", latticeDescription.id, id);
+    for (const revision of reconsiderations) {
+      const extraction = extractions.find((e) => e.id === revision.extractionId);
+      if (!extraction) throw new Error("Revision references an unknown extraction");
+      appendHeldMentionResolution(rows, extraction, revision);
+    }
   }
   return { rows };
 }

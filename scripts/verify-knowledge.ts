@@ -17,6 +17,8 @@ import {
   CANDIDATE_EVIDENCE_QUERY,
   ASSERTION_MATCHES_QUERY,
   DECISIONS_QUERY,
+  CURRENT_DECISIONS_QUERY,
+  ENTITY_PROFILE_QUERY,
   DECISION_RESULT_QUERY,
   ADOPTED_ASSERTION_QUERY,
   DECISION_EVIDENCE_QUERY,
@@ -150,9 +152,31 @@ try {
   }
   assert.deepEqual(query(MENTIONS_QUERY, { id: pilotAssetId + "' OR true //" }), []);
   const decisions = query(DECISIONS_QUERY, { id: pilotAssetId });
-  assert.equal(decisions.length, 20);
-  assert.equal(decisions.filter((d) => d.outcome === "accepted").length, 13);
+  assert.equal(decisions.length, 21);
+  assert.equal(decisions.filter((d) => d.outcome === "accepted").length, 14);
   assert.equal(decisions.filter((d) => d.outcome === "held").length, 7);
+  const currentDecisions = query(CURRENT_DECISIONS_QUERY, { id: pilotAssetId });
+  assert.equal(currentDecisions.length, 20);
+  assert.equal(currentDecisions.filter((d) => d.outcome === "accepted").length, 14);
+  assert.equal(currentDecisions.filter((d) => d.outcome === "held").length, 6);
+  const latticeMention = "pilot:K:2-3:mention:fcc-lattice";
+  assert.equal(
+    currentDecisions.find((d) => d.candidateId === latticeMention)?.id,
+    `decision:v2:${latticeMention}`,
+  );
+  assert.equal(
+    query(DECISION_RESULT_QUERY, { id: `decision:v2:${latticeMention}` })[0]?.id,
+    "bravais:cF",
+  );
+  assert.equal(query(ENTITY_PROFILE_QUERY, { id: "bravais:cF" })[0]?.kind, "bravais_lattice_type");
+  assert.equal(query(ENTITY_PROFILE_QUERY, { id: "fcc" })[0]?.kind, "structural_motif");
+  const descriptions = query(RELATIONSHIP_QUERY, { domain: "description", id: "bravais:cF" });
+  assert.equal(descriptions.length, 1);
+  assert.equal(descriptions[0]?.subjectId, "fcc");
+  assert.equal(query(EVIDENCE_QUERY, { id: descriptions[0]!.id }).length, 3);
+  assert.deepEqual(query(STEP_QUERY, { id: descriptions[0]!.id }), []);
+  assert.deepEqual(query(RELATIONSHIP_QUERY, { domain: "symmetry", id: "bravais:cF" }), []);
+  assert.deepEqual(query(CURRENT_DECISIONS_QUERY, { id: pilotAssetId + "' OR true //" }), []);
   for (const decision of decisions) {
     const payload = JSON.parse(decision.payload as string);
     const results = query(

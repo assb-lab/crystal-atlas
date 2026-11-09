@@ -47,3 +47,12 @@ export function parameterValue(value: unknown): string {
   };
   return typeof value === "string" ? (labels[value] ?? value) : (JSON.stringify(value) ?? "未転記");
 }
+
+export const entityKindLabel = (kind: string) =>
+  ({
+    bravais_lattice_type: "ブラベー格子型",
+    structural_motif: "構造モチーフ",
+    structure_type: "構造型",
+    legacy_material_or_phase: "物質・相（未分離）",
+    family: "ファミリー",
+  })[kind] ?? kind;

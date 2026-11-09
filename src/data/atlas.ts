@@ -2,6 +2,7 @@ import { classificationSources } from "./classification-sources.ts";
 import { classificationNodes, classificationEdges } from "./classification-structures.ts";
 import { collections, structureLabels } from "./classifications.ts";
 import { sources } from "./sources.ts";
+import { conceptSources } from "./concept-sources.ts";
 import { literatureSources } from "./literature-sources.ts";
 import { families } from "./families.ts";
 import { nodes } from "./structures.ts";
@@ -17,7 +18,7 @@ import type { Atlas } from "../types.ts";
 export const DATA: Atlas = {
   version: "1.6",
   date: "2026-11-09",
-  sources: { ...sources, ...classificationSources, ...literatureSources },
+  sources: { ...sources, ...classificationSources, ...literatureSources, ...conceptSources },
   families,
   nodes: [...nodes, ...expansionNodes, ...breadthNodes, ...okamotoNodes, ...classificationNodes],
   edges: [...edges, ...expansionEdges, ...breadthEdges, ...okamotoEdges, ...classificationEdges],

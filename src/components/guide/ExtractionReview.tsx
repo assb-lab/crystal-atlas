@@ -8,6 +8,7 @@ import {
   CANDIDATE_EVIDENCE_QUERY,
   ASSERTION_MATCHES_QUERY,
   DECISIONS_QUERY,
+  CURRENT_DECISIONS_QUERY,
   DECISION_RESULT_QUERY,
   ADOPTED_ASSERTION_QUERY,
   DECISION_EVIDENCE_QUERY,
@@ -17,6 +18,8 @@ import type { CandidateDecision } from "../../knowledge/decisions.ts";
 import { operationLabels, parameterLabels, parameterValue } from "../../knowledge/presentation.ts";
 import { useAtlas } from "../../store.ts";
 import type { Ref } from "../../types.ts";
+import { entityKindLabel } from "../../knowledge/presentation.ts";
+import { EntityProfile } from "../EntityProfile.tsx";
 import { RefChips } from "../RefChips.tsx";
 
 type Mention = ExtractionBatch["mentions"][number] & { reference: Ref };
@@ -28,13 +31,15 @@ interface Records {
   mentions: Mention[];
   relations: Candidate[];
   decisions: Decision[];
+  history: Decision[];
 }
 interface Detail {
   id: string;
   references: Ref[];
   matches: { id: string; title: string; note: string }[];
-  results: { id: string; title: string; subjectId?: string }[];
+  results: { id: string; title: string; subjectId?: string; kind?: string }[];
   decisionReferences: Ref[];
+  historyReferences: Record<string, Ref[]>;
 }
 export function ExtractionReview({ assetId }: { assetId: string }) {
   const { dispatch } = useAtlas();
@@ -47,10 +52,11 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
     let active = true;
     void getKnowledgeDB()
       .then(async (db) => {
-        const [runs, mentions, relations, decisions] = await Promise.all([
+        const [runs, mentions, relations, decisions, history] = await Promise.all([
           db.query(EXTRACTION_RUN_QUERY, { id: assetId }),
           db.query(MENTIONS_QUERY, { id: assetId }),
           db.query(RELATION_CANDIDATES_QUERY, { id: assetId }),
+          db.query(CURRENT_DECISIONS_QUERY, { id: assetId }),
           db.query(DECISIONS_QUERY, { id: assetId }),
         ]);
         if (!active) return;
@@ -62,6 +68,7 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
           })),
           relations: relations.map((r) => JSON.parse(String(r.payload))),
           decisions: decisions.map((d) => JSON.parse(String(d.payload))),
+          history: history.map((d) => JSON.parse(String(d.payload))),
         };
         setError("");
         setRecords(loaded);
@@ -81,26 +88,42 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
     void getKnowledgeDB()
       .then(async (db) => {
         const decision = records.decisions.find((d) => d.candidateId === selected);
-        const [references, matches, results, decisionReferences] = await Promise.all([
-          mention
-            ? Promise.resolve([{ reference: JSON.stringify(mention.reference) }])
-            : db.query(CANDIDATE_EVIDENCE_QUERY, { id: selected }),
-          db.query(mention ? ENTITY_CANDIDATES_QUERY : ASSERTION_MATCHES_QUERY, { id: selected }),
-          decision
-            ? db.query(mention ? DECISION_RESULT_QUERY : ADOPTED_ASSERTION_QUERY, {
-                id: decision.id,
-              })
-            : Promise.resolve([]),
-          decision ? db.query(DECISION_EVIDENCE_QUERY, { id: decision.id }) : Promise.resolve([]),
-        ]);
+        const [references, matches, results, decisionReferences, historyReferences] =
+          await Promise.all([
+            mention
+              ? Promise.resolve([{ reference: JSON.stringify(mention.reference) }])
+              : db.query(CANDIDATE_EVIDENCE_QUERY, { id: selected }),
+            db.query(mention ? ENTITY_CANDIDATES_QUERY : ASSERTION_MATCHES_QUERY, { id: selected }),
+            decision
+              ? db.query(mention ? DECISION_RESULT_QUERY : ADOPTED_ASSERTION_QUERY, {
+                  id: decision.id,
+                })
+              : Promise.resolve([]),
+            decision ? db.query(DECISION_EVIDENCE_QUERY, { id: decision.id }) : Promise.resolve([]),
+            Promise.all(
+              records.history
+                .filter((d) => d.candidateId === selected)
+                .map(
+                  async (d) =>
+                    [
+                      d.id,
+                      (await db.query(DECISION_EVIDENCE_QUERY, { id: d.id })).map(
+                        (r) => JSON.parse(String(r.reference)) as Ref,
+                      ),
+                    ] as const,
+                ),
+            ),
+          ]);
         if (active)
           setDetail({
             id: selected,
             results: results.map((r) => ({
               id: String(r.id),
               title: String(r.title),
+              ...(typeof r.kind === "string" ? { kind: r.kind } : {}),
               ...(typeof r.subjectId === "string" ? { subjectId: r.subjectId } : {}),
             })),
+            historyReferences: Object.fromEntries(historyReferences),
             decisionReferences: decisionReferences.map((r) => JSON.parse(String(r.reference))),
             references: references.map((r) => JSON.parse(String(r.reference))),
             matches: matches.map((r) => ({
@@ -148,13 +171,13 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
         <>
           <p data-testid="extraction-ready">
             登場記録 {records.mentions.length} 件 ／ 関係候補 {records.relations.length} 件 ·
-            初回判断：採用 {records.decisions.filter((d) => d.outcome === "accepted").length} 件 ／
-            保留 {records.decisions.filter((d) => d.outcome === "held").length} 件 ／ 却下{" "}
+            現在の判断：採用 {records.decisions.filter((d) => d.outcome === "accepted").length} 件
+            ／ 保留 {records.decisions.filter((d) => d.outcome === "held").length} 件 ／ 却下{" "}
             {records.decisions.filter((d) => d.outcome === "rejected").length} 件 ／ 未判断{" "}
             {records.mentions.length + records.relations.length - records.decisions.length} 件
           </p>
           <p>
-            原表記と登場位置を保持し、初回判断と採用結果を別に表示します。採用範囲と未確認事項は各判断を参照してください。
+            原表記と登場位置を保持し、判断履歴と現在の採用結果を別に表示します。採用範囲と未確認事項は各判断を参照してください。
           </p>
           {records.runs.map((run, i) => (
             <details key={i}>
@@ -177,14 +200,14 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
             value={selected}
             onChange={(event) => setSelected(event.target.value)}
           >
-            <optgroup label="登場記録（初回判断を参照）">
+            <optgroup label="登場記録（現在の判断を参照）">
               {records.mentions.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.rawName} · PDF {m.reference.pdfPage} · {m.reference.sec}
                 </option>
               ))}
             </optgroup>
-            <optgroup label="関係候補（初回判断を参照）">
+            <optgroup label="関係候補（現在の判断を参照）">
               {records.relations.map((r) => (
                 <option key={r.id} value={r.id}>
                   {operationLabels[r.operation] ?? r.operation} ·{" "}
@@ -198,7 +221,7 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
           <div data-testid="extraction-detail">
             {mention && (
               <>
-                <h4>{mention.rawName} · 登場記録（初回判断を参照）</h4>
+                <h4>{mention.rawName} · 登場記録（現在の判断を参照）</h4>
                 <p>{mention.identityNote}</p>
               </>
             )}
@@ -206,7 +229,7 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
               <>
                 <h4>
                   {operationLabels[relation.operation] ?? relation.operation} ·
-                  関係候補（初回判断を参照）
+                  関係候補（現在の判断を参照）
                 </h4>
                 <p>
                   {relation.basis === "editorial_comparison"
@@ -255,7 +278,7 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
                     data-testid="candidate-decision"
                     aria-label="候補の採否判断"
                   >
-                    <h4>初回判断：{outcomeLabels[decision.outcome]}</h4>
+                    <h4>現在の判断：{outcomeLabels[decision.outcome]}</h4>
                     <p>
                       {decision.reviewedOn} · {decision.reviewer} · 文献の文脈と既存レコードの照合
                     </p>
@@ -271,7 +294,11 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
                         <div key={result.id}>
                           <p>
                             {result.title} <code>{result.id}</code>
+                            {result.kind && ` · ${entityKindLabel(result.kind)}`}
                           </p>
+                          {result.kind === "bravais_lattice_type" && (
+                            <EntityProfile key={result.id} id={result.id} />
+                          )}
                           {result.subjectId && (
                             <button
                               onClick={() => {
@@ -295,6 +322,29 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
                     ) : (
                       <p>この判断から確定リンク・Assertionは生成していません。</p>
                     )}
+                    <details data-testid="decision-history">
+                      <summary>
+                        判断の履歴（
+                        {records.history.filter((d) => d.candidateId === selected).length}件）
+                      </summary>
+                      {records.history
+                        .filter((d) => d.candidateId === selected)
+                        .map((d) => (
+                          <div key={d.id}>
+                            <h4>
+                              {d.id === decision.id ? "現在" : "改訂前"}：{outcomeLabels[d.outcome]}
+                            </h4>
+                            <p>
+                              {d.reviewedOn} · {d.reviewer}
+                            </p>
+                            <p>{d.reason}</p>
+                            <code>{d.id}</code>
+                            <RefChips refs={currentDetail.historyReferences[d.id] ?? []} />
+                            {d.resolution && <p>採用範囲：{d.resolution.scope}</p>}
+                            {d.nextAction && <p>当時の次の作業：{d.nextAction}</p>}
+                          </div>
+                        ))}
+                    </details>
                     <details>
                       <summary>判断の適用範囲と制限</summary>
                       <ul>

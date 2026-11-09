@@ -79,3 +79,9 @@ RelationCandidateは派生または比較の未確定候補で、CandidateSubjec
 ## 候補の採否と採用結果（スキーマv4）
 
 CandidateDecisionで元候補を保持したまま初回判断を追加します。採用した登場記録のRefersToと、採用した関係の独立したAssertionを判断・根拠・活動へ接続します。Kの初回判断は登場記録9採用・1保留、関係4採用・6保留です。既存の科学的主張や調査範囲を一括変更せず、採用分も文脈の照合と数値検証を区別して表示します。[候補の初回判断](CANDIDATE_DECISIONS.md)を参照してください。
+
+## 格子型と構造モチーフ・判断履歴（スキーマv5）
+
+Issue #25で`bravais_lattice_type`を独立したEntityのkindとして追加しました。既存fccモチーフとcF格子型を、根拠と適用範囲のある`description`のAssertionで記述します。この関係は3Atlas共通の対象プロフィールで表示し、Family所属・Derivation操作・Symmetry対応とは別に扱います。旧ID・原子モデルは維持します。
+
+保留Mentionを新設格子型へ再照合した判断を追加し、`SupersedesDecision`（新→旧）で履歴を保持します。履歴照会と現在の判断照会を区別し、初回の保留を上書きしません。採用済み関係の撤回・改訂一般は未実装です。根拠・意味・現在件数は[候補の判断記録](CANDIDATE_DECISIONS.md#issue-25格子型の識別と保留1件の再照合)に記載します。
