@@ -65,8 +65,20 @@ export function parameterValue(value: unknown): string {
 export const entityKindLabel = (kind: string) =>
   ({
     bravais_lattice_type: "ブラベー格子型",
+    chemical_substance: "化学物質（組成定義）",
+    material_phase: "物質の相",
+    structural_prototype: "原子種付きプロトタイプ",
     structural_motif: "構造モチーフ",
     structure_type: "構造型",
     legacy_material_or_phase: "物質・相（未分離）",
     family: "ファミリー",
+  })[kind] ?? kind;
+
+export const modelKindLabel = (kind: string) =>
+  ({
+    prototype: "プロトタイプ（実験精密化とは別）",
+    literature: "文献由来（精密化の確認状態は別）",
+    computed: "計算由来（緩和状態は別）",
+    average: "平均構造・平均占有",
+    schematic: "模式・理想模型",
   })[kind] ?? kind;

@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
 import { getKnowledgeDB } from "../knowledge/client.ts";
-import { ENTITY_PROFILE_QUERY, RELATIONSHIP_QUERY, EVIDENCE_QUERY } from "../knowledge/queries.ts";
+import {
+  ENTITY_PROFILE_QUERY,
+  RELATIONSHIP_QUERY,
+  EVIDENCE_QUERY,
+  MODEL_CONTEXT_QUERY,
+  PROTOTYPE_MODEL_QUERY,
+} from "../knowledge/queries.ts";
 import type { RelationshipRecord } from "../knowledge/client.ts";
 import type { Ref } from "../types.ts";
 import { entityKindLabel } from "../knowledge/presentation.ts";
+import { ModelProvenance, type ModelRecord } from "./ModelProvenance.tsx";
 import { RefChips } from "./RefChips.tsx";
 
 /** Descriptive context shared by the three Atlas views and source decisions. */
@@ -15,6 +22,8 @@ export function EntityProfile({ id, onSelect }: { id: string; onSelect?: (id: st
     title: string;
     description?: string;
     scope?: string;
+    conditions?: { temperatureK: number | null; pressurePa: number | null };
+    models: ModelRecord[];
     relations: { record: RelationshipRecord; refs: Ref[] }[];
   } | null>(null);
   const [error, setError] = useState("");
@@ -22,9 +31,11 @@ export function EntityProfile({ id, onSelect }: { id: string; onSelect?: (id: st
     let active = true;
     void getKnowledgeDB()
       .then(async (db) => {
-        const [entities, relations] = await Promise.all([
+        const [entities, relations, models, illustrations] = await Promise.all([
           db.query(ENTITY_PROFILE_QUERY, { id: focus }),
           db.query(RELATIONSHIP_QUERY, { id: focus, domain: "description" }),
+          db.query(MODEL_CONTEXT_QUERY, { id: focus }),
+          db.query(PROTOTYPE_MODEL_QUERY, { id: focus }),
         ]);
         const e = entities[0];
         if (!e) throw new Error("対象が見つかりません");
@@ -37,13 +48,24 @@ export function EntityProfile({ id, onSelect }: { id: string; onSelect?: (id: st
           })),
         );
         if (active) {
-          const payload = JSON.parse(String(e.payload)) as { description?: string; scope?: string };
+          const payload = JSON.parse(String(e.payload)) as {
+            description?: string;
+            scope?: string;
+            conditions?: { temperatureK: number | null; pressurePa: number | null };
+          };
           setRecord({
             id: focus,
             title: String(e.title),
             kind: String(e.kind),
             description: payload.description,
             scope: payload.scope,
+            conditions: payload.conditions,
+            models: [...models, ...illustrations].map((m) => ({
+              id: String(m.id),
+              kind: String(m.kind),
+              payload: String(m.payload),
+              ...(typeof m.note === "string" ? { note: m.note } : {}),
+            })),
             relations: descriptions,
           });
           setError("");
@@ -69,6 +91,20 @@ export function EntityProfile({ id, onSelect }: { id: string; onSelect?: (id: st
             <code>{record.id}</code>
           </p>
           {record.description && <p>{record.description}</p>}
+          {record.conditions && (
+            <p>
+              相の条件：
+              {record.conditions.temperatureK === null
+                ? "温度未転記"
+                : `${record.conditions.temperatureK} K`}{" "}
+              /{" "}
+              {record.conditions.pressurePa === null
+                ? "圧力未転記"
+                : `${record.conditions.pressurePa} Pa`}
+              。不明な条件を室温・常圧とみなしません。
+            </p>
+          )}
+          <ModelProvenance records={record.models} />
           {record.scope && <p>対象の範囲：{record.scope}</p>}
           {record.relations.map(({ record: r, refs }) => {
             const payload = JSON.parse(r.payload) as {

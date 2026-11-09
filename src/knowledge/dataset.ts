@@ -19,6 +19,9 @@ import { appendHeldMentionResolution, type HeldMentionResolution } from "./recon
 import { fluoriteRoleReference, occupationReconsiderations } from "../data/okamoto-occupation.ts";
 import { appendHeldVoidResolution, type HeldVoidResolution } from "./occupation.ts";
 
+import { identityRegistry } from "../data/identity.ts";
+import { appendIdentity, appendModelContexts } from "./identity.ts";
+
 /** Explicit annotations of existing statements, not operations inferred from space-group names. */
 const OPERATIONS: Record<string, { operation: string; target: string; parameters: object }> = {
   e1: {
@@ -270,6 +273,8 @@ export function knowledgeDataset(
       add("Reviews", reviewId, id);
     });
   }
+  appendModelContexts(rows, data, identityRegistry);
+  appendIdentity(rows, data, identityRegistry);
   for (const batch of extractions) appendExtraction(rows, data, catalog, batch);
   for (const review of reviews) {
     const extraction = extractions.find((e) => e.id === review.extractionId);

@@ -20,6 +20,9 @@ import {
   CURRENT_DECISIONS_QUERY,
   ENTITY_PROFILE_QUERY,
   OCCUPATION_QUERY,
+  MODEL_CONTEXT_QUERY,
+  PROTOTYPE_MODEL_QUERY,
+  IDENTITY_STATUS_QUERY,
   DECISION_RESULT_QUERY,
   ADOPTED_ASSERTION_QUERY,
   DECISION_EVIDENCE_QUERY,
@@ -77,6 +80,20 @@ try {
       `${t.name} full round-trip`,
     );
   }
+  const contexts = query(MODEL_CONTEXT_QUERY, { id: "anatase" });
+  assert.equal(contexts.length, 1);
+  const context = JSON.parse(String(contexts[0]!.payload));
+  assert.equal(context.refinementState, "not_established");
+  assert.equal(context.conditions.temperatureK, null);
+  assert.deepEqual(context.cell.parameters, DATA.models.anatase!.parameters);
+  assert.equal(query(PROTOTYPE_MODEL_QUERY, { id: "prototype:TiO2:anatase" }).length, 1);
+  assert.ok(
+    query(IDENTITY_STATUS_QUERY).some(
+      (r) => r.kind === "chemical_substance" && Number(r.count) === 1,
+    ),
+  );
+  assert.deepEqual(query(MODEL_CONTEXT_QUERY, { id: "' OR true //" }), []);
+  assert.equal(query(RELATIONSHIP_QUERY, { domain: "description", id: "material:TiO2" }).length, 2);
   const family = query(RELATIONSHIP_QUERY, { domain: "family", id: "pyrochlore" });
   assert.ok(family.length > 1);
   const derivation = query(RELATIONSHIP_QUERY, { domain: "derivation", id: "fcc" });

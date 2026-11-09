@@ -1,5 +1,5 @@
 /** Versioned physical schema. Scientific relations are nodes so they can carry evidence. */
-export const KNOWLEDGE_SCHEMA_VERSION = 6;
+export const KNOWLEDGE_SCHEMA_VERSION = 7;
 export const LADYBUG_VERSION = "0.22.3";
 export type AtlasMode = "family" | "derivation" | "symmetry";
 export type Cell = string | number | boolean | null;
@@ -31,6 +31,7 @@ export const TABLES: Table[] = [
   node("OccupationSpec", ["id", "hostSpecies", "guestSpecies", "voidKind", "selection", "payload"]),
   node("Document", ["id", "title", "payload"]),
   node("SourceSpan", ["id", "payload"]),
+  node("ModelContext", ["id", "kind", "payload"]),
   node("StructureModel", ["id", "payload"]),
   node("DerivationRoute", ["id", "title", "payload"]),
   // Asset inventory and pending coverage are distinct from extracted Mentions and completed reviews.
@@ -48,6 +49,8 @@ export const TABLES: Table[] = [
   rel("HostMotif", "OccupationSpec", "Entity"),
   rel("HasStep", "Assertion", "OperationStep", [["ordinal", "INT64"]]),
   rel("ExplainsSymmetryOf", "Assertion", "Assertion"),
+  rel("ContextFor", "ModelContext", "StructureModel"),
+  rel("IllustratesPrototype", "StructureModel", "Entity", [["note", "STRING"]]),
   rel("Models", "StructureModel", "Entity"),
   rel("RouteMember", "DerivationRoute", "Assertion", [["ordinal", "INT64"]]),
   rel("HasAsset", "Document", "Asset"),

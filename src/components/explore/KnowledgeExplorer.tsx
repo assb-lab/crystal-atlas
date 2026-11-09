@@ -93,7 +93,7 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
   const { state, dispatch } = useAtlas();
   const [focus, setFocus] = useState(state.selected);
   const [db, setDB] = useState<KnowledgeDB | null>(null);
-  const [entities, setEntities] = useState<{ id: string; title: string }[]>([]);
+  const [entities, setEntities] = useState<{ id: string; title: string; kind: string }[]>([]);
   const [records, setRecords] = useState<RelationshipRecord[]>([]);
   const [comparisons, setComparisons] = useState<RelationshipRecord[]>([]);
   const [active, setActive] = useState<string | null>(state.knowledgeAssertion);
@@ -111,7 +111,7 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
       .then(async (database) => {
         const [list, rows, comparisonRows] = await Promise.all([
           database.query(
-            "MATCH (n:Entity) WHERE n.kind <> 'editorial_concept' RETURN n.id AS id, n.title AS title ORDER BY title",
+            "MATCH (n:Entity) WHERE n.kind <> 'editorial_concept' RETURN n.id AS id, n.title AS title, n.kind AS kind ORDER BY title",
           ),
           queryRelationships(database, mode, focus),
           mode === "derivation"
@@ -120,7 +120,7 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
         ]);
         if (cancelled) return;
         setDB(database);
-        setEntities(list as unknown as { id: string; title: string }[]);
+        setEntities(list as unknown as { id: string; title: string; kind: string }[]);
         setRecords(rows);
         setComparisons(comparisonRows);
         setLoading(false);
@@ -240,6 +240,13 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
             再試行
           </button>
         </div>
+      )}
+      {!loading && !error && (
+        <p data-testid="identity-inventory">
+          対象の識別状況：物質・相を未分離の既存カード{" "}
+          {entities.filter((e) => e.kind === "legacy_material_or_phase").length}{" "}
+          件。未分離は同一性が確認済みという意味ではありません。
+        </p>
       )}
       {!loading && !error && <EntityProfile key={focus} id={focus} onSelect={pick} />}
       {!loading && !error && (

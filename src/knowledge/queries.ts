@@ -45,3 +45,9 @@ export const ENTITY_PROFILE_QUERY = `MATCH (e:Entity {id: $id}) RETURN e.id AS i
 
 export const OCCUPATION_QUERY = `MATCH (a:Assertion {id: $id})-[h:HasStep]->(step:OperationStep)-[:HasOccupationSpec]->(spec:OccupationSpec)-[:HostMotif]->(host:Entity)
 RETURN spec.id AS id, spec.payload AS payload, host.id AS hostId, host.title AS hostTitle ORDER BY h.ordinal, spec.id`;
+
+export const MODEL_CONTEXT_QUERY = `MATCH (m:StructureModel)-[:Models]->(e:Entity {id: $id}), (c:ModelContext)-[:ContextFor]->(m)
+RETURN m.id AS id, c.kind AS kind, c.payload AS payload ORDER BY m.id`;
+export const PROTOTYPE_MODEL_QUERY = `MATCH (m:StructureModel)-[i:IllustratesPrototype]->(e:Entity {id: $id}), (c:ModelContext)-[:ContextFor]->(m)
+RETURN m.id AS id, c.kind AS kind, c.payload AS payload, i.note AS note ORDER BY m.id`;
+export const IDENTITY_STATUS_QUERY = `MATCH (e:Entity) RETURN e.kind AS kind, count(e) AS count ORDER BY kind`;
