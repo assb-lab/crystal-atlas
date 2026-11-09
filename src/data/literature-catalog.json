@@ -1,0 +1,435 @@
+{
+  "version": 1,
+  "probe": "pdfinfo version 26.10.0",
+  "assets": [
+    {
+      "sha256": "18545c23f64feced0306148246b9a11342837895606db133845720b5af0c4d2b",
+      "bytes": 13572279,
+      "locations": [
+        { "path": "inorganic-structural-chemistry-2ed-2006-muller.pdf", "roles": ["primary"] }
+      ],
+      "pageCount": 281,
+      "readState": "readable",
+      "mapping": {
+        "state": "candidate",
+        "documentIds": ["M06"],
+        "basis": "filename_only_not_edition_verified"
+      },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 281,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "1d4bef149c4b2704b0f86749d4ae8f1f306fbb00f7b3008410ca2f5473d96107",
+      "bytes": 246752,
+      "locations": [
+        {
+          "path": "curation/structural-classification-v1.5/howard.pdf",
+          "roles": ["primary", "curation"]
+        }
+      ],
+      "pageCount": 9,
+      "readState": "readable",
+      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 9,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "284ebef1e498aeec4a5682c426ebd7d6a0314dfcb1c38db00f3c11ac9a54a581",
+      "bytes": 6402748,
+      "locations": [
+        {
+          "path": "Francis S. Galasso, R. Smoluchowski and N. Kurti (Auth.) - Structure, Properties and Preparation of Perovskite-Type Compounds-Elsevier (1969).pdf",
+          "roles": ["primary"]
+        }
+      ],
+      "pageCount": 218,
+      "readState": "readable",
+      "mapping": {
+        "state": "candidate",
+        "documentIds": ["G"],
+        "basis": "filename_only_not_edition_verified"
+      },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 218,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "2ad1dbc5bc7e41f7cc4c7bbd61136d6ead30f76c4001f543e22fba0bfc2c84e9",
+      "bytes": 7181180,
+      "locations": [{ "path": "Ulrich_Müller.pdf", "roles": ["primary"] }],
+      "pageCount": 349,
+      "readState": "readable",
+      "mapping": {
+        "state": "candidate",
+        "documentIds": ["M13"],
+        "basis": "filename_only_not_edition_verified"
+      },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 349,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "3c049ebbfadc9efa6f427ab24518bd9fc10e2aef4342d44ae5697cc383215f41",
+      "bytes": 780389,
+      "locations": [
+        {
+          "path": "curation/structural-classification-v1.5/viciu.pdf",
+          "roles": ["primary", "curation"]
+        }
+      ],
+      "pageCount": 8,
+      "readState": "readable",
+      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 8,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "3ebf97ee1d6c5a04dbd29a2c17b8aa964452fb1852f83205a840b23b5a847aee",
+      "bytes": 8065762,
+      "locations": [
+        {
+          "path": "Perovskites Structure-Property Relationships (Richard J. D. Tilley).pdf",
+          "roles": ["primary"]
+        }
+      ],
+      "pageCount": 330,
+      "readState": "readable",
+      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 330,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "50f853a55e52dc1cfc2b9d4eda9f9bd76a3a5c516a85fa0fe1c3abbb123474d6",
+      "bytes": 62810803,
+      "locations": [
+        { "path": "solid-state-chemistry-and-its-applications.pdf", "roles": ["primary"] }
+      ],
+      "pageCount": 893,
+      "readState": "readable",
+      "mapping": {
+        "state": "candidate",
+        "documentIds": ["W"],
+        "basis": "filename_only_not_edition_verified"
+      },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 893,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "5343649f2d5ef4e5bb6ef86ca5d4002ef58d90262286656624a239b8965399eb",
+      "bytes": 254355,
+      "locations": [{ "path": "Chem.Mat-15-2651-2003.pdf", "roles": ["primary"] }],
+      "pageCount": 10,
+      "readState": "readable",
+      "mapping": {
+        "state": "candidate",
+        "documentIds": ["CA03"],
+        "basis": "filename_only_not_edition_verified"
+      },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 10,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "715240dfc5db0ddb4abdaf7159b8f1ffe950bb6d6036eddbbbe80ff1fce8e6d0",
+      "bytes": 57078084,
+      "locations": [{ "path": "Perovskite_modern_and_ancient.pdf", "roles": ["primary"] }],
+      "pageCount": 132,
+      "readState": "readable",
+      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 132,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "89e53b92d39ab682ec8dd1b6931e580ccb0de19fe07524d91d51d47ea9688e27",
+      "bytes": 2840076,
+      "locations": [{ "path": "bussei_el_061206.pdf", "roles": ["primary"] }],
+      "pageCount": 31,
+      "readState": "readable",
+      "mapping": {
+        "state": "candidate",
+        "documentIds": ["K"],
+        "basis": "filename_only_not_edition_verified"
+      },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 31,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "b11590e6fd58aa94ebbe93b0da0bef7e2a8e9806292b9d45ff1e3c33d71e8760",
+      "bytes": 1208560,
+      "locations": [
+        { "path": "Systematics of the Spinel Structure Type.pdf", "roles": ["primary"] }
+      ],
+      "pageCount": 23,
+      "readState": "readable",
+      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 23,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "d138db598997e33bcdb6c6b035f68f463da98869d673af73ba87fa0eca7fa788",
+      "bytes": 2992550,
+      "locations": [
+        {
+          "path": "curation/structural-classification-v1.5/cmt.pdf",
+          "roles": ["primary", "curation"]
+        }
+      ],
+      "pageCount": 7,
+      "readState": "readable",
+      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 7,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "d52c2ca47ad8305b6969d04772ad8298239ed9b0f8dd5eadafeb7f99d037790c",
+      "bytes": 5415365,
+      "locations": [{ "path": "ng4c00010.pdf", "roles": ["primary"] }],
+      "pageCount": 27,
+      "readState": "readable",
+      "mapping": {
+        "state": "candidate",
+        "documentIds": ["BS"],
+        "basis": "filename_only_not_edition_verified"
+      },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 27,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "e98fd7f797706b568dfb53c402d78c04ed33a97c427f1dfd59e76a32ee2c9f4a",
+      "bytes": 13821316,
+      "locations": [
+        {
+          "path": "Structure and Properties of Inorganic Solids (Francis S. Galasso etc).pdf",
+          "roles": ["primary"]
+        }
+      ],
+      "pageCount": 300,
+      "readState": "readable",
+      "mapping": {
+        "state": "candidate",
+        "documentIds": ["GI"],
+        "basis": "filename_only_not_edition_verified"
+      },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 300,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "f2906c602bba3a9036948684749d9a79c0587767cfd7016e892374c4bf950296",
+      "bytes": 22055921,
+      "locations": [{ "path": "StructuralInorganicChemistry.pdf", "roles": ["primary"] }],
+      "pageCount": 1127,
+      "readState": "readable",
+      "mapping": {
+        "state": "candidate",
+        "documentIds": ["AW"],
+        "basis": "filename_only_not_edition_verified"
+      },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 1127,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    },
+    {
+      "sha256": "ff302ddc11395df6ba455aaf665cd782d9542bb80a8c6a34626625e577b04993",
+      "bytes": 1029137,
+      "locations": [
+        {
+          "path": "curation/structural-classification-v1.5/cmt-original-si.pdf",
+          "roles": ["supplement", "curation"]
+        }
+      ],
+      "pageCount": 15,
+      "readState": "readable",
+      "mapping": { "state": "unmatched", "documentIds": [], "basis": "" },
+      "coverage": [
+        {
+          "from": 1,
+          "to": 15,
+          "channels": {
+            "body": "not_started",
+            "figures": "not_started",
+            "tables": "not_started",
+            "index": "not_started"
+          },
+          "note": "",
+          "printedPageMapping": null
+        }
+      ]
+    }
+  ]
+}

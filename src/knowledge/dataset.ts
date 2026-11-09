@@ -1,6 +1,8 @@
 import type { Atlas, AtlasEdge, Ref } from "../types.ts";
 import { CONCEPTS, ROLES } from "../data/packing.ts";
 import { TABLES, type Cell } from "./schema.ts";
+import catalogData from "../data/literature-catalog.json" with { type: "json" };
+import { assetId, validateCatalog, type LiteratureCatalog } from "./catalog.ts";
 
 /** Explicit annotations of existing statements, not operations inferred from space-group names. */
 const OPERATIONS: Record<string, { operation: string; target: string; parameters: object }> = {
@@ -20,7 +22,11 @@ export interface KnowledgeDataset {
 const json = (value: unknown) => JSON.stringify(value);
 
 /** Lossless, deterministic projection of the curated subset. No extraction coverage is invented. */
-export function knowledgeDataset(data: Atlas): KnowledgeDataset {
+export function knowledgeDataset(
+  data: Atlas,
+  catalog: LiteratureCatalog = catalogData as LiteratureCatalog,
+): KnowledgeDataset {
+  validateCatalog(catalog, new Set(Object.keys(data.sources)));
   const rows: Record<string, Cell[][]> = Object.fromEntries(TABLES.map((t) => [t.name, []]));
   const add = (table: string, ...row: Cell[]) => rows[table]!.push(row);
   const spanIds = new Set<string>();
@@ -202,6 +208,38 @@ export function knowledgeDataset(data: Atlas): KnowledgeDataset {
   for (const route of data.flows) {
     add("DerivationRoute", route.id, route.title, json(route));
     route.edges.forEach((id, ordinal) => add("RouteMember", route.id, `relation:${id}`, ordinal));
+  }
+  // This activity only inventories assets and creates pending ledger ranges.
+  // It is never a PDF extraction or a scientific review run.
+  const runId = "inventory:catalog-v1";
+  add(
+    "ProcessingRun",
+    runId,
+    json({ activity: "asset_inventory", probe: catalog.probe, catalogVersion: catalog.version }),
+  );
+  for (const asset of catalog.assets) {
+    const id = assetId(asset.sha256);
+    add("Asset", id, asset.sha256, json(asset));
+    add("CataloguedBy", id, runId);
+    for (const documentId of asset.mapping.documentIds)
+      add(asset.mapping.state === "confirmed" ? "HasAsset" : "CandidateAsset", documentId, id);
+    asset.coverage.forEach((range, ordinal) => {
+      const reviewId = `coverage:${asset.sha256}:${ordinal}`;
+      const status = Object.values(range.channels).every((s) => s === "not_started")
+        ? "not_started"
+        : "recorded";
+      add(
+        "CoverageReview",
+        reviewId,
+        status,
+        json({
+          ...range,
+          coordinateSystem: "pdf_page_1_based",
+          ledgerOnly: status === "not_started",
+        }),
+      );
+      add("Reviews", reviewId, id);
+    });
   }
   return { rows };
 }

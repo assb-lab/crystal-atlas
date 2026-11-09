@@ -26,8 +26,8 @@ Family（分類）・Derivation（構造派生）・Symmetry（対称性）は�
 | Document / SourceSpan          | 版を含む書誌と、印刷頁・PDF頁・図表・URL等の参照位置                                 |
 | StructureModel                 | 格子・座標・占有率・出典の既存モデル。Modelsで対象に接続                             |
 | DerivationRoute                | 文献の図にある提示順。RouteMemberのordinalは合成反応順序を表さない                   |
-| Asset / Mention                | 将来のファイル指紋・実際の登場記録。現段階では空                                     |
-| CoverageReview / ProcessingRun | 将来のページ調査・抽出履歴。現段階では空                                             |
+| Asset / Mention                | Assetはファイル指紋と目録。Mentionは実際の登場記録で未抽出のため空                   |
+| CoverageReview / ProcessingRun | ページ範囲の未調査台帳と目録生成活動。抽出・照合済みの履歴とは区別                   |
 
 `Subject`・`Object`がAssertionとEntityを、`HasEvidence`・`InDocument`がAssertionと文献箇所を結びます。構造型・物質・相を名前や化学式だけで名寄せしません。既存の物質・相を混在するカードは `legacy_material_or_phase` として保持し、今後の文献照合で分離します。
 
@@ -63,4 +63,6 @@ pnpm e2e
 
 `test:db` は生成DBを読み取り専用で再オープンし、全テーブルの全行・全列を移行前の投影データと照合します。3表示・比較・操作・対称性との対応の実照会、出典、パラメータの扱い、書き込み拒否も確認します。ブラウザE2Eでは同じ生成DBを実WASMで開き、配信版とネットワークを無効化した単一HTML版の操作・出典・表示切替・再読み込み、デスクトップと390pxでの表示を確認します。さらに破損したDBの再取得、Workerを実際に停止した後の再接続、別Atlasでの選択による充填ツリーの状態保持を検証します。
 
-後続の実装は、文献目録・ファイル指紋、ページごとの調査台帳、登場記録の抽出と名寄せ、構造型／物質／相の分離、形式化したサイト対応、周期グラフ等をそれぞれIssueに切り出します。
+物理スキーマv2では、文献候補をCandidateAsset、確認済み対応をHasAsset、目録生成活動をCataloguedByで接続します。[文献目録と調査台帳](LITERATURE_CATALOG.md)を参照してください。
+
+後続の実装は、登場記録の抽出と名寄せ、構造型／物質／相の分離、形式化したサイト対応、周期グラフ等をそれぞれIssueに切り出します。

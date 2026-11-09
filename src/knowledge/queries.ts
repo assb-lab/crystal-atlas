@@ -11,3 +11,8 @@ export const STEP_QUERY = `MATCH (a:Assertion {id: $id})-[h:HasStep]->(s:Operati
 RETURN s.operation AS operation, s.target AS target, s.parameters AS parameters, s.payload AS payload ORDER BY h.ordinal`;
 export const COUNTERPART_QUERY = `MATCH (s:Assertion)-[:ExplainsSymmetryOf]->(d:Assertion)
 WHERE s.id = $id OR d.id = $id RETURN s.id AS symmetry, d.id AS derivation`;
+export const CATALOG_QUERY = `MATCH (a:Asset) RETURN a.id AS id, a.payload AS payload ORDER BY a.id`;
+export const COVERAGE_QUERY = `MATCH (r:CoverageReview)-[:Reviews]->(a:Asset {id: $id})
+RETURN r.id AS id, r.status AS status, r.payload AS payload ORDER BY r.id`;
+export const DOCUMENT_ASSETS_QUERY = `MATCH (d:Document {id: $id})-[r:HasAsset|CandidateAsset]->(a:Asset)
+RETURN a.id AS id, a.payload AS payload ORDER BY a.id`;
