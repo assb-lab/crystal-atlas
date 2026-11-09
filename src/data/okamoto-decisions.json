@@ -1,0 +1,317 @@
+{
+  "id": "curation:K:pdf2-3:v1",
+  "extractionId": "extraction:K:pdf2-3:v1",
+  "assetHash": "89e53b92d39ab682ec8dd1b6931e580ccb0de19fe07524d91d51d47ea9688e27",
+  "reviewer": "Codex",
+  "reviewedOn": "2026-11-09",
+  "method": "document_context_review",
+  "scope": "KのPDF 2–3頁の選択した登場記録10件・関係候補10件について、文献の文脈と既存レコードを照合した初回判断。",
+  "limitations": [
+    "文献と既存レコードの文脈の照合であり、外部専門家のレビューや座標・群対応の数値検証ではない。",
+    "採用は記載した範囲に限る。対象2頁や資料全体の全出現の網羅・科学的照合完了を意味しない。",
+    "既存の未再照合のAssertionを統合・置換しない。候補の照合先は同一性の確定とは別である。"
+  ],
+  "decisions": [
+    {
+      "id": "decision:v1:pilot:K:2-3:mention:1a",
+      "candidateKind": "mention",
+      "candidateId": "pilot:K:2-3:mention:1a",
+      "outcome": "accepted",
+      "reason": "図・本文の配置、構造名、説明の文脈を既存レコードの対象と照合。描かれた幾何学的モチーフ／構造型への参照として採用し、特定物質・実試料の相を同定するリンクとは扱わない。",
+      "evidenceSpanIds": ["pilot:K:2-3:span:1a"],
+      "nextAction": null,
+      "resolution": {
+        "kind": "entity",
+        "entityId": "simple-cubic",
+        "scope": "文献で説明・図示された構造のモチーフまたは型。実試料・組成・温度圧力条件の同一性は含まない。"
+      }
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:mention:1b",
+      "candidateKind": "mention",
+      "candidateId": "pilot:K:2-3:mention:1b",
+      "outcome": "accepted",
+      "reason": "図・本文の配置、構造名、説明の文脈を既存レコードの対象と照合。描かれた幾何学的モチーフ／構造型への参照として採用し、特定物質・実試料の相を同定するリンクとは扱わない。",
+      "evidenceSpanIds": ["pilot:K:2-3:span:1b"],
+      "nextAction": null,
+      "resolution": {
+        "kind": "entity",
+        "entityId": "b2",
+        "scope": "文献で説明・図示された構造のモチーフまたは型。実試料・組成・温度圧力条件の同一性は含まない。"
+      }
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:mention:1c",
+      "candidateKind": "mention",
+      "candidateId": "pilot:K:2-3:mention:1c",
+      "outcome": "accepted",
+      "reason": "図・本文の配置、構造名、説明の文脈を既存レコードの対象と照合。描かれた幾何学的モチーフ／構造型への参照として採用し、特定物質・実試料の相を同定するリンクとは扱わない。",
+      "evidenceSpanIds": ["pilot:K:2-3:span:1c"],
+      "nextAction": null,
+      "resolution": {
+        "kind": "entity",
+        "entityId": "bcc",
+        "scope": "文献で説明・図示された構造のモチーフまたは型。実試料・組成・温度圧力条件の同一性は含まない。"
+      }
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:mention:2a",
+      "candidateKind": "mention",
+      "candidateId": "pilot:K:2-3:mention:2a",
+      "outcome": "accepted",
+      "reason": "図・本文の配置、構造名、説明の文脈を既存レコードの対象と照合。描かれた幾何学的モチーフ／構造型への参照として採用し、特定物質・実試料の相を同定するリンクとは扱わない。",
+      "evidenceSpanIds": ["pilot:K:2-3:span:2a"],
+      "nextAction": null,
+      "resolution": {
+        "kind": "entity",
+        "entityId": "fcc",
+        "scope": "文献で説明・図示された構造のモチーフまたは型。実試料・組成・温度圧力条件の同一性は含まない。"
+      }
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:mention:2b",
+      "candidateKind": "mention",
+      "candidateId": "pilot:K:2-3:mention:2b",
+      "outcome": "accepted",
+      "reason": "図・本文の配置、構造名、説明の文脈を既存レコードの対象と照合。描かれた幾何学的モチーフ／構造型への参照として採用し、特定物質・実試料の相を同定するリンクとは扱わない。",
+      "evidenceSpanIds": ["pilot:K:2-3:span:2b"],
+      "nextAction": null,
+      "resolution": {
+        "kind": "entity",
+        "entityId": "nacl",
+        "scope": "文献で説明・図示された構造のモチーフまたは型。実試料・組成・温度圧力条件の同一性は含まない。"
+      }
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:mention:2c",
+      "candidateKind": "mention",
+      "candidateId": "pilot:K:2-3:mention:2c",
+      "outcome": "accepted",
+      "reason": "図・本文の配置、構造名、説明の文脈を既存レコードの対象と照合。描かれた幾何学的モチーフ／構造型への参照として採用し、特定物質・実試料の相を同定するリンクとは扱わない。",
+      "evidenceSpanIds": ["pilot:K:2-3:span:2c"],
+      "nextAction": null,
+      "resolution": {
+        "kind": "entity",
+        "entityId": "simple-cubic",
+        "scope": "文献で説明・図示された構造のモチーフまたは型。実試料・組成・温度圧力条件の同一性は含まない。"
+      }
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:mention:2d",
+      "candidateKind": "mention",
+      "candidateId": "pilot:K:2-3:mention:2d",
+      "outcome": "accepted",
+      "reason": "図・本文の配置、構造名、説明の文脈を既存レコードの対象と照合。描かれた幾何学的モチーフ／構造型への参照として採用し、特定物質・実試料の相を同定するリンクとは扱わない。",
+      "evidenceSpanIds": ["pilot:K:2-3:span:2d"],
+      "nextAction": null,
+      "resolution": {
+        "kind": "entity",
+        "entityId": "zns",
+        "scope": "文献で説明・図示された構造のモチーフまたは型。実試料・組成・温度圧力条件の同一性は含まない。"
+      }
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:mention:2e",
+      "candidateKind": "mention",
+      "candidateId": "pilot:K:2-3:mention:2e",
+      "outcome": "accepted",
+      "reason": "図・本文の配置、構造名、説明の文脈を既存レコードの対象と照合。描かれた幾何学的モチーフ／構造型への参照として採用し、特定物質・実試料の相を同定するリンクとは扱わない。",
+      "evidenceSpanIds": ["pilot:K:2-3:span:2e"],
+      "nextAction": null,
+      "resolution": {
+        "kind": "entity",
+        "entityId": "diamond",
+        "scope": "文献で説明・図示された構造のモチーフまたは型。実試料・組成・温度圧力条件の同一性は含まない。"
+      }
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:mention:fluorite",
+      "candidateKind": "mention",
+      "candidateId": "pilot:K:2-3:mention:fluorite",
+      "outcome": "accepted",
+      "reason": "図・本文の配置、構造名、説明の文脈を既存レコードの対象と照合。描かれた幾何学的モチーフ／構造型への参照として採用し、特定物質・実試料の相を同定するリンクとは扱わない。",
+      "evidenceSpanIds": ["pilot:K:2-3:span:fluorite"],
+      "nextAction": null,
+      "resolution": {
+        "kind": "entity",
+        "entityId": "fluorite",
+        "scope": "文献で説明・図示された構造のモチーフまたは型。実試料・組成・温度圧力条件の同一性は含まない。"
+      }
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:mention:fcc-lattice",
+      "candidateKind": "mention",
+      "candidateId": "pilot:K:2-3:mention:fcc-lattice",
+      "outcome": "held",
+      "reason": "本文は面心立方格子を並進格子として説明する一方、既存fcc Entityは単原子fcc／ccpモチーフを一つに保持する。図の構造モチーフと本文の格子概念の同一性をここで確定しない。",
+      "evidenceSpanIds": ["pilot:K:2-3:span:fcc-lattice"],
+      "nextAction": "計画#22の段階2で並進格子と充填・構造モチーフの区別を定めて再照合する。",
+      "resolution": null
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:relation:sc-cscl",
+      "candidateKind": "relation",
+      "candidateId": "pilot:K:2-3:relation:sc-cscl",
+      "outcome": "accepted",
+      "reason": "図1(a,b)とPDF 3頁冒頭の説明、半対角の相対移動、異種原子という条件を照合。構造構築の説明として採用。",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:1a",
+        "pilot:K:2-3:span:1b",
+        "pilot:K:2-3:span:sc-operation"
+      ],
+      "nextAction": null,
+      "resolution": {
+        "kind": "assertion",
+        "label": "単純立方部分格子の貫入でCsCl型を構築",
+        "target": "two_simple_cubic_sublattices",
+        "scope": "文献上の幾何学的構築の説明。実際の相転移・合成経路・変換行列の検証を含まない。",
+        "notes": [
+          "本文のCs/Clサイトの等価性という用語の一般化は採用しない。既存stacking分類の関係との統合は行わない。"
+        ],
+        "description": "異種原子の二組の単純立方部分格子を半対角だけずらして重ね、CsCl型を構築する説明。"
+      }
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:relation:cscl-bcc",
+      "candidateKind": "relation",
+      "candidateId": "pilot:K:2-3:relation:cscl-bcc",
+      "outcome": "held",
+      "reason": "原文の同種原子による占有という条件は確認できるが、元素ラベルを外した理想模型への写像と、現実の元素置換を区別する操作定義・到達セルの扱いが未整備。逆向きの既存対称性説明との同一視は採用しない。",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:1b",
+        "pilot:K:2-3:span:1c",
+        "pilot:K:2-3:span:sc-operation"
+      ],
+      "nextAction": "計画#22の段階2–3で模型の対象と元素ラベルを同一視する操作を定義し、セルの扱いと既存関係への対応を再照合する。",
+      "resolution": null
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:relation:fcc-nacl",
+      "candidateKind": "relation",
+      "candidateId": "pilot:K:2-3:relation:fcc-nacl",
+      "outcome": "accepted",
+      "reason": "図2(a,b)と本文の異種原子・軸方向半セルの移動を照合。幾何学的な構築説明として採用。",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:2a",
+        "pilot:K:2-3:span:2b",
+        "pilot:K:2-3:span:fcc-operation"
+      ],
+      "nextAction": null,
+      "resolution": {
+        "kind": "assertion",
+        "label": "面心立方部分格子の貫入で岩塩型を構築",
+        "target": "two_fcc_sublattices",
+        "scope": "文献上の幾何学的構築の説明。実際の相転移・合成経路・変換行列の検証を含まない。",
+        "notes": [
+          "原文はx/y/z軸のいずれかと記述する。(1/2,0,0)はx軸を選んだ代表表記であり、一意の軸や群対応を検証したものではない。",
+          "既存stacking分類の関係を置換・統合しない。"
+        ],
+        "description": "異種原子の二組の面心立方部分格子を慣用セルの軸方向に半分ずらして重ね、岩塩型を構築する説明。"
+      }
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:relation:nacl-sc",
+      "candidateKind": "relation",
+      "candidateId": "pilot:K:2-3:relation:nacl-sc",
+      "outcome": "held",
+      "reason": "原文の同種原子による占有という条件は確認できるが、元素ラベルを外した理想模型への写像と、現実の元素置換を区別する操作定義・到達セルの扱いが未整備。逆向きの既存対称性説明との同一視は採用しない。",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:2b",
+        "pilot:K:2-3:span:2c",
+        "pilot:K:2-3:span:fcc-operation"
+      ],
+      "nextAction": "計画#22の段階2–3で模型の対象と元素ラベルを同一視する操作を定義し、セルの扱いと既存関係への対応を再照合する。",
+      "resolution": null
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:relation:fcc-zns",
+      "candidateKind": "relation",
+      "candidateId": "pilot:K:2-3:relation:fcc-zns",
+      "outcome": "accepted",
+      "reason": "図2(a,d)と本文の二組のfcc、四分の一対角のずれを照合。元素を区別した構造型への構築説明として採用。",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:2a",
+        "pilot:K:2-3:span:2d",
+        "pilot:K:2-3:span:tetrahedral-operation"
+      ],
+      "nextAction": null,
+      "resolution": {
+        "kind": "assertion",
+        "label": "面心立方部分格子の貫入で閃亜鉛鉱型を構築",
+        "target": "two_fcc_sublattices",
+        "scope": "文献上の幾何学的構築の説明。実際の相転移・合成経路・変換行列の検証を含まない。",
+        "notes": [
+          "本文の対称性低下は記述として保持するが、厳密な群–部分群の新規Assertionは作らない。",
+          "空孔占有の説明とは別の操作として保持し、既存関係の分類変更は行わない。"
+        ],
+        "description": "二組の面心立方部分格子を四分の一対角だけずらして重ね、閃亜鉛鉱型を構築する説明。"
+      }
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:relation:zns-diamond",
+      "candidateKind": "relation",
+      "candidateId": "pilot:K:2-3:relation:zns-diamond",
+      "outcome": "held",
+      "reason": "原文の同種原子による占有という条件は確認できるが、元素ラベルを外した理想模型への写像と、現実の元素置換を区別する操作定義・到達セルの扱いが未整備。逆向きの既存対称性説明との同一視は採用しない。",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:2d",
+        "pilot:K:2-3:span:2e",
+        "pilot:K:2-3:span:tetrahedral-operation"
+      ],
+      "nextAction": "計画#22の段階2–3で模型の対象と元素ラベルを同一視する操作を定義し、セルの扱いと既存関係への対応を再照合する。",
+      "resolution": null
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:relation:fcc-fluorite-voids",
+      "candidateKind": "relation",
+      "candidateId": "pilot:K:2-3:relation:fcc-fluorite-voids",
+      "outcome": "held",
+      "reason": "本文中の空孔占有の記述は確認できるが、既存fccの抽象モチーフと、どの元素集合を骨格としてどの空孔集合を占有するかの対象対応が未確定。貫入の採用とは独立に保留する。",
+      "evidenceSpanIds": ["pilot:K:2-3:span:tetrahedral-operation"],
+      "nextAction": "計画#22の段階3で骨格の元素役割・空孔集合・占有条件の操作対象を明示し、既存occupation関係との対応を再照合する。",
+      "resolution": null
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:relation:fcc-zns-voids",
+      "candidateKind": "relation",
+      "candidateId": "pilot:K:2-3:relation:fcc-zns-voids",
+      "outcome": "held",
+      "reason": "本文中の空孔占有の記述は確認できるが、既存fccの抽象モチーフと、どの元素集合を骨格としてどの空孔集合を占有するかの対象対応が未確定。貫入の採用とは独立に保留する。",
+      "evidenceSpanIds": ["pilot:K:2-3:span:tetrahedral-operation"],
+      "nextAction": "計画#22の段階3で骨格の元素役割・空孔集合・占有条件の操作対象を明示し、既存occupation関係との対応を再照合する。",
+      "resolution": null
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:relation:fcc-nacl-voids",
+      "candidateKind": "relation",
+      "candidateId": "pilot:K:2-3:relation:fcc-nacl-voids",
+      "outcome": "held",
+      "reason": "本文中の空孔占有の記述は確認できるが、既存fccの抽象モチーフと、どの元素集合を骨格としてどの空孔集合を占有するかの対象対応が未確定。貫入の採用とは独立に保留する。",
+      "evidenceSpanIds": ["pilot:K:2-3:span:tetrahedral-operation"],
+      "nextAction": "計画#22の段階3で骨格の元素役割・空孔集合・占有条件の操作対象を明示し、既存occupation関係との対応を再照合する。",
+      "resolution": null
+    },
+    {
+      "id": "decision:v1:pilot:K:2-3:relation:nacl-zns-comparison",
+      "candidateKind": "relation",
+      "candidateId": "pilot:K:2-3:relation:nacl-zns-comparison",
+      "outcome": "accepted",
+      "reason": "本文のNaClの六配位と閃亜鉛鉱の四配位の説明を照合。二つの記述の編集上の比較として採用し、文献が直接示した派生操作とはしない。",
+      "evidenceSpanIds": [
+        "pilot:K:2-3:span:fcc-operation",
+        "pilot:K:2-3:span:tetrahedral-operation"
+      ],
+      "nextAction": null,
+      "resolution": {
+        "kind": "assertion",
+        "label": "岩塩型と閃亜鉛鉱型の配位を比較",
+        "target": null,
+        "scope": "配位の記述を比較する編集上の整理。派生・相転移の主張を含まない。",
+        "notes": [
+          "比較の構成は編集上の整理。本文の二つの配位記述が根拠であり、相転移や操作の方向を示さない。"
+        ],
+        "description": "NaClの六配位と閃亜鉛鉱の四配位という本文中の記述を、比較として編集上整理したもの。原文の派生矢印ではない。"
+      }
+    }
+  ]
+}

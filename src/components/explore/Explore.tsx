@@ -6,7 +6,9 @@ export function Explore() {
   const { state } = useAtlas();
   return (
     <>
-      <KnowledgeExplorer key={state.atlasMode} />
+      <KnowledgeExplorer
+        key={`${state.atlasMode}:${state.knowledgeAssertion ?? "ordinary"}:${state.knowledgeAssertion ? state.tab : ""}`}
+      />
       <PackingExplorer />
     </>
   );

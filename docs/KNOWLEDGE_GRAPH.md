@@ -75,3 +75,7 @@ Mentionは原表記と特定のSourceSpanを持ち、同じ名前の別の登場
 RelationCandidateは派生または比較の未確定候補で、CandidateSubject/ObjectでMentionに、CandidateEvidenceで根拠箇所に、CandidateMatchesで既存Assertionの照合対象に接続します。CandidateMatchesは同一性を断定せず、逆向きや異なる出発点・操作についてnoteを保持します。新規Assertionや群–部分群の厳密な対応へ自動昇格しません。
 
 初回バッチはKのPDF 2–3頁です。ProcessingRunに対象SHA・PDF頁・確認した印刷頁・実施者・範囲と制限を保持し、MentionByRun / CandidateByRun / ByRunで登場記録・関係候補・対象台帳に接続します。図と本文にある構築説明と、編集上の比較をbasisで区別します。原子の追加を含む貫入、空孔占有、同種元素への変更を同じ操作へ統合しません。新規13箇所だけにLocatedInを付け、文献全体や既存出典の頁対応を確認したとは扱いません。詳細は[抽出パイロット](EXTRACTION_PILOT.md)を参照してください。
+
+## 候補の採否と採用結果（スキーマv4）
+
+CandidateDecisionで元候補を保持したまま初回判断を追加します。採用した登場記録のRefersToと、採用した関係の独立したAssertionを判断・根拠・活動へ接続します。Kの初回判断は登場記録9採用・1保留、関係4採用・6保留です。既存の科学的主張や調査範囲を一括変更せず、採用分も文脈の照合と数値検証を区別して表示します。[候補の初回判断](CANDIDATE_DECISIONS.md)を参照してください。

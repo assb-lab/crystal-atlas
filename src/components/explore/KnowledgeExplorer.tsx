@@ -1,5 +1,12 @@
 import { EVIDENCE_QUERY, STEP_QUERY, COUNTERPART_QUERY } from "../../knowledge/queries.ts";
-import { missingEvidenceLabel, stepProvenanceLabel } from "../../knowledge/presentation.ts";
+import {
+  missingEvidenceLabel,
+  stepProvenanceLabel,
+  assertionProvenanceLabel,
+  operationLabels,
+  parameterLabels,
+  parameterValue,
+} from "../../knowledge/presentation.ts";
 import { useEffect, useState } from "react";
 import { DATA } from "../../data/atlas.ts";
 import {
@@ -38,6 +45,8 @@ const TARGET_LABELS: Record<string, string> = {
   fcc_4a_orbit: "fcc構造の4a軌道",
   bcc_corner_and_body_center: "bcc配列の角と体心",
   octahedral_rotation: "配位八面体の回転",
+  two_simple_cubic_sublattices: "二組の単純立方部分格子",
+  two_fcc_sublattices: "二組の面心立方部分格子",
 };
 interface Detail {
   id: string;
@@ -270,6 +279,24 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                 </p>
               )}
               <p>{selected.description}</p>
+              {selected.status === "source_checked_not_machine_verified" && (
+                <div className="knowledge-review">
+                  <p>
+                    {String(payload.reviewedOn)} · {String(payload.reviewer)} · 初回採用
+                  </p>
+                  <p>採用範囲：{String(payload.scope)}</p>
+                  {Array.isArray(payload.limitations) && (
+                    <details>
+                      <summary>採用の制限と注記</summary>
+                      <ul>
+                        {payload.limitations.map((note, i) => (
+                          <li key={i}>{String(note)}</li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </div>
+              )}
               <div className="knowledge-endpoints">
                 <button className="small" onClick={() => pick(selected.subjectId)}>
                   {selected.subjectTitle}
@@ -297,7 +324,10 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
               {detail?.steps.map((s, i) => (
                 <div className="knowledge-step" key={i}>
                   <strong>
-                    操作 {i + 1}：{OPERATION_LABELS[String(s.operation)] ?? String(s.operation)}
+                    操作 {i + 1}：
+                    {OPERATION_LABELS[String(s.operation)] ??
+                      operationLabels[String(s.operation)] ??
+                      String(s.operation)}
                   </strong>
                   <p>{stepProvenanceLabel(String(s.payload))}</p>
                   <p>
@@ -309,13 +339,21 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                   {s.parameters !== "{}" && (
                     <dl>
                       {Object.entries(
-                        JSON.parse(String(s.parameters)) as Record<string, number | number[]>,
+                        JSON.parse(String(s.parameters)) as Record<string, unknown>,
                       ).map(([key, value]) => (
                         <div key={key}>
                           <dt>
-                            {key === "fraction" ? "占有率" : key === "ratio" ? "組成比" : key}
+                            {key === "fraction"
+                              ? "占有率"
+                              : key === "ratio"
+                                ? "組成比"
+                                : (parameterLabels[key] ?? key)}
                           </dt>
-                          <dd>{Array.isArray(value) ? value.join(":") : value}</dd>
+                          <dd>
+                            {key === "ratio" && Array.isArray(value)
+                              ? value.join(":")
+                              : parameterValue(value)}
+                          </dd>
                         </div>
                       ))}
                     </dl>
@@ -349,13 +387,13 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
               ) : (
                 <p role="status">根拠を読み込んでいます…</p>
               )}
-              <small>既存収録データから移行した記述です。移行後の再照合は未実施です。</small>
+              <small>{assertionProvenanceLabel(selected.status, selected.basis)}</small>
             </article>
           )}
         </div>
       )}
       <p className="knowledge-coverage">
-        既存の文献確認範囲を収録しています。refs全文の網羅調査・ページ単位の照合は未実施です。
+        既存収録と、選択範囲を照合して採用した記述を区別して表示します。refs全文の網羅調査は未完了です。
       </p>
     </div>
   );

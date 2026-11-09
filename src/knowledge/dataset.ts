@@ -5,6 +5,8 @@ import catalogData from "../data/literature-catalog.json" with { type: "json" };
 import { assetId, validateCatalog, type LiteratureCatalog } from "./catalog.ts";
 import extractionData from "../data/okamoto-extraction.json" with { type: "json" };
 import { appendExtraction, type ExtractionBatch } from "./extraction.ts";
+import decisionData from "../data/okamoto-decisions.json" with { type: "json" };
+import { appendDecisions, type DecisionBatch } from "./decisions.ts";
 
 /** Explicit annotations of existing statements, not operations inferred from space-group names. */
 const OPERATIONS: Record<string, { operation: string; target: string; parameters: object }> = {
@@ -28,6 +30,9 @@ export function knowledgeDataset(
   data: Atlas,
   catalog: LiteratureCatalog = catalogData as LiteratureCatalog,
   extractions: ExtractionBatch[] = [extractionData as ExtractionBatch],
+  reviews: DecisionBatch[] = extractions.some((e) => e.id === decisionData.extractionId)
+    ? [decisionData as DecisionBatch]
+    : [],
 ): KnowledgeDataset {
   validateCatalog(catalog, new Set(Object.keys(data.sources)));
   const rows: Record<string, Cell[][]> = Object.fromEntries(TABLES.map((t) => [t.name, []]));
@@ -245,5 +250,10 @@ export function knowledgeDataset(
     });
   }
   for (const batch of extractions) appendExtraction(rows, data, catalog, batch);
+  for (const review of reviews) {
+    const extraction = extractions.find((e) => e.id === review.extractionId);
+    if (!extraction) throw new Error("Review references an unknown extraction");
+    appendDecisions(rows, extraction, review);
+  }
   return { rows };
 }

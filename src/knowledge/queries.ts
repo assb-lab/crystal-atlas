@@ -28,3 +28,11 @@ export const CANDIDATE_EVIDENCE_QUERY = `MATCH (r:RelationCandidate {id: $id})-[
 RETURN s.payload AS reference ORDER BY s.id`;
 export const ASSERTION_MATCHES_QUERY = `MATCH (r:RelationCandidate {id: $id})-[c:CandidateMatches]->(a:Assertion)
 RETURN a.id AS id, a.label AS label, c.note AS note ORDER BY a.id`;
+export const DECISIONS_QUERY = `MATCH (d:CandidateDecision)-[:DecisionEvidence]->(s:SourceSpan)-[:LocatedIn]->(a:Asset {id: $id})
+RETURN DISTINCT d.id AS id, d.candidateId AS candidateId, d.candidateKind AS candidateKind, d.outcome AS outcome, d.reason AS reason, d.payload AS payload ORDER BY d.id`;
+export const DECISION_RESULT_QUERY = `MATCH (d:CandidateDecision {id: $id})-[:ResolvedEntity]->(e:Entity)
+RETURN e.id AS id, e.title AS title`;
+export const ADOPTED_ASSERTION_QUERY = `MATCH (d:CandidateDecision {id: $id})-[:AdoptedAssertion]->(a:Assertion)-[:Subject]->(s:Entity)
+RETURN a.id AS id, a.label AS title, a.domain AS domain, s.id AS subjectId`;
+export const DECISION_EVIDENCE_QUERY = `MATCH (d:CandidateDecision {id: $id})-[:DecisionEvidence]->(s:SourceSpan)
+RETURN s.payload AS reference ORDER BY s.id`;
