@@ -1,3 +1,4 @@
+import { useViewState } from "../../lib/view-state.ts";
 import { useEffect, useState } from "react";
 import { getKnowledgeDB } from "../../knowledge/client.ts";
 import {
@@ -20,7 +21,7 @@ export function FamilySchemes({
   onSelect: (id: string) => void;
 }) {
   const { dispatch } = useAtlas();
-  const [scheme, setScheme] = useState("scheme:HS:1998:table1");
+  const [scheme, setScheme] = useViewState("family:scheme", "scheme:HS:1998:table1");
   const [schemes, setSchemes] = useState<Row[]>([]);
   const [detail, setDetail] = useState<{
     scheme: string;

@@ -1,3 +1,6 @@
+import { recordQuery } from "../src/knowledge/records.ts";
+import { recordKinds } from "../src/knowledge/navigation.ts";
+import { ASSERTION_ENDPOINT_QUERY } from "../src/knowledge/queries.ts";
 import {
   SYMMETRY_MAPPING_QUERY,
   SYMMETRY_VALIDATION_QUERY,
@@ -118,6 +121,13 @@ try {
   assert.equal(JSON.parse(String(idealValidation[0]!.payload)).parentOperations, 192);
   assert.equal(query(SYMMETRY_MODEL_QUERY, { id: "mapping:M13:fig1.1" }).length, 1);
   assert.deepEqual(query(SYMMETRY_MAPPING_QUERY, { id: "' OR true //" }), []);
+  for (const kind of recordKinds) {
+    const all = query(recordQuery(kind, true));
+    assert.ok(all.length > 0);
+    assert.equal(query(recordQuery(kind), { id: String(all[0]!.id) }).length, 1);
+    assert.deepEqual(query(recordQuery(kind), { id: "' OR true //" }), []);
+  }
+  assert.equal(query(ASSERTION_ENDPOINT_QUERY, { id: "relation:e8" })[0]!.subjectId, "diamond");
   const contexts = query(MODEL_CONTEXT_QUERY, { id: "anatase" });
   assert.equal(contexts.length, 1);
   const context = JSON.parse(String(contexts[0]!.payload));

@@ -1,3 +1,7 @@
+import { getKnowledgeDB, resetKnowledgeDB } from "../knowledge/client.ts";
+import { recordKinds, type RecordKind } from "../knowledge/navigation.ts";
+import { recordQuery, recordLabels } from "../knowledge/records.ts";
+import { normalize } from "../lib/format.ts";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { DATA } from "../data/atlas.ts";
 import { searchMatches } from "../lib/atlas.ts";
@@ -10,9 +14,53 @@ export function GlobalSearch() {
   const input = useRef<HTMLInputElement>(null);
   const results = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
+  const [scope, setScope] = useState("all");
+  const [graph, setGraph] = useState<
+    { kind: RecordKind; id: string; title: string; text: string }[] | null
+  >(null);
+  const [error, setError] = useState("");
+  const [attempt, setAttempt] = useState(0);
+  const [shown, setShown] = useState(50);
+  useEffect(() => {
+    if (!state.searchOpen || graph) return;
+    let live = true;
+    void getKnowledgeDB()
+      .then(async (db) => {
+        const groups = await Promise.all(
+          recordKinds.map(async (kind) =>
+            (await db.query(recordQuery(kind, true))).map((r) => ({
+              kind,
+              id: String(r.id),
+              title: String(r.title),
+              text: normalize(JSON.stringify(r)),
+            })),
+          ),
+        );
+        if (live) {
+          setError("");
+          setGraph(groups.flat());
+        }
+      })
+      .catch((e) => {
+        if (live) setError(String(e));
+      });
+    return () => {
+      live = false;
+    };
+  }, [state.searchOpen, graph, attempt]);
+  const graphHits = useMemo(
+    () =>
+      graph?.filter(
+        (r) =>
+          (scope === "all" || scope === r.kind) &&
+          !(r.kind === "entity" && DATA.nodes.some((n) => n.id === r.id)) &&
+          r.text.includes(normalize(query)),
+      ) ?? [],
+    [graph, scope, query],
+  );
   const hits = useMemo(
-    () => (state.searchOpen ? searchMatches(query) : []),
-    [state.searchOpen, query],
+    () => (state.searchOpen && (scope === "all" || scope === "entity") ? searchMatches(query) : []),
+    [state.searchOpen, query, scope],
   );
   const close = () => dispatch({ type: "searchOpen", open: false });
 
@@ -72,7 +120,7 @@ export function GlobalSearch() {
           close();
         }}
       >
-        <h2 id="globalSearchTitle">全構造を検索</h2>
+        <h2 id="globalSearchTitle">全構造・知識グラフを検索</h2>
         <button className="small flat" value="close" aria-label="検索を閉じる">
           Esc
         </button>
@@ -85,15 +133,54 @@ export function GlobalSearch() {
         placeholder="構造名・組成・空間群…"
         aria-label="全構造を検索"
         value={query}
-        onChange={(ev) => setQuery(ev.target.value)}
+        onChange={(ev) => {
+          setQuery(ev.target.value);
+          setShown(50);
+        }}
       />
+      <label htmlFor="searchScope">検索対象</label>
+      <select
+        id="searchScope"
+        value={scope}
+        onChange={(e) => {
+          setScope(e.target.value);
+          setShown(50);
+        }}
+      >
+        <option value="all">全検索対象（10種類）</option>
+        {recordKinds.map((kind) => (
+          <option key={kind} value={kind}>
+            {recordLabels[kind]}
+          </option>
+        ))}
+      </select>
+      {error && (
+        <p role="alert">
+          {error}
+          <button
+            onClick={() =>
+              void resetKnowledgeDB().then(() => {
+                setError("");
+                setAttempt((n) => n + 1);
+              })
+            }
+          >
+            検索を再試行
+          </button>
+        </p>
+      )}
+      {!graph && state.searchOpen && (
+        <p role="status">知識グラフの索引を照会中… 構造カードは先に検索できます。</p>
+      )}
       <p id="globalCount" className="muted smalltext" aria-live="polite">
-        {state.searchOpen ? `${hits.length} / ${DATA.nodes.length} 件` : ""}
+        {state.searchOpen
+          ? `${hits.length + graphHits.length} 件${graph ? "" : "（グラフ照会中）"} / 先頭 ${Math.min(shown, hits.length + graphHits.length)} 件を表示`
+          : ""}
       </p>
       <div id="globalResults" className="searchresults" ref={results}>
         {state.searchOpen &&
           (hits.length ? (
-            hits.map((n) => (
+            hits.slice(0, shown).map((n) => (
               <button key={n.id} data-searchnode={n.id} onClick={() => pick(n.id)}>
                 {n.name}
                 <small>
@@ -101,11 +188,31 @@ export function GlobalSearch() {
                 </small>
               </button>
             ))
-          ) : (
+          ) : graph && !graphHits.length ? (
             <p className="smalltext muted" style={{ padding: 10 }}>
-              一致する構造はありません。
+              一致するレコードはありません。
             </p>
+          ) : null)}
+        {state.searchOpen &&
+          graphHits.slice(0, Math.max(0, shown - hits.length)).map((r) => (
+            <button
+              key={`${r.kind}:${r.id}`}
+              data-searchrecord={`${r.kind}:${r.id}`}
+              onClick={() =>
+                dispatch({ type: "recordReference", reference: { kind: r.kind, id: r.id } })
+              }
+            >
+              {r.title}
+              <small>
+                {recordLabels[r.kind]} · {r.id}
+              </small>
+            </button>
           ))}
+        {state.searchOpen && shown < hits.length + graphHits.length && (
+          <button onClick={() => setShown((n) => n + 50)}>
+            さらに50件表示（残り {hits.length + graphHits.length - shown}件）
+          </button>
+        )}
       </div>
     </dialog>
   );

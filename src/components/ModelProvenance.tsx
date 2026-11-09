@@ -88,11 +88,15 @@ export function ModelProvenance({ records }: { records: ModelRecord[] }) {
                   </li>
                 ))}
               </ul>
-              {data.sourceWarnings.map((note) => (
+              {[
+                ...new Set(
+                  [...data.sourceWarnings, data.note, record.note].filter(
+                    (note): note is string => !!note,
+                  ),
+                ),
+              ].map((note) => (
                 <p key={note}>{note}</p>
               ))}
-              {data.note && <p>{data.note}</p>}
-              {record.note && <p>{record.note}</p>}
             </details>
           );
         })

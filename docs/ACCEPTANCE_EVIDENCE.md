@@ -1,0 +1,22 @@
+# 計画 #22 の受け入れ証拠
+
+実装はdevelop向け統合PR #37へ提出します。依存PR #28・#30の変更を含みます。提出・検証と、developへの取り込み、文献の網羅調査、専門家による科学的レビューは別です。
+
+| 子Issue | 実装の具体的な範囲                                                                                                                  | 再現できる証拠                                                                                                                                                                                                                                |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #27     | 空隙占有3件。骨格・占有種・空隙集合と解釈を保持                                                                                     | occupation.test.ts、occupation.spec.ts、実DB HasOccupationSpec／HostMotif。初回保留履歴を保持                                                                                                                                                 |
+| #29     | ローカルPDF不要のLinux CI、format/lint/typecheck・ユニット・実DB・両ビルド・E2E                                                     | .github/workflows/ci.yml。PR #30 head 3f8de62、統合PRの #35段階 head 5eea6b6でGitHub Linux成功。最終headのCIはPRチェックで別記                                                                                                                |
+| #31     | TiO₂の物質・相・型・prototypeの限定例、201 ModelContext、109未分離カードの明示                                                      | identity.test.ts、identity.spec.ts。旧ID・座標・モデルpayloadの保存、無効条件／参照の拒否。docs/IDENTITY.md                                                                                                                                   |
+| #32     | 抽象ラベル写像3件、順序付き編集レシピ、全9経路と9操作語彙                                                                           | derivation.test.ts、derivation.spec.ts、実DB LabelMapSpec／RouteMember／ComposesAssertion。逆向き・セル互換・合成時間順を仮定しない。docs/DERIVATION_OPERATIONS.md                                                                            |
+| #33     | 範囲別手動抽出、実行できる辞書／OCR提案、処理版・指紋・未知印刷頁、母数別台帳、書誌候補の登録阻止                                   | proposal.test.ts／extraction.test.ts／catalog.test.ts、scoped-extraction.spec.ts、catalog.spec.ts、実DB全行。実際のK PDF4で37機械候補、未識別画像PDF1で27 OCR候補（後者はignored提案のみ）。docs/EXTRACTION_WORKFLOW.md                       |
+| #34     | 10分類体系、所属・包含・複数所属。HS Table1の15理想回転系と無回転基準を限定照合                                                     | classification.test.ts、classification.spec.ts、実DB体系／所属クエリ。根拠欠落／循環／未知参照を追加前に拒否。HS PDF4のみ台帳更新。docs/CLASSIFICATION_SCHEMES.md                                                                             |
+| #35     | 原典別の設定・t2・8a→4a+4c・明示したP/I原点、宣言理想模型の代数検証。既存14 strictは数値未転記のまま                                | symmetry.test.ts、symmetry.spec.ts。192/96演算、閉包・包含・共通並進・4+4分裂。異なる原点／色／指数／分裂／不正行列を拒否。全15対応のtree、共有対象と枝折り畳み、Derivation別主張と相互参照。docs/SYMMETRY_VERIFICATION.md                    |
+| #36     | 主要10種類の横断検索、明示50件ずつ追加、直接参照・再読込、1832 SSG HTML、表示間の履歴・対象・折り畳み保持、gzip単一HTMLと測定・復旧 | navigation.test.ts、distribution.spec.ts、performance.spec.ts、knowledge.spec.ts、既存smoke.spec.ts。JavaScript無効SSG・サブパス・オフライン・320/390px・破損／版混在／Worker停止からの復旧・gzip非対応。docs/STATIC_EXPLORATION.mdと測定JSON |
+
+実DB検証は全テーブルの全行・全列を入力投影と往復照合し、固定クエリを実際のLadybugDB/WASMに通します。パラメータの不正文字列と書き込み拒否も検証します。件数だけの検証ではありません。正常系の実行は科学的妥当性の独立証明には使いません。
+
+最終ローカル検証は110ユニットと49 E2Eです。配信版・ネットワーク無効のfile://単一HTMLを実Chromeで操作し、desktop・390pxの画面を確認します。ブラウザ性能測定はM4 Max／36 GiB上のChromeの合成制限です。実際の低メモリ端末・携帯端末・他ブラウザは未検証です。
+
+科学的な確認は選択箇所に限ります。3760頁のうち本文5頁が調査中、3755頁は未調査で、図・表・索引はそれぞれ別状態です。岡本の初回20候補は履歴を残して採用していますが、新しいK PDF4の手動9候補と機械37候補は未判断です。Müller Fig1.1の3候補は限定採用しています。書誌候補の画像PDF全132頁は未調査です。既存モデル201件の実験的忠実度・設定の全検証や、全カードの相同定は完了していません。
+
+原子周期グラフ／結合の自動比較、CIF連携、ブラウザ編集・共同編集・サーバー運用は親計画の後段に留めています。mainへのリリース・デプロイ、PRのマージ・ブランチ削除は行っていません。

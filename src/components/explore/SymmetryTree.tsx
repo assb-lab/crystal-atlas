@@ -1,3 +1,4 @@
+import { useViewState } from "../../lib/view-state.ts";
 import { useEffect, useState } from "react";
 import { getKnowledgeDB } from "../../knowledge/client.ts";
 import { SYMMETRY_TREE_QUERY, EVIDENCE_QUERY } from "../../knowledge/queries.ts";
@@ -19,7 +20,7 @@ type Edge = {
 export function SymmetryTree() {
   const { dispatch } = useAtlas();
   const [edges, setEdges] = useState<Edge[]>([]);
-  const [folded, setFolded] = useState<string[]>([]);
+  const [folded, setFolded] = useViewState<string[]>("symmetry:folded", []);
   const [error, setError] = useState("");
   useEffect(() => {
     let live = true;

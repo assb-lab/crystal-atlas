@@ -1,3 +1,4 @@
+import type { RecordReference } from "./knowledge/navigation.ts";
 /** Application state and its transitions. Pure (no DOM), so every interaction rule is unit-testable. */
 import { DATA } from "./data/atlas.ts";
 import type { AtlasMode } from "./knowledge/schema.ts";
@@ -46,6 +47,8 @@ export interface State {
   tab: Tab;
   atlasMode: AtlasMode;
   knowledgeAssertion: string | null;
+  knowledgeTarget: { mode: AtlasMode; id: string; assertionId?: string; seq: number } | null;
+  recordReference: RecordReference | null;
   /** Family id, or "all". Ignored while a flow or classification is open. */
   family: string;
   /** Source derivation flow id. */
@@ -84,6 +87,8 @@ export function initialState(sidebars: Partial<Sidebars> = {}): State {
     tab: "explore",
     atlasMode: "derivation",
     knowledgeAssertion: null,
+    knowledgeTarget: null,
+    recordReference: null,
     family: "fcc",
     flow: null,
     collection: null,
@@ -109,7 +114,8 @@ export function initialState(sidebars: Partial<Sidebars> = {}): State {
 }
 
 export type Action =
-  | { type: "atlasMode"; mode: AtlasMode; assertionId?: string }
+  | { type: "atlasMode"; mode: AtlasMode; assertionId?: string; focusId?: string }
+  | { type: "recordReference"; reference: RecordReference | null }
   | { type: "tab"; tab: Tab }
   | { type: "family"; id: string }
   | { type: "classification"; id: string }
@@ -200,7 +206,23 @@ function normalizeAnchor(s: State): State {
 function step(s: State, a: Action): State {
   switch (a.type) {
     case "atlasMode":
-      return { ...s, tab: "explore", atlasMode: a.mode, knowledgeAssertion: a.assertionId ?? null };
+      return {
+        ...s,
+        tab: "explore",
+        atlasMode: a.mode,
+        knowledgeAssertion: a.assertionId ?? null,
+        knowledgeTarget:
+          a.focusId || a.assertionId
+            ? {
+                mode: a.mode,
+                id: a.focusId ?? s.selected,
+                ...(a.assertionId ? { assertionId: a.assertionId } : {}),
+                seq: (s.knowledgeTarget?.seq ?? 0) + 1,
+              }
+            : s.knowledgeTarget,
+      };
+    case "recordReference":
+      return { ...s, searchOpen: false, recordReference: a.reference };
     case "tab":
       return a.tab === "explore"
         ? moveMap({ ...s, tab: a.tab, atlasMode: "derivation", knowledgeAssertion: null })

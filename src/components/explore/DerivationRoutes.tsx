@@ -1,3 +1,4 @@
+import { useViewState } from "../../lib/view-state.ts";
 import { useEffect, useState } from "react";
 import { DATA } from "../../data/atlas.ts";
 import { getKnowledgeDB } from "../../knowledge/client.ts";
@@ -33,8 +34,11 @@ export function DerivationRoutes() {
   const { dispatch } = useAtlas();
   const [routes, setRoutes] = useState<Route[]>([]);
   const [vocabulary, setVocabulary] = useState<Vocabulary[]>([]);
-  const [route, setRoute] = useState("route:recipe:fcc-nacl-sc");
-  const [operation, setOperation] = useState("operation:site_occupation");
+  const [route, setRoute] = useViewState("derivation:route", "route:recipe:fcc-nacl-sc");
+  const [operation, setOperation] = useViewState(
+    "derivation:operation",
+    "operation:site_occupation",
+  );
   const [detail, setDetail] = useState<{
     routeId: string;
     operationId: string;

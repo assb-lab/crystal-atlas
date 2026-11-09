@@ -1,3 +1,4 @@
+import { gzipSync } from "node:zlib";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
@@ -108,12 +109,19 @@ export function knowledgeAssets(): Plugin {
         ["lbug_wasm_worker.js", manifest.files.worker],
       ] as const;
       const assets = Object.fromEntries(
-        names.map(([key, name]) => [key, files.get(name)!.toString("base64")]),
+        names.map(([key, name]) => [
+          key,
+          gzipSync(files.get(name)!, { level: 9 }).toString("base64"),
+        ]),
       );
       return [
         {
           tag: "script",
-          attrs: { id: "atlas-knowledge-assets", type: "application/json" },
+          attrs: {
+            id: "atlas-knowledge-assets",
+            type: "application/json",
+            "data-compression": "gzip",
+          },
           children: JSON.stringify(assets),
           injectTo: "body",
         },

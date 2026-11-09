@@ -12,7 +12,7 @@ Family（分類）・Derivation（構造派生）・Symmetry（対称性）は�
 - `dist/knowledge/`：静的配信用のDB・manifest・Worker・モジュール・ライセンス・照合用JSON・DDL。DB・モジュール・Workerは内容ハッシュ付きファイル名にし、配信manifestのfilesで一組を指定します。クライアントはmanifestを毎回再検証してから、その組のファイルを読み込みます。
 - `dist/crystal-atlas.html`：DBとWorkerも内蔵し、file://で読み込む版。WASM関連の内蔵により従来版より大きくなります。
 
-現時点の配信版はViteの静的SPAです。構造ごとのSSGページ生成はまだ実装していません。APIサーバーやDBサーバー、外部CDNは不要です。
+現時点の配信版はViteの静的SPAです。対象・文献・主張など主要レコードのSSGはscripts/ssg.tsで実生成します。dist/records/index.htmlからJavaScriptなしで読めます。APIサーバーやDBサーバー、外部CDNは不要です。
 
 ## レコードと関係
 
@@ -38,13 +38,13 @@ Derivationには有向の空隙占有・規則化・歪み・積層・反型の�
 
 comparisonはDerivationの「比較（派生操作ではない）」区分で閲覧でき、派生操作の件数には含めません。操作の対象・数値に付けた注釈は、文献該当箇所との再照合が未実施であることを個別に表示します。根拠がない場合もbasisを確認し、編集上の所属と出典未登録の主張を区別します。Family・Symmetryで構造を選んでも、非表示の充填ツリーの分類・選択・折り畳み・探索履歴を変更しません。
 
-Symmetryは独立したAssertionです。既存のstrictは `literature_confirmed` として引き継ぎ、未確認関係は `unverified` です。変換行列・原点移動・Wyckoff対応は推測で数値化せずNULLにします。文章で転記済みのbasis・splitは原データとして保存します。現在の全関係は移行後の再照合が未実施です。
+Symmetryは独立したAssertionです。既存のstrictは `literature_confirmed` として引き継ぎ、未確認関係は `unverified` です。変換行列・原点移動・Wyckoff対応は推測で数値化せずNULLにします。文章で転記済みのbasis・splitは原データとして保存します。既存関係は移行後未再照合のままです。Müller Fig.1.1は別の原典別AssertionとSymmetryMappingに限定確認・理想模型の検証を記録します（docs/SYMMETRY_VERIFICATION.md）。
 
 同じ構造変化について操作も対称性対応も明示されている場合、別レコードを `ExplainsSymmetryOf` でつなぎます。最初の注釈は既存e6（fccの3:1規則化）、e24（bccの色分け）、e56（ルチル型の八面体回転）です。単に空間群の組が一致するという理由で対応を作りません。
 
 ## ブラウザ実行と互換対応
 
-WASMはレコード探索を開いたときに読み込み、ページ内で一つのWorkerを共有します。配布DBの長さ・ハッシュ（Web Crypto利用時）・スキーマ版・エンジン版・ストレージ版を確認し、仮想FSへ一度だけ配置してreadOnlyで開きます。画面の問い合わせは固定のCypherとパラメータバインドを使用し、一つの接続上で直列化します。読み込み失敗は画面に表示し、再試行できます。起動後にWorkerが停止して照会が応答しなくなった場合も、5秒で照会エラーを表示し、再試行でWorkerを終了してからDBを開き直します。終了待ちは2秒に制限し、所有するBlob URLを解放します。初回起動にはベンダー既定のタイムアウトが適用されます。JSONへの暗黙の代替照会はしません。
+WASMはレコード探索を開いたときに読み込み、ページ内で一つのWorkerを共有します。配布DBの長さ・ハッシュ（Web Crypto利用時）・スキーマ版・エンジン版・ストレージ版を確認し、仮想FSへ一度だけ配置してreadOnlyで開きます。画面の問い合わせは固定のCypherとパラメータバインドを使用し、一つの接続上で直列化します。読み込み失敗は画面に表示し、再試行できます。起動後にWorkerが停止して照会が応答しなくなった場合も、5秒で照会エラーを表示し、再試行でWorkerを終了してからDBを開き直します。終了待ちは2秒に制限し、所有するBlob URLを解放します。ベンダー起動の待機に加え、接続初期化・版照会・DB配置・通信にも上限を設けます。JSONへの暗黙の代替照会はしません。
 
 0.22.3の公式async Workerは、WasmFS側に存在しない `FS.writeFile` を呼びます。このため配布時に `src/knowledge/worker-compat.ts` の限定的な互換処理を適用します。`/atlas.lbdb` の初回配置だけに対し、エクスポート済みの `FS.createDataFile` で読み取り専用ファイルを作ります。node_modulesやWASMバイナリは変更しません。期待する呼び出しが一箇所でなければビルドを失敗させ、上流更新時に再検討を必須にします。
 
@@ -91,3 +91,9 @@ Issue #25で`bravais_lattice_type`を独立したEntityのkindとして追加し
 Issue #27では、保留中の空隙占有3候補を、骨格・占有原子種、空隙の種類、占有集合を持つ`OccupationSpec`へ接続しました。`HasOccupationSpec`はOperationStep→OccupationSpec、`HostMotif`はOccupationSpec→Entityです。本文にある条件と、元素役割を選んだ解釈・補助資料の由来を別に記録します。原子モデル・格子型・物質とは別の操作仕様です。
 
 採用済みの貫入と、今回採用した空隙占有は同じ端点でも独立したAssertionです。役割を入れ替えた既存の占有説明にも自動統合しません。現在の判断は20件（採用17・保留3）、履歴は24件で、初回の保留は残します。実DB検証には仕様・骨格・操作の照会も含めます。[根拠と適用範囲](CANDIDATE_DECISIONS.md#issue-27空隙占有3件の対象仕様と再照合)を参照してください。
+
+## 段階実装後のスキーマ
+
+物理スキーマv10は、ModelContext、OccupationSpec、LabelMapSpec、OperationDefinition、ClassificationScheme、SymmetryMapping、DeclaredSymmetryModel、SymmetryValidationと採否履歴を追加しています。科学的な主張、編集上の経路合成、文献別分類、理想モデル上の計算は独立レコードです。全行照合はこれらを含みます。詳細と受け入れ証拠は[全計画対応表](IMPLEMENTATION_PLAN.md)を参照してください。
+
+検索対象はEntity、Document、Assertion、OperationDefinition、OperationStep、ClassificationScheme、Mention、RelationCandidate、StructureModel、Assetの10種類です。SourceSpanや検証活動等は関連記録から辿る補助レコードで、検索結果・SSG件数とは分けます。DBの全物理レコードは配布dataset.jsonとschema.cypherで参照できます。

@@ -254,3 +254,29 @@ body:has(.knowledge-derivation details[open]) #explore:not([hidden]) {
   overflow-wrap: anywhere;
   border-top: 1px solid var(--line);
 }
+
+.record-inspector {
+  margin: 12px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+  flex: none;
+}
+.record-inspector pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 400px;
+  overflow: auto;
+  font-size: 12px;
+}
+.record-inspector a {
+  display: inline-block;
+  margin: 8px 12px 8px 0;
+}
+body:has(.record-inspector) {
+  height: auto;
+  min-height: 100dvh;
+  overflow: auto;
+}

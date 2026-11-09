@@ -1,3 +1,5 @@
+import { RecordInspector } from "./components/RecordInspector.tsx";
+import { parseReference, referenceHash } from "./knowledge/navigation.ts";
 import { useEffect, useReducer, useRef } from "react";
 import { Explore } from "./components/explore/Explore.tsx";
 import { GlobalSearch } from "./components/GlobalSearch.tsx";
@@ -81,7 +83,10 @@ function diagnostics(s: State) {
 }
 
 export default function App() {
-  const [state, dispatch] = useReducer(reducer, undefined, () => initialState(loadSidebars()));
+  const [state, dispatch] = useReducer(reducer, undefined, () => ({
+    ...initialState(loadSidebars()),
+    recordReference: parseReference(location.hash),
+  }));
   const latest = useRef(state);
 
   useEffect(() => {
@@ -95,6 +100,28 @@ export default function App() {
       /* Optional preference. */
     }
   }, [state.sidebars]);
+
+  useEffect(() => {
+    const onHash = () => {
+      if (location.hash.startsWith("#atlas?"))
+        dispatch({ type: "recordReference", reference: parseReference(location.hash) });
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  useEffect(() => {
+    if (state.recordReference) history.replaceState(null, "", referenceHash(state.recordReference));
+    else if (state.knowledgeTarget)
+      history.replaceState(
+        null,
+        "",
+        referenceHash({
+          kind: state.knowledgeTarget.assertionId ? "assertion" : "entity",
+          id: state.knowledgeTarget.assertionId ?? state.knowledgeTarget.id,
+          mode: state.knowledgeTarget.mode,
+        }),
+      );
+  }, [state.recordReference, state.knowledgeTarget]);
 
   // Crossing into the narrow layout closes both overlays; any resize re-centres the map.
   useEffect(() => {
@@ -154,6 +181,7 @@ export default function App() {
       <Topbar />
       <Hero />
       <main>
+        <RecordInspector />
         <Explore />
         <Lab />
         <Guide />
