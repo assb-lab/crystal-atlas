@@ -26,7 +26,7 @@ for (const [label, url] of Object.entries({
     await expect(page.getByTestId("extraction-ready")).toContainText(
       "登場記録 10 件 ／ 関係候補 10 件",
     );
-    await expect(page.getByTestId("extraction-ready")).toContainText("採用 17 件 ／ 保留 3 件");
+    await expect(page.getByTestId("extraction-ready")).toContainText("採用 20 件 ／ 保留 0 件");
     const selector = page.locator("#extractionCandidate");
     const detail = page.getByTestId("extraction-detail");
     await expect(selector.locator("option")).toHaveCount(20);

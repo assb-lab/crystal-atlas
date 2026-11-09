@@ -1,5 +1,5 @@
 /** Versioned physical schema. Scientific relations are nodes so they can carry evidence. */
-export const KNOWLEDGE_SCHEMA_VERSION = 7;
+export const KNOWLEDGE_SCHEMA_VERSION = 8;
 export const LADYBUG_VERSION = "0.22.3";
 export type AtlasMode = "family" | "derivation" | "symmetry";
 export type Cell = string | number | boolean | null;
@@ -29,6 +29,8 @@ export const TABLES: Table[] = [
   ]),
   node("OperationStep", ["id", "operation", "target", "parameters", "payload"]),
   node("OccupationSpec", ["id", "hostSpecies", "guestSpecies", "voidKind", "selection", "payload"]),
+  node("LabelMapSpec", ["id", "payload"]),
+  node("OperationDefinition", ["id", "title", "payload"]),
   node("Document", ["id", "title", "payload"]),
   node("SourceSpan", ["id", "payload"]),
   node("ModelContext", ["id", "kind", "payload"]),
@@ -45,6 +47,10 @@ export const TABLES: Table[] = [
   rel("Object", "Assertion", "Entity"),
   rel("HasEvidence", "Assertion", "SourceSpan"),
   rel("InDocument", "SourceSpan", "Document"),
+  rel("HasLabelMap", "OperationStep", "LabelMapSpec"),
+  rel("ComposesAssertion", "OperationStep", "Assertion"),
+  rel("RecipeForRoute", "Assertion", "DerivationRoute"),
+  rel("VocabularyExample", "Assertion", "OperationDefinition"),
   rel("HasOccupationSpec", "OperationStep", "OccupationSpec"),
   rel("HostMotif", "OccupationSpec", "Entity"),
   rel("HasStep", "Assertion", "OperationStep", [["ordinal", "INT64"]]),

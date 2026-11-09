@@ -194,3 +194,22 @@ body:has(.knowledge-derivation details[open]) #explore:not([hidden]) {
 .entity-profile .knowledge-endpoints {
   flex-wrap: wrap;
 }
+
+.derivation-routes {
+  margin: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  overflow-wrap: anywhere;
+}
+.derivation-routes select {
+  display: block;
+  width: min(100%, 55rem);
+  margin-block: 0.5rem;
+}
+.route-members {
+  padding-left: 1.5rem;
+}
+.route-members li {
+  margin-block: 1rem;
+}

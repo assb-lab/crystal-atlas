@@ -73,12 +73,15 @@ test("references preserve locators without inventing mentions or reviewed covera
   const ref = rows.HasEvidence.find(([id]) => id === "relation:e1");
   assert.deepEqual(spans.get(ref![1]), DATA.edges.find((e) => e.id === "e1")!.refs[0]);
   for (const a of rows.Assertion.filter(
-    (r) => !String(r[0]).startsWith("adopted:") && r[1] !== "description",
+    (r) =>
+      !String(r[0]).startsWith("adopted:") &&
+      !String(r[0]).startsWith("recipe:") &&
+      r[1] !== "description",
   ))
     assert.equal(a[5], "imported_not_revalidated");
   assert.equal(
     rows.Assertion.filter((r) => r[5] === "source_checked_not_machine_verified").length,
-    7,
+    10,
   );
 });
 test("source routes keep figure order without asserting a linear synthesis pathway", () => {

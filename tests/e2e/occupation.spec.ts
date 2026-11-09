@@ -22,7 +22,7 @@ for (const [label, url] of Object.entries({
     await page.getByText("文献目録とページ調査台帳", { exact: true }).click();
     await expect(page.getByTestId("catalog-ready")).toBeVisible({ timeout: 30000 });
     await page.locator("#catalogAsset").selectOption({ label: "bussei_el_061206.pdf" });
-    await expect(page.getByTestId("extraction-ready")).toContainText("採用 17 件 ／ 保留 3 件");
+    await expect(page.getByTestId("extraction-ready")).toContainText("採用 20 件 ／ 保留 0 件");
     for (const [name, host, guest, voidKind, selection] of [
       ["nacl", "Na", "Cl", "八面体", "すべて"],
       ["zns", "Zn", "S", "四面体", "2種類のうち一方"],
@@ -73,9 +73,10 @@ for (const [label, url] of Object.entries({
       await page.getByRole("button", { name: "読み方・出典", exact: true }).click();
     }
     await page.locator("#extractionCandidate").selectOption(prefix + "zns-diamond");
-    await expect(page.getByTestId("candidate-decision")).toContainText("現在の判断：保留");
+    await expect(page.getByTestId("candidate-decision")).toContainText("現在の判断：採用");
+    await expect(page.getByTestId("label-map-spec")).toContainText("共通の抽象ラベル");
     await expect(page.getByRole("button", { name: "採用した関係をDerivationで見る" })).toHaveCount(
-      0,
+      1,
     );
     expect(errors).toEqual([]);
   });

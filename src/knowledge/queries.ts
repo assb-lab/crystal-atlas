@@ -51,3 +51,11 @@ RETURN m.id AS id, c.kind AS kind, c.payload AS payload ORDER BY m.id`;
 export const PROTOTYPE_MODEL_QUERY = `MATCH (m:StructureModel)-[i:IllustratesPrototype]->(e:Entity {id: $id}), (c:ModelContext)-[:ContextFor]->(m)
 RETURN m.id AS id, c.kind AS kind, c.payload AS payload, i.note AS note ORDER BY m.id`;
 export const IDENTITY_STATUS_QUERY = `MATCH (e:Entity) RETURN e.kind AS kind, count(e) AS count ORDER BY kind`;
+
+export const LABEL_MAP_QUERY = `MATCH (a:Assertion {id: $id})-[h:HasStep]->(step:OperationStep)-[:HasLabelMap]->(spec:LabelMapSpec)
+RETURN spec.id AS id, spec.payload AS payload ORDER BY h.ordinal`;
+export const ROUTES_QUERY = `MATCH (r:DerivationRoute) RETURN r.id AS id, r.title AS title, r.payload AS payload ORDER BY r.title`;
+export const ROUTE_MEMBERS_QUERY = `MATCH (r:DerivationRoute {id: $id})-[m:RouteMember]->(a:Assertion)-[:Subject]->(s:Entity), (a)-[:Object]->(t:Entity)
+RETURN a.id AS id, a.label AS label, a.domain AS domain, a.status AS status, a.payload AS payload, s.id AS subjectId, s.title AS subjectTitle, t.id AS objectId, t.title AS objectTitle ORDER BY m.ordinal`;
+export const OPERATION_VOCABULARY_QUERY = `MATCH (op:OperationDefinition) RETURN op.id AS id, op.title AS title, op.payload AS payload ORDER BY op.title`;
+export const VOCABULARY_EXAMPLES_QUERY = `MATCH (a:Assertion)-[:VocabularyExample]->(op:OperationDefinition {id: $id}) RETURN a.id AS id, a.label AS label, a.status AS status ORDER BY a.id`;

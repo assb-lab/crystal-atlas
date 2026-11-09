@@ -22,6 +22,14 @@ import { appendHeldVoidResolution, type HeldVoidResolution } from "./occupation.
 import { identityRegistry } from "../data/identity.ts";
 import { appendIdentity, appendModelContexts } from "./identity.ts";
 
+import { labelReconsiderations } from "../data/derivation.ts";
+import {
+  appendHeldLabelResolution,
+  appendRecipe,
+  appendOperationVocabulary,
+  type HeldLabelResolution,
+} from "./derivation.ts";
+
 /** Explicit annotations of existing statements, not operations inferred from space-group names. */
 const OPERATIONS: Record<string, { operation: string; target: string; parameters: object }> = {
   e1: {
@@ -57,6 +65,7 @@ export function knowledgeDataset(
   )
     ? occupationReconsiderations
     : [],
+  labelReviews: HeldLabelResolution[] = voidReconsiderations.length ? labelReconsiderations : [],
 ): KnowledgeDataset {
   validateCatalog(catalog, new Set(Object.keys(data.sources)));
   const rows: Record<string, Cell[][]> = Object.fromEntries(TABLES.map((t) => [t.name, []]));
@@ -320,5 +329,16 @@ export function knowledgeDataset(
       appendHeldVoidResolution(rows, extraction, revision);
     }
   }
+  for (const revision of labelReviews) {
+    const extraction = extractions.find((e) => e.id === revision.extractionId);
+    if (!extraction) throw new Error("Revision references an unknown extraction");
+    appendHeldLabelResolution(rows, extraction, revision);
+  }
+  if (labelReviews.length)
+    appendRecipe(rows, "recipe:fcc-nacl-sc", "fcc → 岩塩型 → 単純立方（編集上の構築レシピ）", [
+      "adopted:pilot:K:2-3:relation:fcc-nacl",
+      "adopted:pilot:K:2-3:relation:nacl-sc",
+    ]);
+  appendOperationVocabulary(rows);
   return { rows };
 }

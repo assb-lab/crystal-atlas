@@ -1,7 +1,11 @@
 import type { CandidateDecision } from "./decisions.ts";
 import { adoptedAssertionId } from "./decisions.ts";
 import type { ExtractionBatch } from "./extraction.ts";
-import { validateHeldRevision, type HeldRevision } from "./reconsideration.ts";
+import {
+  validateHeldRevision,
+  resolvedCurrentMention,
+  type HeldRevision,
+} from "./reconsideration.ts";
 import type { Cell } from "./schema.ts";
 
 /** A source-scoped ideal construction, not a set of refined atom positions. */
@@ -22,16 +26,6 @@ export interface HeldVoidResolution extends HeldRevision {
   resolution: Extract<NonNullable<CandidateDecision["resolution"]>, { kind: "assertion" }>;
   occupation: OccupationSpec;
 }
-function acceptedEndpoint(rows: Record<string, Cell[][]>, mentionId: string): string {
-  const superseded = new Set(rows.SupersedesDecision!.map(([, id]) => id));
-  const current = rows.CandidateDecision!.filter(
-    (r) => r[1] === "mention" && r[2] === mentionId && !superseded.has(r[0]),
-  );
-  const resolved = rows.ResolvedEntity!.filter(([d]) => d === current[0]?.[0]);
-  if (current.length !== 1 || current[0]?.[3] !== "accepted" || resolved.length !== 1)
-    throw new Error("Void adoption requires both endpoints currently accepted");
-  return String(resolved[0]![1]);
-}
 export function appendHeldVoidResolution(
   rows: Record<string, Cell[][]>,
   extraction: ExtractionBatch,
@@ -42,8 +36,8 @@ export function appendHeldVoidResolution(
   const spec = revision.occupation;
   const id = adoptedAssertionId(r.id);
   const stepId = `step:${id}`;
-  const subject = acceptedEndpoint(rows, r.subjectMention);
-  const object = acceptedEndpoint(rows, r.objectMention);
+  const subject = resolvedCurrentMention(rows, r.subjectMention);
+  const object = resolvedCurrentMention(rows, r.objectMention);
   const host = rows.Entity!.find(([id]) => id === spec.hostMotifId);
   const expectedSelection = r.parameters.occupation ?? r.parameters.occupiedOrientationClasses;
   if (

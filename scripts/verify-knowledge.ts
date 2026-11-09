@@ -20,6 +20,11 @@ import {
   CURRENT_DECISIONS_QUERY,
   ENTITY_PROFILE_QUERY,
   OCCUPATION_QUERY,
+  LABEL_MAP_QUERY,
+  ROUTES_QUERY,
+  ROUTE_MEMBERS_QUERY,
+  OPERATION_VOCABULARY_QUERY,
+  VOCABULARY_EXAMPLES_QUERY,
   MODEL_CONTEXT_QUERY,
   PROTOTYPE_MODEL_QUERY,
   IDENTITY_STATUS_QUERY,
@@ -170,13 +175,13 @@ try {
   }
   assert.deepEqual(query(MENTIONS_QUERY, { id: pilotAssetId + "' OR true //" }), []);
   const decisions = query(DECISIONS_QUERY, { id: pilotAssetId });
-  assert.equal(decisions.length, 24);
-  assert.equal(decisions.filter((d) => d.outcome === "accepted").length, 17);
+  assert.equal(decisions.length, 27);
+  assert.equal(decisions.filter((d) => d.outcome === "accepted").length, 20);
   assert.equal(decisions.filter((d) => d.outcome === "held").length, 7);
   const currentDecisions = query(CURRENT_DECISIONS_QUERY, { id: pilotAssetId });
   assert.equal(currentDecisions.length, 20);
-  assert.equal(currentDecisions.filter((d) => d.outcome === "accepted").length, 17);
-  assert.equal(currentDecisions.filter((d) => d.outcome === "held").length, 3);
+  assert.equal(currentDecisions.filter((d) => d.outcome === "accepted").length, 20);
+  assert.equal(currentDecisions.filter((d) => d.outcome === "held").length, 0);
   for (const [name, host, guest, voidKind, selection] of [
     ["nacl", "Na", "Cl", "octahedral", "all"],
     ["zns", "Zn", "S", "tetrahedral", "one_of_two"],
@@ -196,6 +201,23 @@ try {
   }
   assert.deepEqual(query(OCCUPATION_QUERY, { id: "relation:e1" }), []);
   assert.deepEqual(query(OCCUPATION_QUERY, { id: "' OR true //" }), []);
+  for (const suffix of ["cscl-bcc", "nacl-sc", "zns-diamond"]) {
+    const id = `adopted:pilot:K:2-3:relation:${suffix}`;
+    const spec = JSON.parse(String(query(LABEL_MAP_QUERY, { id })[0]!.payload));
+    assert.equal(spec.outputLabel, "X");
+    assert.equal(spec.cellPolicy, "minimal_cell_not_verified");
+    assert.deepEqual(query(COUNTERPART_QUERY, { id }), []);
+  }
+  const route = query(ROUTES_QUERY).find((r) => r.id === "route:recipe:fcc-nacl-sc")!;
+  assert.equal(JSON.parse(String(route.payload)).basis, "editorial_composition");
+  assert.deepEqual(
+    query(ROUTE_MEMBERS_QUERY, { id: route.id }).map((r) => r.id),
+    ["adopted:pilot:K:2-3:relation:fcc-nacl", "adopted:pilot:K:2-3:relation:nacl-sc"],
+  );
+  assert.equal(query(STEP_QUERY, { id: "recipe:fcc-nacl-sc" }).length, 2);
+  assert.equal(query(LABEL_MAP_QUERY, { id: "recipe:fcc-nacl-sc" }).length, 1);
+  assert.equal(query(OPERATION_VOCABULARY_QUERY).length, 9);
+  assert.ok(query(VOCABULARY_EXAMPLES_QUERY, { id: "operation:site_occupation" }).length);
   const latticeMention = "pilot:K:2-3:mention:fcc-lattice";
   assert.equal(
     currentDecisions.find((d) => d.candidateId === latticeMention)?.id,

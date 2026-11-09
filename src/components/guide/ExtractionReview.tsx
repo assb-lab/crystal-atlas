@@ -13,6 +13,7 @@ import {
   ADOPTED_ASSERTION_QUERY,
   DECISION_EVIDENCE_QUERY,
   OCCUPATION_QUERY,
+  LABEL_MAP_QUERY,
 } from "../../knowledge/queries.ts";
 import type { ExtractionBatch } from "../../knowledge/extraction.ts";
 import type { CandidateDecision } from "../../knowledge/decisions.ts";
@@ -20,6 +21,8 @@ import { operationLabels, parameterLabels, parameterValue } from "../../knowledg
 import { useAtlas } from "../../store.ts";
 import type { Ref } from "../../types.ts";
 import { entityKindLabel } from "../../knowledge/presentation.ts";
+import { LabelMapDetails } from "../LabelMapDetails.tsx";
+import type { LabelMapSpec } from "../../knowledge/derivation.ts";
 import { OccupationDetails } from "../OccupationDetails.tsx";
 import type { OccupationSpec } from "../../knowledge/occupation.ts";
 import { EntityProfile } from "../EntityProfile.tsx";
@@ -44,6 +47,7 @@ interface Detail {
   decisionReferences: Ref[];
   historyReferences: Record<string, Ref[]>;
   occupations: OccupationSpec[];
+  labelMaps: LabelMapSpec[];
 }
 export function ExtractionReview({ assetId }: { assetId: string }) {
   const { dispatch } = useAtlas();
@@ -92,35 +96,45 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
     void getKnowledgeDB()
       .then(async (db) => {
         const decision = records.decisions.find((d) => d.candidateId === selected);
-        const [references, matches, results, decisionReferences, historyReferences, occupations] =
-          await Promise.all([
-            mention
-              ? Promise.resolve([{ reference: JSON.stringify(mention.reference) }])
-              : db.query(CANDIDATE_EVIDENCE_QUERY, { id: selected }),
-            db.query(mention ? ENTITY_CANDIDATES_QUERY : ASSERTION_MATCHES_QUERY, { id: selected }),
-            decision
-              ? db.query(mention ? DECISION_RESULT_QUERY : ADOPTED_ASSERTION_QUERY, {
-                  id: decision.id,
-                })
-              : Promise.resolve([]),
-            decision ? db.query(DECISION_EVIDENCE_QUERY, { id: decision.id }) : Promise.resolve([]),
-            Promise.all(
-              records.history
-                .filter((d) => d.candidateId === selected)
-                .map(
-                  async (d) =>
-                    [
-                      d.id,
-                      (await db.query(DECISION_EVIDENCE_QUERY, { id: d.id })).map(
-                        (r) => JSON.parse(String(r.reference)) as Ref,
-                      ),
-                    ] as const,
-                ),
-            ),
-            decision?.resolution?.kind === "assertion"
-              ? db.query(OCCUPATION_QUERY, { id: `adopted:${decision.candidateId}` })
-              : Promise.resolve([]),
-          ]);
+        const [
+          references,
+          matches,
+          results,
+          decisionReferences,
+          historyReferences,
+          occupations,
+          labelMaps,
+        ] = await Promise.all([
+          mention
+            ? Promise.resolve([{ reference: JSON.stringify(mention.reference) }])
+            : db.query(CANDIDATE_EVIDENCE_QUERY, { id: selected }),
+          db.query(mention ? ENTITY_CANDIDATES_QUERY : ASSERTION_MATCHES_QUERY, { id: selected }),
+          decision
+            ? db.query(mention ? DECISION_RESULT_QUERY : ADOPTED_ASSERTION_QUERY, {
+                id: decision.id,
+              })
+            : Promise.resolve([]),
+          decision ? db.query(DECISION_EVIDENCE_QUERY, { id: decision.id }) : Promise.resolve([]),
+          Promise.all(
+            records.history
+              .filter((d) => d.candidateId === selected)
+              .map(
+                async (d) =>
+                  [
+                    d.id,
+                    (await db.query(DECISION_EVIDENCE_QUERY, { id: d.id })).map(
+                      (r) => JSON.parse(String(r.reference)) as Ref,
+                    ),
+                  ] as const,
+              ),
+          ),
+          decision?.resolution?.kind === "assertion"
+            ? db.query(OCCUPATION_QUERY, { id: `adopted:${decision.candidateId}` })
+            : Promise.resolve([]),
+          decision?.resolution?.kind === "assertion"
+            ? db.query(LABEL_MAP_QUERY, { id: `adopted:${decision.candidateId}` })
+            : Promise.resolve([]),
+        ]);
         if (active)
           setDetail({
             id: selected,
@@ -131,6 +145,7 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
               ...(typeof r.subjectId === "string" ? { subjectId: r.subjectId } : {}),
             })),
             historyReferences: Object.fromEntries(historyReferences),
+            labelMaps: labelMaps.map((r) => JSON.parse(String(r.payload)) as LabelMapSpec),
             occupations: occupations.map((r) => JSON.parse(String(r.payload)) as OccupationSpec),
             decisionReferences: decisionReferences.map((r) => JSON.parse(String(r.reference))),
             references: references.map((r) => JSON.parse(String(r.reference))),
@@ -296,6 +311,9 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
                       decision.resolution.notes.map((note) => <p key={note}>{note}</p>)}
                     {decision.nextAction && <p>次に必要な作業：{decision.nextAction}</p>}
                     <RefChips refs={currentDetail.decisionReferences} />
+                    {currentDetail.labelMaps.map((spec) => (
+                      <LabelMapDetails key={spec.id} spec={spec} />
+                    ))}
                     {currentDetail.occupations.map((spec) => (
                       <OccupationDetails key={spec.id} spec={spec} />
                     ))}

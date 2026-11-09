@@ -9,6 +9,10 @@ export function stepProvenanceLabel(payload: string): string {
     detailState?: string;
     adoptionRound?: string;
   };
+  if (detailState === "editorial_composition")
+    return "個別手順を組み合わせた編集上の操作手順。全体のセル対応・実行可能性は未検証です。";
+  if (adoptionRound === "held_label_resolution")
+    return "文献の理想配置へのラベル写像として再照合。実際の元素置換、到達セル・サイト対応の数値検証は未実施です。";
   if (adoptionRound === "held_relation_resolution")
     return "保留後に対象と占有条件を文献の選択箇所で再照合した記録です。座標・セル変換・サイト対応の数値検証は未実施です。";
   if (detailState === "source_context_checked")
@@ -22,6 +26,10 @@ export function assertionProvenanceLabel(
   basis: string,
   adoptionRound?: string,
 ): string {
+  if (status === "editorial_composition_not_verified")
+    return "編集上の構築レシピ。個別手順の根拠を保持し、全体のセル対応・実行可能性は未検証です。";
+  if (adoptionRound === "held_label_resolution")
+    return "文献の理想配置へのラベル写像として採用。原子種の実変換・合成を意味しません。";
   if (
     status === "source_checked_not_machine_verified" &&
     adoptionRound === "held_relation_resolution"
@@ -35,12 +43,15 @@ export function assertionProvenanceLabel(
 }
 
 export const operationLabels: Record<string, string> = {
+  composite_recipe: "複数手順の構築レシピ",
   interpenetration: "貫入",
-  species_identification: "同種原子によるサイト占有",
+  species_identification: "元素ラベルの同一視",
   void_occupation: "空隙占有",
   coordination_comparison: "配位の比較",
 };
 export const parameterLabels: Record<string, string> = {
+  inputLabels: "入力の原子ラベル",
+  outputLabel: "共通の抽象ラベル",
   shiftInSourceCell: "原文の単位胞に対する相対移動",
   representativeShift: "代表的な軸方向の相対移動",
   species: "部分格子の原子種",

@@ -3,6 +3,7 @@ import {
   STEP_QUERY,
   COUNTERPART_QUERY,
   OCCUPATION_QUERY,
+  LABEL_MAP_QUERY,
 } from "../../knowledge/queries.ts";
 import {
   missingEvidenceLabel,
@@ -24,6 +25,9 @@ import {
 import type { AtlasMode } from "../../knowledge/schema.ts";
 import { useAtlas } from "../../store.ts";
 import type { Ref } from "../../types.ts";
+import { DerivationRoutes } from "./DerivationRoutes.tsx";
+import { LabelMapDetails } from "../LabelMapDetails.tsx";
+import type { LabelMapSpec } from "../../knowledge/derivation.ts";
 import { OccupationDetails } from "../OccupationDetails.tsx";
 import type { OccupationSpec } from "../../knowledge/occupation.ts";
 import { EntityProfile } from "../EntityProfile.tsx";
@@ -62,6 +66,7 @@ interface Detail {
   steps: Record<string, unknown>[];
   counterparts: Record<string, unknown>[];
   occupations: OccupationSpec[];
+  labelMaps: LabelMapSpec[];
 }
 
 export function KnowledgeExplorer() {
@@ -79,7 +84,10 @@ export function KnowledgeExplorer() {
         <details open={expanded} onToggle={(e) => setExpanded(e.currentTarget.open)}>
           <summary>{title} — 操作と根拠のレコードを探索</summary>
           {expanded && state.tab === "explore" && (
-            <KnowledgePanel key={`${mode}:${state.selected}`} mode={mode} />
+            <>
+              <KnowledgePanel key={`${mode}:${state.selected}`} mode={mode} />
+              <DerivationRoutes />
+            </>
           )}
         </details>
       ) : state.tab === "explore" ? (
@@ -145,14 +153,16 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
       db.query(STEP_QUERY, { id }),
       db.query(COUNTERPART_QUERY, { id }),
       db.query(OCCUPATION_QUERY, { id }),
+      db.query(LABEL_MAP_QUERY, { id }),
     ])
-      .then(([refs, steps, counterparts, occupations]) => {
+      .then(([refs, steps, counterparts, occupations, labelMaps]) => {
         if (!cancelled)
           setDetail({
             id,
             refs: refs.map((r) => JSON.parse(String(r.reference)) as Ref),
             steps,
             counterparts,
+            labelMaps: labelMaps.map((r) => JSON.parse(String(r.payload)) as LabelMapSpec),
             occupations: occupations.map((r) => JSON.parse(String(r.payload)) as OccupationSpec),
           });
       })
@@ -302,7 +312,8 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                 <div className="knowledge-review">
                   <p>
                     {String(payload.reviewedOn)} · {String(payload.reviewer)} ·{" "}
-                    {payload.adoptionRound === "held_relation_resolution"
+                    {typeof payload.adoptionRound === "string" &&
+                    payload.adoptionRound.startsWith("held_")
                       ? "保留後の再照合による採用"
                       : "初回採用"}
                   </p>
@@ -343,6 +354,14 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                   <p>変換行列・Wyckoff対応の機械検証は未実施です。</p>
                 </div>
               )}
+              {detail?.labelMaps.map((spec) => (
+                <LabelMapDetails key={spec.id} spec={spec} />
+              ))}
+              {selected.status === "editorial_composition_not_verified" && (
+                <p>
+                  編集上の複数手順の組み合わせです。下記の根拠は個別手順の根拠で、レシピ全体の実行可能性を検証したものではありません。
+                </p>
+              )}
               {detail?.occupations.map((spec) => (
                 <OccupationDetails key={spec.id} spec={spec} />
               ))}
@@ -358,8 +377,10 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                   <p>
                     対象：
                     {typeof s.target === "string"
-                      ? detail?.occupations.some((spec) => spec.id === s.target)
-                        ? "上記の骨格・空隙集合を参照"
+                      ? [...(detail?.occupations ?? []), ...(detail?.labelMaps ?? [])].some(
+                          (spec) => spec.id === s.target,
+                        )
+                        ? "上記の操作対象仕様を参照"
                         : (TARGET_LABELS[s.target] ?? s.target)
                       : "詳細未転記"}
                   </p>
