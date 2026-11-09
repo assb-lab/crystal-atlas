@@ -4,6 +4,7 @@ import { KINDS } from "../../data/presets.ts";
 import { prefersReducedMotion, useAtlas } from "../../store.ts";
 import type { KindId, Source } from "../../types.ts";
 import { RefChips } from "../RefChips.tsx";
+import { LiteratureCatalog } from "./LiteratureCatalog.tsx";
 
 export function Guide() {
   const { state } = useAtlas();
@@ -87,6 +88,7 @@ export function Guide() {
           </div>
         </div>
       </div>
+      <LiteratureCatalog />
       <div className="bibliography">
         <h2 style={{ fontSize: 20, margin: "26px 3px 10px" }}>参考資料とページ対応</h2>
         <p className="blocknote" style={{ margin: "0 3px 16px" }}>

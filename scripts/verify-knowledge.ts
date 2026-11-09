@@ -7,6 +7,9 @@ import {
   RELATIONSHIP_QUERY,
   STEP_QUERY,
   COUNTERPART_QUERY,
+  CATALOG_QUERY,
+  COVERAGE_QUERY,
+  DOCUMENT_ASSETS_QUERY,
 } from "../src/knowledge/queries.ts";
 import { TABLES, type KnowledgeManifest } from "../src/knowledge/schema.ts";
 import { DATA } from "../src/data/atlas.ts";
@@ -80,6 +83,27 @@ try {
   ]);
   assert.ok(query(RELATIONSHIP_QUERY, { domain: "comparison", id: "nacoo2-p2" }).length > 0);
   assert.deepEqual(query(RELATIONSHIP_QUERY, { domain: "derivation", id: "fcc' OR true //" }), []);
+  const assets = query(CATALOG_QUERY);
+  assert.equal(assets.length, expected.rows.Asset!.length);
+  for (const asset of assets) {
+    const metadata = JSON.parse(asset.payload as string);
+    const ranges = query(COVERAGE_QUERY, { id: asset.id });
+    assert.deepEqual(
+      ranges
+        .map((r) => {
+          const { coordinateSystem, ledgerOnly, ...range } = JSON.parse(r.payload as string);
+          assert.equal(coordinateSystem, "pdf_page_1_based");
+          const pending = Object.values(range.channels).every((state) => state === "not_started");
+          assert.equal(ledgerOnly, pending);
+          assert.equal(r.status, pending ? "not_started" : "recorded");
+          return range;
+        })
+        .sort((a, b) => a.from - b.from),
+      metadata.coverage,
+    );
+  }
+  assert.equal(query(DOCUMENT_ASSETS_QUERY, { id: "M06" }).length, 1);
+  assert.deepEqual(query(DOCUMENT_ASSETS_QUERY, { id: "M06' OR true //" }), []);
   assert.throws(() => query("CREATE (:Entity {id: 'forbidden-write'})"), /read.only/i);
   console.log(
     "Snapshot verified: all rows/columns, Atlas/comparison/operation/counterpart queries, evidence, parameter binding, read-only writes rejected",

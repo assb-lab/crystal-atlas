@@ -57,8 +57,12 @@ test("editorial family membership does not inherit scientific evidence", () => {
   assert.ok(assertions.has("collection:pyro-alpha:pyrochlore"));
 });
 test("references preserve locators without inventing mentions or reviewed coverage", () => {
-  for (const name of ["Asset", "Mention", "CoverageReview", "ProcessingRun"])
-    assert.equal(rows[name].length, 0);
+  assert.equal(rows.Mention.length, 0);
+  assert.ok(rows.Asset.length > 0);
+  assert.ok(rows.CoverageReview.every((r) => r[1] === "not_started"));
+  assert.equal(rows.HasAsset.length, 0);
+  assert.equal(rows.LocatedIn.length, 0);
+  assert.equal(rows.ByRun.length, 0);
   const spans = new Map(
     rows.SourceSpan.map(([id, payload]) => [id, JSON.parse(payload as string)]),
   );
