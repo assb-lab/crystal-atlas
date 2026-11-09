@@ -5,14 +5,28 @@ export function missingEvidenceLabel(basis: string): string {
     : "この関係の出典は未登録です。根拠の照合が必要です。";
 }
 export function stepProvenanceLabel(payload: string): string {
-  const { detailState } = JSON.parse(payload) as { detailState?: string };
+  const { detailState, adoptionRound } = JSON.parse(payload) as {
+    detailState?: string;
+    adoptionRound?: string;
+  };
+  if (adoptionRound === "held_relation_resolution")
+    return "保留後に対象と占有条件を文献の選択箇所で再照合した記録です。座標・セル変換・サイト対応の数値検証は未実施です。";
   if (detailState === "source_context_checked")
     return "文献の選択箇所と操作の説明を照合した初回採用記録です。セル変換・サイト対応の数値検証は未実施です。";
   return detailState === "annotated"
     ? "既存記述からの操作注釈です。文献の該当箇所との再照合は未実施です。"
     : "操作の対象・パラメータは詳細未転記です。";
 }
-export function assertionProvenanceLabel(status: string, basis: string): string {
+export function assertionProvenanceLabel(
+  status: string,
+  basis: string,
+  adoptionRound?: string,
+): string {
+  if (
+    status === "source_checked_not_machine_verified" &&
+    adoptionRound === "held_relation_resolution"
+  )
+    return "文献の文脈を再照合し、対象と占有条件を明示した構築説明として採用。座標・群対応の機械検証は未実施です。";
   if (status === "source_checked_not_machine_verified")
     return basis === "editorial_comparison"
       ? "文献の配位記述を根拠とする編集上の比較として採用。"

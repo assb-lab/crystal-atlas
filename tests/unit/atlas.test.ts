@@ -36,7 +36,7 @@ test("the atlas has 220 structures, 283 relations, 14 strict relations", () => {
   assert.equal(DATA.nodes.length, 220);
   assert.equal(DATA.edges.length, 283);
   assert.equal(DATA.edges.filter((e) => e.strict).length, 14);
-  assert.equal(Object.keys(DATA.sources).length, 29);
+  assert.equal(Object.keys(DATA.sources).length, 30);
   assert.equal(Object.keys(DATA.families).length, 20);
 });
 

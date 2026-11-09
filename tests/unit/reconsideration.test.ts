@@ -15,8 +15,22 @@ import type { DecisionBatch } from "../../src/knowledge/decisions.ts";
 import type { LiteratureCatalog } from "../../src/knowledge/catalog.ts";
 const extraction = extractionData as ExtractionBatch;
 const reviews = [decisionsData as DecisionBatch];
-const before = knowledgeDataset(DATA, catalog as LiteratureCatalog, [extraction], reviews, []).rows;
-const after = knowledgeDataset(DATA).rows;
+const before = knowledgeDataset(
+  DATA,
+  catalog as LiteratureCatalog,
+  [extraction],
+  reviews,
+  [],
+  [],
+).rows;
+const after = knowledgeDataset(
+  DATA,
+  catalog as LiteratureCatalog,
+  [extraction],
+  reviews,
+  [latticeReconsideration],
+  [],
+).rows;
 test("one lattice type and a descriptive assertion preserve all original entities, claims and models", () => {
   for (const table of [
     "Mention",
@@ -74,7 +88,8 @@ test("revisions refuse duplicates, cycles, forks, cross-candidate predecessors a
     const revision = structuredClone(latticeReconsideration);
     mutate(revision);
     assert.throws(
-      () => knowledgeDataset(DATA, catalog as LiteratureCatalog, [extraction], reviews, [revision]),
+      () =>
+        knowledgeDataset(DATA, catalog as LiteratureCatalog, [extraction], reviews, [revision], []),
       /Revision needs|resolution requires/,
     );
   };

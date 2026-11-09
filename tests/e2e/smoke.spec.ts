@@ -206,7 +206,7 @@ for (const [label, url] of Object.entries(TARGETS)) {
       await search(page, "KMgF3", "kmgf3");
       await page.locator('#inspector [data-source="G"][data-page="185"]').click();
       await expect(page.locator("#sourcePage-G")).toContainText("PDF 196ページ");
-      await expect(page.locator(".sourcecard")).toHaveCount(29);
+      await expect(page.locator(".sourcecard")).toHaveCount(30);
       const download = page.waitForEvent("download");
       await page.locator("#exportBtn").click();
       const exported = JSON.parse(await readFile((await (await download).path())!, "utf8"));

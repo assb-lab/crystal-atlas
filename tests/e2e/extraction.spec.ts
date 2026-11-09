@@ -26,7 +26,7 @@ for (const [label, url] of Object.entries({
     await expect(page.getByTestId("extraction-ready")).toContainText(
       "登場記録 10 件 ／ 関係候補 10 件",
     );
-    await expect(page.getByTestId("extraction-ready")).toContainText("採用 14 件 ／ 保留 6 件");
+    await expect(page.getByTestId("extraction-ready")).toContainText("採用 17 件 ／ 保留 3 件");
     const selector = page.locator("#extractionCandidate");
     const detail = page.getByTestId("extraction-detail");
     await expect(selector.locator("option")).toHaveCount(20);
@@ -49,13 +49,15 @@ for (const [label, url] of Object.entries({
     await selector.selectOption(prefix + "relation:fcc-nacl-voids");
     await expect(detail).toContainText("空隙占有");
     await expect(detail).toContainText("O孔を全占有");
-    await expect(page.getByTestId("candidate-decision")).toContainText("現在の判断：保留");
-    await expect(page.getByTestId("candidate-decision")).toContainText("次に必要な作業");
+    await expect(page.getByTestId("candidate-decision")).toContainText("現在の判断：採用");
+    await expect(page.getByTestId("occupation-spec")).toContainText("Na");
+    await expect(page.getByTestId("occupation-spec")).toContainText("Cl");
+    await expect(page.getByTestId("decision-history")).toContainText("判断の履歴（2件）");
     await expect(
       page
         .getByTestId("candidate-decision")
         .getByRole("button", { name: "採用した関係をDerivationで見る" }),
-    ).toHaveCount(0);
+    ).toHaveCount(1);
     await selector.selectOption(prefix + "relation:zns-diamond");
     await expect(detail).toContainText("逆向き");
     await expect(detail).toContainText("Wyckoff対応の検証は未実施");

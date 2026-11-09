@@ -16,6 +16,9 @@ import {
 } from "../data/lattice-interpretation.ts";
 import { appendHeldMentionResolution, type HeldMentionResolution } from "./reconsideration.ts";
 
+import { fluoriteRoleReference, occupationReconsiderations } from "../data/okamoto-occupation.ts";
+import { appendHeldVoidResolution, type HeldVoidResolution } from "./occupation.ts";
+
 /** Explicit annotations of existing statements, not operations inferred from space-group names. */
 const OPERATIONS: Record<string, { operation: string; target: string; parameters: object }> = {
   e1: {
@@ -45,6 +48,11 @@ export function knowledgeDataset(
     r.decisions.some((d) => d.id === latticeReconsideration.predecessorId),
   )
     ? [latticeReconsideration]
+    : [],
+  voidReconsiderations: HeldVoidResolution[] = reconsiderations.some(
+    (r) => r.id === latticeReconsideration.id,
+  )
+    ? occupationReconsiderations
     : [],
 ): KnowledgeDataset {
   validateCatalog(catalog, new Set(Object.keys(data.sources)));
@@ -294,6 +302,17 @@ export function knowledgeDataset(
       const extraction = extractions.find((e) => e.id === revision.extractionId);
       if (!extraction) throw new Error("Revision references an unknown extraction");
       appendHeldMentionResolution(rows, extraction, revision);
+    }
+  }
+  if (voidReconsiderations.length) {
+    const { id, reference } = fluoriteRoleReference;
+    if (!data.sources[reference.s]) throw new Error(`Unknown role source ${reference.s}`);
+    add("SourceSpan", id, json(reference));
+    add("InDocument", id, reference.s);
+    for (const revision of voidReconsiderations) {
+      const extraction = extractions.find((e) => e.id === revision.extractionId);
+      if (!extraction) throw new Error("Revision references an unknown extraction");
+      appendHeldVoidResolution(rows, extraction, revision);
     }
   }
   return { rows };
