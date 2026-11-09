@@ -85,3 +85,9 @@ CandidateDecisionで元候補を保持したまま初回判断を追加します
 Issue #25で`bravais_lattice_type`を独立したEntityのkindとして追加しました。既存fccモチーフとcF格子型を、根拠と適用範囲のある`description`のAssertionで記述します。この関係は3Atlas共通の対象プロフィールで表示し、Family所属・Derivation操作・Symmetry対応とは別に扱います。旧ID・原子モデルは維持します。
 
 保留Mentionを新設格子型へ再照合した判断を追加し、`SupersedesDecision`（新→旧）で履歴を保持します。履歴照会と現在の判断照会を区別し、初回の保留を上書きしません。採用済み関係の撤回・改訂一般は未実装です。根拠・意味・現在件数は[候補の判断記録](CANDIDATE_DECISIONS.md#issue-25格子型の識別と保留1件の再照合)に記載します。
+
+## 空隙占有の対象仕様（スキーマv6）
+
+Issue #27では、保留中の空隙占有3候補を、骨格・占有原子種、空隙の種類、占有集合を持つ`OccupationSpec`へ接続しました。`HasOccupationSpec`はOperationStep→OccupationSpec、`HostMotif`はOccupationSpec→Entityです。本文にある条件と、元素役割を選んだ解釈・補助資料の由来を別に記録します。原子モデル・格子型・物質とは別の操作仕様です。
+
+採用済みの貫入と、今回採用した空隙占有は同じ端点でも独立したAssertionです。役割を入れ替えた既存の占有説明にも自動統合しません。現在の判断は20件（採用17・保留3）、履歴は24件で、初回の保留は残します。実DB検証には仕様・骨格・操作の照会も含めます。[根拠と適用範囲](CANDIDATE_DECISIONS.md#issue-27空隙占有3件の対象仕様と再照合)を参照してください。

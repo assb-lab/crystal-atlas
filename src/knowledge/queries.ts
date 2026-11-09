@@ -42,3 +42,6 @@ export const CURRENT_DECISIONS_QUERY = `MATCH (d:CandidateDecision)-[:DecisionEv
 WHERE NOT EXISTS { MATCH (:CandidateDecision)-[:SupersedesDecision]->(d) }
 RETURN DISTINCT d.id AS id, d.candidateId AS candidateId, d.candidateKind AS candidateKind, d.outcome AS outcome, d.reason AS reason, d.payload AS payload ORDER BY d.id`;
 export const ENTITY_PROFILE_QUERY = `MATCH (e:Entity {id: $id}) RETURN e.id AS id, e.title AS title, e.kind AS kind, e.payload AS payload`;
+
+export const OCCUPATION_QUERY = `MATCH (a:Assertion {id: $id})-[h:HasStep]->(step:OperationStep)-[:HasOccupationSpec]->(spec:OccupationSpec)-[:HostMotif]->(host:Entity)
+RETURN spec.id AS id, spec.payload AS payload, host.id AS hostId, host.title AS hostTitle ORDER BY h.ordinal, spec.id`;

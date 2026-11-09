@@ -19,6 +19,7 @@ import {
   DECISIONS_QUERY,
   CURRENT_DECISIONS_QUERY,
   ENTITY_PROFILE_QUERY,
+  OCCUPATION_QUERY,
   DECISION_RESULT_QUERY,
   ADOPTED_ASSERTION_QUERY,
   DECISION_EVIDENCE_QUERY,
@@ -152,13 +153,32 @@ try {
   }
   assert.deepEqual(query(MENTIONS_QUERY, { id: pilotAssetId + "' OR true //" }), []);
   const decisions = query(DECISIONS_QUERY, { id: pilotAssetId });
-  assert.equal(decisions.length, 21);
-  assert.equal(decisions.filter((d) => d.outcome === "accepted").length, 14);
+  assert.equal(decisions.length, 24);
+  assert.equal(decisions.filter((d) => d.outcome === "accepted").length, 17);
   assert.equal(decisions.filter((d) => d.outcome === "held").length, 7);
   const currentDecisions = query(CURRENT_DECISIONS_QUERY, { id: pilotAssetId });
   assert.equal(currentDecisions.length, 20);
-  assert.equal(currentDecisions.filter((d) => d.outcome === "accepted").length, 14);
-  assert.equal(currentDecisions.filter((d) => d.outcome === "held").length, 6);
+  assert.equal(currentDecisions.filter((d) => d.outcome === "accepted").length, 17);
+  assert.equal(currentDecisions.filter((d) => d.outcome === "held").length, 3);
+  for (const [name, host, guest, voidKind, selection] of [
+    ["nacl", "Na", "Cl", "octahedral", "all"],
+    ["zns", "Zn", "S", "tetrahedral", "one_of_two"],
+    ["fluorite", "Ca", "F", "tetrahedral", "both"],
+  ]) {
+    const id = `adopted:pilot:K:2-3:relation:fcc-${name}-voids`;
+    const specs = query(OCCUPATION_QUERY, { id });
+    assert.equal(specs.length, 1);
+    assert.equal(specs[0]?.hostId, "fcc");
+    const spec = JSON.parse(String(specs[0]!.payload));
+    assert.deepEqual(
+      [spec.hostSpecies, spec.guestSpecies, spec.voidKind, spec.selection],
+      [host, guest, voidKind, selection],
+    );
+    assert.equal(query(STEP_QUERY, { id })[0]?.target, spec.id);
+    assert.deepEqual(query(COUNTERPART_QUERY, { id }), []);
+  }
+  assert.deepEqual(query(OCCUPATION_QUERY, { id: "relation:e1" }), []);
+  assert.deepEqual(query(OCCUPATION_QUERY, { id: "' OR true //" }), []);
   const latticeMention = "pilot:K:2-3:mention:fcc-lattice";
   assert.equal(
     currentDecisions.find((d) => d.candidateId === latticeMention)?.id,

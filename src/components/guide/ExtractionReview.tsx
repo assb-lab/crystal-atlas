@@ -12,6 +12,7 @@ import {
   DECISION_RESULT_QUERY,
   ADOPTED_ASSERTION_QUERY,
   DECISION_EVIDENCE_QUERY,
+  OCCUPATION_QUERY,
 } from "../../knowledge/queries.ts";
 import type { ExtractionBatch } from "../../knowledge/extraction.ts";
 import type { CandidateDecision } from "../../knowledge/decisions.ts";
@@ -19,6 +20,8 @@ import { operationLabels, parameterLabels, parameterValue } from "../../knowledg
 import { useAtlas } from "../../store.ts";
 import type { Ref } from "../../types.ts";
 import { entityKindLabel } from "../../knowledge/presentation.ts";
+import { OccupationDetails } from "../OccupationDetails.tsx";
+import type { OccupationSpec } from "../../knowledge/occupation.ts";
 import { EntityProfile } from "../EntityProfile.tsx";
 import { RefChips } from "../RefChips.tsx";
 
@@ -40,6 +43,7 @@ interface Detail {
   results: { id: string; title: string; subjectId?: string; kind?: string }[];
   decisionReferences: Ref[];
   historyReferences: Record<string, Ref[]>;
+  occupations: OccupationSpec[];
 }
 export function ExtractionReview({ assetId }: { assetId: string }) {
   const { dispatch } = useAtlas();
@@ -88,7 +92,7 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
     void getKnowledgeDB()
       .then(async (db) => {
         const decision = records.decisions.find((d) => d.candidateId === selected);
-        const [references, matches, results, decisionReferences, historyReferences] =
+        const [references, matches, results, decisionReferences, historyReferences, occupations] =
           await Promise.all([
             mention
               ? Promise.resolve([{ reference: JSON.stringify(mention.reference) }])
@@ -113,6 +117,9 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
                     ] as const,
                 ),
             ),
+            decision?.resolution?.kind === "assertion"
+              ? db.query(OCCUPATION_QUERY, { id: `adopted:${decision.candidateId}` })
+              : Promise.resolve([]),
           ]);
         if (active)
           setDetail({
@@ -124,6 +131,7 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
               ...(typeof r.subjectId === "string" ? { subjectId: r.subjectId } : {}),
             })),
             historyReferences: Object.fromEntries(historyReferences),
+            occupations: occupations.map((r) => JSON.parse(String(r.payload)) as OccupationSpec),
             decisionReferences: decisionReferences.map((r) => JSON.parse(String(r.reference))),
             references: references.map((r) => JSON.parse(String(r.reference))),
             matches: matches.map((r) => ({
@@ -288,6 +296,9 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
                       decision.resolution.notes.map((note) => <p key={note}>{note}</p>)}
                     {decision.nextAction && <p>次に必要な作業：{decision.nextAction}</p>}
                     <RefChips refs={currentDetail.decisionReferences} />
+                    {currentDetail.occupations.map((spec) => (
+                      <OccupationDetails key={spec.id} spec={spec} />
+                    ))}
                     <h4>採用結果</h4>
                     {currentDetail.results.length ? (
                       currentDetail.results.map((result) => (

@@ -78,7 +78,7 @@ test("references preserve locators without inventing mentions or reviewed covera
     assert.equal(a[5], "imported_not_revalidated");
   assert.equal(
     rows.Assertion.filter((r) => r[5] === "source_checked_not_machine_verified").length,
-    4,
+    7,
   );
 });
 test("source routes keep figure order without asserting a linear synthesis pathway", () => {

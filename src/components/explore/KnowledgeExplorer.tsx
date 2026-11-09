@@ -1,4 +1,9 @@
-import { EVIDENCE_QUERY, STEP_QUERY, COUNTERPART_QUERY } from "../../knowledge/queries.ts";
+import {
+  EVIDENCE_QUERY,
+  STEP_QUERY,
+  COUNTERPART_QUERY,
+  OCCUPATION_QUERY,
+} from "../../knowledge/queries.ts";
 import {
   missingEvidenceLabel,
   stepProvenanceLabel,
@@ -19,6 +24,8 @@ import {
 import type { AtlasMode } from "../../knowledge/schema.ts";
 import { useAtlas } from "../../store.ts";
 import type { Ref } from "../../types.ts";
+import { OccupationDetails } from "../OccupationDetails.tsx";
+import type { OccupationSpec } from "../../knowledge/occupation.ts";
 import { EntityProfile } from "../EntityProfile.tsx";
 import { RefChips } from "../RefChips.tsx";
 import "../../styles/knowledge.css";
@@ -54,6 +61,7 @@ interface Detail {
   refs: Ref[];
   steps: Record<string, unknown>[];
   counterparts: Record<string, unknown>[];
+  occupations: OccupationSpec[];
 }
 
 export function KnowledgeExplorer() {
@@ -136,14 +144,16 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
       db.query(EVIDENCE_QUERY, { id }),
       db.query(STEP_QUERY, { id }),
       db.query(COUNTERPART_QUERY, { id }),
+      db.query(OCCUPATION_QUERY, { id }),
     ])
-      .then(([refs, steps, counterparts]) => {
+      .then(([refs, steps, counterparts, occupations]) => {
         if (!cancelled)
           setDetail({
             id,
             refs: refs.map((r) => JSON.parse(String(r.reference)) as Ref),
             steps,
             counterparts,
+            occupations: occupations.map((r) => JSON.parse(String(r.payload)) as OccupationSpec),
           });
       })
       .catch((e: unknown) => {
@@ -284,7 +294,10 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
               {selected.status === "source_checked_not_machine_verified" && (
                 <div className="knowledge-review">
                   <p>
-                    {String(payload.reviewedOn)} · {String(payload.reviewer)} · 初回採用
+                    {String(payload.reviewedOn)} · {String(payload.reviewer)} ·{" "}
+                    {payload.adoptionRound === "held_relation_resolution"
+                      ? "保留後の再照合による採用"
+                      : "初回採用"}
                   </p>
                   <p>採用範囲：{String(payload.scope)}</p>
                   {Array.isArray(payload.limitations) && (
@@ -323,6 +336,9 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                   <p>変換行列・Wyckoff対応の機械検証は未実施です。</p>
                 </div>
               )}
+              {detail?.occupations.map((spec) => (
+                <OccupationDetails key={spec.id} spec={spec} />
+              ))}
               {detail?.steps.map((s, i) => (
                 <div className="knowledge-step" key={i}>
                   <strong>
@@ -335,7 +351,9 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                   <p>
                     対象：
                     {typeof s.target === "string"
-                      ? (TARGET_LABELS[s.target] ?? s.target)
+                      ? detail?.occupations.some((spec) => spec.id === s.target)
+                        ? "上記の骨格・空隙集合を参照"
+                        : (TARGET_LABELS[s.target] ?? s.target)
                       : "詳細未転記"}
                   </p>
                   {s.parameters !== "{}" && (
@@ -389,7 +407,13 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
               ) : (
                 <p role="status">根拠を読み込んでいます…</p>
               )}
-              <small>{assertionProvenanceLabel(selected.status, selected.basis)}</small>
+              <small>
+                {assertionProvenanceLabel(
+                  selected.status,
+                  selected.basis,
+                  typeof payload.adoptionRound === "string" ? payload.adoptionRound : undefined,
+                )}
+              </small>
             </article>
           )}
         </div>
