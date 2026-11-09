@@ -2,6 +2,10 @@
 
 結晶構造を、**空隙占有・原子の規則化・歪み・積層・群–部分群関係**から探索するインタラクティブアトラスです。React + TypeScript で実装し、[Vite+](https://viteplus.dev/)（`vp`）でビルド・テスト・整形・lint を行います。
 
+主な表示は **Family（分類）・Derivation（構造派生、既定）・Symmetry（対称性）** です。LadybugDB/WASMで、同じ出典付き知識グラフをブラウザ内から照会します。既存の充填ツリー・模型・比較も利用できます。現在は既存収録範囲を移行した段階で、文献全文の網羅抽出は未実施です。スキーマ・配布・検証と制約は[知識グラフ基盤](docs/KNOWLEDGE_GRAPH.md)を参照してください。
+
+開発は **Issue → developからfeatブランチ → develop向けPR** の順で進めます。developからmainへの昇格は、ユーザーの指示を受けて別のPRで行います。詳細は [AGENTS.md](AGENTS.md) を参照してください。
+
 ## 必要なもの
 
 | ツール  | バージョン                                                      |
@@ -27,10 +31,10 @@ pnpm dev
 pnpm build
 ```
 
-| 出力                                | 用途                                                                  |
-| ----------------------------------- | --------------------------------------------------------------------- |
-| `dist/index.html` と `dist/assets/` | 静的Webサーバーに配置する版。相対パスなので任意のサブパスに置けます   |
-| `dist/crystal-atlas.html`           | データ・JS・CSSを内蔵した単一HTML。ダブルクリックでオフライン利用可能 |
+| 出力                                                 | 用途                                                                  |
+| ---------------------------------------------------- | --------------------------------------------------------------------- |
+| `dist/index.html`・`dist/assets/`・`dist/knowledge/` | DB・Workerを含めて静的Webサーバーに配置する版。相対パスで配信         |
+| `dist/crystal-atlas.html`                            | データ・JS・CSSを内蔵した単一HTML。ダブルクリックでオフライン利用可能 |
 
 `pnpm preview` でビルド結果を確認できます。`dist/` は生成物です。単一HTMLは `vp build --mode standalone` で、`vite.config.ts` の `standaloneHtml` プラグインが生成します。
 
@@ -87,6 +91,8 @@ tests/
 ```sh
 pnpm check     # 整形・lint（型情報を使うルールを含む）・型チェック。自動修正は pnpm exec vp check --fix
 pnpm test      # ユニットテスト（vp test run）
+pnpm build:db  # 版固定のWASMで知識グラフDBを生成
+pnpm test:db   # 実DB再オープン・照会・書き込み拒否の検証
 pnpm build     # 型チェック後に配信版と単一HTMLを生成
 pnpm e2e       # ビルド済みの dist/ に対するE2Eテスト
 pnpm verify    # 上記すべてを順に実行

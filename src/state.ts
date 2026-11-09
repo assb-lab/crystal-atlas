@@ -1,5 +1,6 @@
 /** Application state and its transitions. Pure (no DOM), so every interaction rule is unit-testable. */
 import { DATA } from "./data/atlas.ts";
+import type { AtlasMode } from "./knowledge/schema.ts";
 import { LABPRESETS, OCCPRESETS } from "./data/presets.ts";
 import {
   ALL,
@@ -43,6 +44,8 @@ export const NARROW = 900;
 
 export interface State {
   tab: Tab;
+  atlasMode: AtlasMode;
+  knowledgeAssertion: string | null;
   /** Family id, or "all". Ignored while a flow or classification is open. */
   family: string;
   /** Source derivation flow id. */
@@ -79,6 +82,8 @@ export const COMPARE_MAX = 2;
 export function initialState(sidebars: Partial<Sidebars> = {}): State {
   return {
     tab: "explore",
+    atlasMode: "derivation",
+    knowledgeAssertion: null,
     family: "fcc",
     flow: null,
     collection: null,
@@ -104,6 +109,7 @@ export function initialState(sidebars: Partial<Sidebars> = {}): State {
 }
 
 export type Action =
+  | { type: "atlasMode"; mode: AtlasMode; assertionId?: string }
   | { type: "tab"; tab: Tab }
   | { type: "family"; id: string }
   | { type: "classification"; id: string }
@@ -193,8 +199,12 @@ function normalizeAnchor(s: State): State {
 
 function step(s: State, a: Action): State {
   switch (a.type) {
+    case "atlasMode":
+      return { ...s, tab: "explore", atlasMode: a.mode, knowledgeAssertion: a.assertionId ?? null };
     case "tab":
-      return a.tab === "explore" ? moveMap({ ...s, tab: a.tab }) : { ...s, tab: a.tab };
+      return a.tab === "explore"
+        ? moveMap({ ...s, tab: a.tab, atlasMode: "derivation", knowledgeAssertion: null })
+        : { ...s, tab: a.tab };
 
     case "family":
       return openFamily(s, a.id);

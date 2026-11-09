@@ -1,2 +1,13 @@
-/** One packing-first workspace; source diagrams and classifications are lenses on it. */
-export { PackingExplorer as Explore } from "./PackingExplorer.tsx";
+import { KnowledgeExplorer } from "./KnowledgeExplorer.tsx";
+import { PackingExplorer } from "./PackingExplorer.tsx";
+import { useAtlas } from "../../store.ts";
+
+export function Explore() {
+  const { state } = useAtlas();
+  return (
+    <>
+      <KnowledgeExplorer key={state.atlasMode} />
+      <PackingExplorer />
+    </>
+  );
+}

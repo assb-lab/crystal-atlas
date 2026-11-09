@@ -1,0 +1,184 @@
+.knowledge-atlas {
+  margin: 0 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.knowledge-derivation {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+body:has(#explore:not([hidden])) #root > main {
+  display: flex;
+  flex-direction: column;
+}
+#explore:not([hidden]) {
+  height: auto;
+  flex: 1;
+  min-height: 0;
+}
+body:has(.knowledge-derivation details[open]):has(#explore:not([hidden])) {
+  height: auto;
+  min-height: 100dvh;
+  overflow: auto;
+}
+body:has(.knowledge-derivation details[open]) #explore:not([hidden]) {
+  height: max(650px, calc(100dvh - 200px));
+  flex: none;
+}
+.knowledge-atlas > details > summary {
+  padding: 12px 16px;
+  cursor: pointer;
+  color: var(--accent);
+}
+.knowledge-panel {
+  padding: 16px;
+}
+.knowledge-heading {
+  display: flex;
+  align-items: start;
+  gap: 16px;
+  justify-content: space-between;
+}
+.knowledge-heading h2 {
+  font-size: 19px;
+  margin: 0;
+}
+.knowledge-heading p,
+.knowledge-coverage {
+  color: var(--muted);
+  font-size: 12px;
+}
+.knowledge-status {
+  color: var(--accent);
+  font-size: 12px;
+}
+.knowledge-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0;
+}
+.knowledge-controls label,
+.knowledge-controls [role="status"] {
+  font-size: 12px;
+  color: var(--sub);
+}
+.knowledge-controls select {
+  max-width: min(100%, 400px);
+}
+.knowledge-body {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 1.2fr);
+  gap: 20px;
+}
+.knowledge-records {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  max-height: 380px;
+  overflow: auto;
+}
+.knowledge-records button {
+  text-align: left;
+  display: grid;
+  gap: 4px;
+  overflow-wrap: anywhere;
+}
+.knowledge-records small {
+  color: var(--sub);
+}
+.knowledge-records > section {
+  display: grid;
+  gap: 6px;
+}
+.knowledge-records > section > h3 {
+  margin: 8px 0 4px;
+  font-size: 13px;
+  color: var(--sub);
+}
+.knowledge-detail {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.knowledge-detail h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.knowledge-detail p {
+  font-size: 13px;
+}
+.knowledge-detail > small {
+  color: var(--muted);
+}
+.knowledge-endpoints {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.knowledge-step,
+.knowledge-symmetry {
+  margin: 12px 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--line);
+}
+.knowledge-step dl > div {
+  display: flex;
+  gap: 12px;
+}
+.knowledge-step dt {
+  color: var(--muted);
+}
+.knowledge-step dd {
+  margin: 0;
+}
+.knowledge-error {
+  color: #ffb4b4;
+  overflow-wrap: anywhere;
+}
+.knowledge-error button {
+  margin: 8px;
+}
+.mainnav button small {
+  display: block;
+  font-size: 10px;
+  color: var(--sub);
+}
+@media (max-width: 700px) {
+  .topbar .mainnav {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+    height: auto;
+    width: 100%;
+  }
+  .topbar .mainnav button {
+    min-width: 0;
+    padding: 5px 2px;
+  }
+  .topbar .mainnav button[data-atlas-mode] {
+    grid-column: span 2;
+  }
+  .topbar .mainnav button[data-tab="lab"],
+  .topbar .mainnav button[data-tab="guide"] {
+    grid-column: span 3;
+  }
+  .knowledge-heading {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .knowledge-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .knowledge-panel {
+    padding: 12px;
+  }
+  .knowledge-records {
+    max-height: 240px;
+  }
+  .knowledge-controls select {
+    width: 100%;
+  }
+}
