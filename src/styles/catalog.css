@@ -65,3 +65,9 @@
 .extraction-parameters dd {
   margin: 0;
 }
+.candidate-decision {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px;
+  margin-top: 16px;
+}

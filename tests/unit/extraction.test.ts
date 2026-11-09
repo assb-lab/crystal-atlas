@@ -9,7 +9,7 @@ import { knowledgeDataset } from "../../src/knowledge/dataset.ts";
 
 const catalog = catalogData as LiteratureCatalog;
 const batch = batchData as ExtractionBatch;
-const { rows } = knowledgeDataset(DATA);
+const { rows } = knowledgeDataset(DATA, catalog, [batch], []);
 test("candidate extraction leaves canonical scientific entities and assertions unchanged", () => {
   const baseline = knowledgeDataset(DATA, catalog, []).rows;
   for (const table of [

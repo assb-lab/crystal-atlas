@@ -1,5 +1,5 @@
 /** Versioned physical schema. Scientific relations are nodes so they can carry evidence. */
-export const KNOWLEDGE_SCHEMA_VERSION = 3;
+export const KNOWLEDGE_SCHEMA_VERSION = 4;
 export const LADYBUG_VERSION = "0.22.3";
 export type AtlasMode = "family" | "derivation" | "symmetry";
 export type Cell = string | number | boolean | null;
@@ -36,6 +36,7 @@ export const TABLES: Table[] = [
   node("Asset", ["id", "sha256", "payload"]),
   node("Mention", ["id", "rawName", "status", "payload"]),
   node("RelationCandidate", ["id", "domain", "operation", "status", "payload"]),
+  node("CandidateDecision", ["id", "candidateKind", "candidateId", "outcome", "reason", "payload"]),
   node("CoverageReview", ["id", "status", "payload"]),
   node("ProcessingRun", ["id", "payload"]),
   rel("Subject", "Assertion", "Entity"),
@@ -59,6 +60,12 @@ export const TABLES: Table[] = [
   rel("CandidateMatches", "RelationCandidate", "Assertion", [["note", "STRING"]]),
   rel("MentionByRun", "Mention", "ProcessingRun"),
   rel("CandidateByRun", "RelationCandidate", "ProcessingRun"),
+  rel("DecisionAboutMention", "CandidateDecision", "Mention"),
+  rel("DecisionAboutRelation", "CandidateDecision", "RelationCandidate"),
+  rel("DecisionEvidence", "CandidateDecision", "SourceSpan"),
+  rel("DecisionByRun", "CandidateDecision", "ProcessingRun"),
+  rel("ResolvedEntity", "CandidateDecision", "Entity"),
+  rel("AdoptedAssertion", "CandidateDecision", "Assertion"),
   rel("Reviews", "CoverageReview", "Asset"),
   rel("ByRun", "CoverageReview", "ProcessingRun"),
 ];

@@ -7,51 +7,37 @@ import {
   ENTITY_CANDIDATES_QUERY,
   CANDIDATE_EVIDENCE_QUERY,
   ASSERTION_MATCHES_QUERY,
+  DECISIONS_QUERY,
+  DECISION_RESULT_QUERY,
+  ADOPTED_ASSERTION_QUERY,
+  DECISION_EVIDENCE_QUERY,
 } from "../../knowledge/queries.ts";
 import type { ExtractionBatch } from "../../knowledge/extraction.ts";
+import type { CandidateDecision } from "../../knowledge/decisions.ts";
+import { operationLabels, parameterLabels, parameterValue } from "../../knowledge/presentation.ts";
+import { useAtlas } from "../../store.ts";
 import type { Ref } from "../../types.ts";
 import { RefChips } from "../RefChips.tsx";
 
 type Mention = ExtractionBatch["mentions"][number] & { reference: Ref };
 type Candidate = ExtractionBatch["relations"][number];
+type Decision = CandidateDecision & { reviewer: string; reviewedOn: string; limitations: string[] };
+const outcomeLabels = { accepted: "採用", held: "保留", rejected: "却下" };
 interface Records {
   runs: { scope: string; limitations: string[]; operator: string; reviewedOn: string }[];
   mentions: Mention[];
   relations: Candidate[];
+  decisions: Decision[];
 }
 interface Detail {
   id: string;
   references: Ref[];
   matches: { id: string; title: string; note: string }[];
-}
-const operationLabels: Record<string, string> = {
-  interpenetration: "貫入",
-  species_identification: "同種原子によるサイト占有",
-  void_occupation: "空隙占有",
-  coordination_comparison: "配位の比較",
-};
-const parameterLabels: Record<string, string> = {
-  shiftInSourceCell: "原文の単位胞に対する相対移動",
-  representativeShift: "代表的な軸方向の相対移動",
-  species: "部分格子の原子種",
-  voidKind: "空隙の種類",
-  occupiedOrientationClasses: "占有する空隙の向き",
-  occupation: "占有の範囲",
-};
-function parameterValue(value: unknown): string {
-  if (Array.isArray(value)) return `(${value.map(String).join(", ")})`;
-  const labels: Record<string, string> = {
-    same: "同種",
-    different: "異種",
-    tetrahedral: "四面体",
-    octahedral: "八面体",
-    both: "両方",
-    one_of_two: "2種類のうち一方",
-    all: "すべて",
-  };
-  return typeof value === "string" ? (labels[value] ?? value) : (JSON.stringify(value) ?? "未転記");
+  results: { id: string; title: string; subjectId?: string }[];
+  decisionReferences: Ref[];
 }
 export function ExtractionReview({ assetId }: { assetId: string }) {
+  const { dispatch } = useAtlas();
   const [records, setRecords] = useState<Records | null>(null);
   const [selected, setSelected] = useState("");
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -61,10 +47,11 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
     let active = true;
     void getKnowledgeDB()
       .then(async (db) => {
-        const [runs, mentions, relations] = await Promise.all([
+        const [runs, mentions, relations, decisions] = await Promise.all([
           db.query(EXTRACTION_RUN_QUERY, { id: assetId }),
           db.query(MENTIONS_QUERY, { id: assetId }),
           db.query(RELATION_CANDIDATES_QUERY, { id: assetId }),
+          db.query(DECISIONS_QUERY, { id: assetId }),
         ]);
         if (!active) return;
         const loaded: Records = {
@@ -74,6 +61,7 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
             reference: JSON.parse(String(m.reference)),
           })),
           relations: relations.map((r) => JSON.parse(String(r.payload))),
+          decisions: decisions.map((d) => JSON.parse(String(d.payload))),
         };
         setError("");
         setRecords(loaded);
@@ -92,18 +80,28 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
     const mention = records.mentions.find((m) => m.id === selected);
     void getKnowledgeDB()
       .then(async (db) => {
-        const [references, matches] = mention
-          ? [
-              [{ reference: JSON.stringify(mention.reference) }],
-              await db.query(ENTITY_CANDIDATES_QUERY, { id: selected }),
-            ]
-          : await Promise.all([
-              db.query(CANDIDATE_EVIDENCE_QUERY, { id: selected }),
-              db.query(ASSERTION_MATCHES_QUERY, { id: selected }),
-            ]);
+        const decision = records.decisions.find((d) => d.candidateId === selected);
+        const [references, matches, results, decisionReferences] = await Promise.all([
+          mention
+            ? Promise.resolve([{ reference: JSON.stringify(mention.reference) }])
+            : db.query(CANDIDATE_EVIDENCE_QUERY, { id: selected }),
+          db.query(mention ? ENTITY_CANDIDATES_QUERY : ASSERTION_MATCHES_QUERY, { id: selected }),
+          decision
+            ? db.query(mention ? DECISION_RESULT_QUERY : ADOPTED_ASSERTION_QUERY, {
+                id: decision.id,
+              })
+            : Promise.resolve([]),
+          decision ? db.query(DECISION_EVIDENCE_QUERY, { id: decision.id }) : Promise.resolve([]),
+        ]);
         if (active)
           setDetail({
             id: selected,
+            results: results.map((r) => ({
+              id: String(r.id),
+              title: String(r.title),
+              ...(typeof r.subjectId === "string" ? { subjectId: r.subjectId } : {}),
+            })),
+            decisionReferences: decisionReferences.map((r) => JSON.parse(String(r.reference))),
             references: references.map((r) => JSON.parse(String(r.reference))),
             matches: matches.map((r) => ({
               id: String(r.id),
@@ -121,6 +119,7 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
   }, [selected, records]);
   const mention = records?.mentions.find((m) => m.id === selected);
   const relation = records?.relations.find((r) => r.id === selected);
+  const decision = records?.decisions.find((d) => d.candidateId === selected);
   const currentDetail = detail?.id === selected ? detail : null;
   return (
     <section className="extraction-review" aria-label="構造抽出候補">
@@ -149,14 +148,18 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
         <>
           <p data-testid="extraction-ready">
             登場記録 {records.mentions.length} 件 ／ 関係候補 {records.relations.length} 件 ·
-            全件未確定
+            初回判断：採用 {records.decisions.filter((d) => d.outcome === "accepted").length} 件 ／
+            保留 {records.decisions.filter((d) => d.outcome === "held").length} 件 ／ 却下{" "}
+            {records.decisions.filter((d) => d.outcome === "rejected").length} 件 ／ 未判断{" "}
+            {records.mentions.length + records.relations.length - records.decisions.length} 件
           </p>
           <p>
-            候補の対応先や既存関係は照合対象です。確定した名寄せ・科学的主張・相転移・合成経路を示すものではありません。
+            原表記と登場位置を保持し、初回判断と採用結果を別に表示します。採用範囲と未確認事項は各判断を参照してください。
           </p>
           {records.runs.map((run, i) => (
             <details key={i}>
-              <summary>抽出範囲と未解決事項</summary>
+              <summary>抽出時の範囲と未解決事項</summary>
+              <p>以下は候補抽出時の記録です。現在の判断は個別の採否欄に示します。</p>
               <p>
                 {run.reviewedOn} · {run.operator}
               </p>
@@ -174,14 +177,14 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
             value={selected}
             onChange={(event) => setSelected(event.target.value)}
           >
-            <optgroup label="登場記録（対応未確定）">
+            <optgroup label="登場記録（初回判断を参照）">
               {records.mentions.map((m) => (
                 <option key={m.id} value={m.id}>
                   {m.rawName} · PDF {m.reference.pdfPage} · {m.reference.sec}
                 </option>
               ))}
             </optgroup>
-            <optgroup label="関係候補（対応未確定）">
+            <optgroup label="関係候補（初回判断を参照）">
               {records.relations.map((r) => (
                 <option key={r.id} value={r.id}>
                   {operationLabels[r.operation] ?? r.operation} ·{" "}
@@ -195,7 +198,7 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
           <div data-testid="extraction-detail">
             {mention && (
               <>
-                <h4>{mention.rawName} · 登場記録（対応未確定）</h4>
+                <h4>{mention.rawName} · 登場記録（初回判断を参照）</h4>
                 <p>{mention.identityNote}</p>
               </>
             )}
@@ -203,7 +206,7 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
               <>
                 <h4>
                   {operationLabels[relation.operation] ?? relation.operation} ·
-                  関係候補（対応未確定）
+                  関係候補（初回判断を参照）
                 </h4>
                 <p>
                   {relation.basis === "editorial_comparison"
@@ -231,6 +234,7 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
               <p role="status">根拠と対応候補を照会中…</p>
             ) : (
               <>
+                <h4>元候補の根拠</h4>
                 <RefChips refs={currentDetail.references} />
                 <h4>{mention ? "既存構造への対応候補" : "既存関係との照合候補"}</h4>
                 {currentDetail.matches.length ? (
@@ -244,6 +248,62 @@ export function ExtractionReview({ assetId }: { assetId: string }) {
                   </ul>
                 ) : (
                   <p>対応候補は未登録です。</p>
+                )}
+                {decision && (
+                  <section
+                    className="candidate-decision"
+                    data-testid="candidate-decision"
+                    aria-label="候補の採否判断"
+                  >
+                    <h4>初回判断：{outcomeLabels[decision.outcome]}</h4>
+                    <p>
+                      {decision.reviewedOn} · {decision.reviewer} · 文献の文脈と既存レコードの照合
+                    </p>
+                    <p>{decision.reason}</p>
+                    {decision.resolution && <p>採用範囲：{decision.resolution.scope}</p>}
+                    {decision.resolution?.kind === "assertion" &&
+                      decision.resolution.notes.map((note) => <p key={note}>{note}</p>)}
+                    {decision.nextAction && <p>次に必要な作業：{decision.nextAction}</p>}
+                    <RefChips refs={currentDetail.decisionReferences} />
+                    <h4>採用結果</h4>
+                    {currentDetail.results.length ? (
+                      currentDetail.results.map((result) => (
+                        <div key={result.id}>
+                          <p>
+                            {result.title} <code>{result.id}</code>
+                          </p>
+                          {result.subjectId && (
+                            <button
+                              onClick={() => {
+                                dispatch({
+                                  type: "selectNode",
+                                  id: result.subjectId!,
+                                  jump: false,
+                                });
+                                dispatch({
+                                  type: "atlasMode",
+                                  mode: "derivation",
+                                  assertionId: result.id,
+                                });
+                              }}
+                            >
+                              採用した関係をDerivationで見る
+                            </button>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <p>この判断から確定リンク・Assertionは生成していません。</p>
+                    )}
+                    <details>
+                      <summary>判断の適用範囲と制限</summary>
+                      <ul>
+                        {decision.limitations.map((item) => (
+                          <li key={item}>{item}</li>
+                        ))}
+                      </ul>
+                    </details>
+                  </section>
                 )}
               </>
             )}

@@ -16,6 +16,10 @@ import {
   ENTITY_CANDIDATES_QUERY,
   CANDIDATE_EVIDENCE_QUERY,
   ASSERTION_MATCHES_QUERY,
+  DECISIONS_QUERY,
+  DECISION_RESULT_QUERY,
+  ADOPTED_ASSERTION_QUERY,
+  DECISION_EVIDENCE_QUERY,
 } from "../src/knowledge/queries.ts";
 import { TABLES, type KnowledgeManifest } from "../src/knowledge/schema.ts";
 import { DATA } from "../src/data/atlas.ts";
@@ -145,6 +149,33 @@ try {
     );
   }
   assert.deepEqual(query(MENTIONS_QUERY, { id: pilotAssetId + "' OR true //" }), []);
+  const decisions = query(DECISIONS_QUERY, { id: pilotAssetId });
+  assert.equal(decisions.length, 20);
+  assert.equal(decisions.filter((d) => d.outcome === "accepted").length, 13);
+  assert.equal(decisions.filter((d) => d.outcome === "held").length, 7);
+  for (const decision of decisions) {
+    const payload = JSON.parse(decision.payload as string);
+    const results = query(
+      decision.candidateKind === "mention" ? DECISION_RESULT_QUERY : ADOPTED_ASSERTION_QUERY,
+      { id: decision.id },
+    );
+    assert.equal(results.length, decision.outcome === "accepted" ? 1 : 0);
+    assert.equal(
+      query(DECISION_EVIDENCE_QUERY, { id: decision.id }).length,
+      payload.evidenceSpanIds.length,
+    );
+    if (decision.candidateKind === "relation" && results.length) {
+      const result = results[0]!;
+      const relationships = query(RELATIONSHIP_QUERY, {
+        domain: result.domain,
+        id: result.subjectId,
+      });
+      const adopted = relationships.find((r) => r.id === result.id)!;
+      assert.equal(adopted.status, "source_checked_not_machine_verified");
+      assert.equal(JSON.parse(adopted.payload as string).decisionId, decision.id);
+    }
+  }
+  assert.deepEqual(query(DECISIONS_QUERY, { id: pilotAssetId + "' OR true //" }), []);
   assert.throws(() => query("CREATE (:Entity {id: 'forbidden-write'})"), /read.only/i);
   console.log(
     "Snapshot verified: all rows/columns, Atlas/comparison/operation/counterpart queries, evidence, parameter binding, read-only writes rejected",
