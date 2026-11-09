@@ -192,6 +192,12 @@ export function PackingExplorer() {
     const externalPick =
       state.mapSeq !== previous.mapSeq &&
       ((previous.search && !state.searchOpen) || (previous.modal && !state.modal));
+    // Selections made in another Atlas must not rewrite this view's local lens,
+    // folds, camera or history. Consume that selection without revealing it here.
+    if (state.atlasMode !== "derivation") {
+      latestSelection.current = state.selected;
+      return;
+    }
     if (state.selected === latestSelection.current && !externalPick) return;
     latestSelection.current = state.selected;
     const id = state.selected;
@@ -205,7 +211,15 @@ export function PackingExplorer() {
     }
     dispatch({ type: "sidebar", side: "right", open: true, narrow });
     setFitSeq((n) => n + 1);
-  }, [state.selected, state.mapSeq, state.searchOpen, state.modal, dispatch, narrow]);
+  }, [
+    state.selected,
+    state.mapSeq,
+    state.searchOpen,
+    state.modal,
+    state.atlasMode,
+    dispatch,
+    narrow,
+  ]);
 
   useEffect(() => {
     window.packingDiagnostics = () => ({

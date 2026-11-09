@@ -6,6 +6,26 @@ import { initialState, reducer, type Action, type State } from "../../src/state.
 
 const run = (...actions: Action[]) => actions.reduce<State>(reducer, initialState());
 
+test("Atlas mode changes retain exploration and ordinary navigation clears counterpart selection", () => {
+  const start = run({ type: "classification", id: "perov-a-order" }, { type: "focusSelection" });
+  const family = reducer(start, { type: "atlasMode", mode: "family" });
+  const picked = reducer(family, { type: "selectNode", id: "nacoo2-p2", jump: false });
+  assert.equal(picked.collection, start.collection);
+  assert.equal(picked.family, start.family);
+  assert.deepEqual(picked.exploration, start.exploration);
+  assert.equal(picked.mapSeq, start.mapSeq);
+  const symmetry = reducer(picked, {
+    type: "atlasMode",
+    mode: "symmetry",
+    assertionId: "relation:e6",
+  });
+  assert.equal(symmetry.knowledgeAssertion, "relation:e6");
+  assert.equal(reducer(symmetry, { type: "atlasMode", mode: "family" }).knowledgeAssertion, null);
+  const normal = reducer(symmetry, { type: "tab", tab: "explore" });
+  assert.equal(normal.atlasMode, "derivation");
+  assert.equal(normal.knowledgeAssertion, null);
+});
+
 test("selecting on the map keeps the camera; jumping elsewhere re-frames and resets exploration", () => {
   const still = run({ type: "selectNode", id: "nacl", jump: false });
   assert.equal(still.mapSeq, 0);

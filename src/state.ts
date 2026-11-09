@@ -203,7 +203,7 @@ function step(s: State, a: Action): State {
       return { ...s, tab: "explore", atlasMode: a.mode, knowledgeAssertion: a.assertionId ?? null };
     case "tab":
       return a.tab === "explore"
-        ? moveMap({ ...s, tab: a.tab, atlasMode: "derivation" })
+        ? moveMap({ ...s, tab: a.tab, atlasMode: "derivation", knowledgeAssertion: null })
         : { ...s, tab: a.tab };
 
     case "family":

@@ -1,8 +1,10 @@
-import { EVIDENCE_QUERY } from "../../knowledge/queries.ts";
+import { EVIDENCE_QUERY, STEP_QUERY, COUNTERPART_QUERY } from "../../knowledge/queries.ts";
+import { missingEvidenceLabel, stepProvenanceLabel } from "../../knowledge/presentation.ts";
 import { useEffect, useState } from "react";
 import { DATA } from "../../data/atlas.ts";
 import {
   getKnowledgeDB,
+  resetKnowledgeDB,
   queryRelationships,
   type KnowledgeDB,
   type RelationshipRecord,
@@ -43,10 +45,6 @@ interface Detail {
   steps: Record<string, unknown>[];
   counterparts: Record<string, unknown>[];
 }
-const STEP_QUERY = `MATCH (a:Assertion {id: $id})-[h:HasStep]->(s:OperationStep)
-RETURN s.operation AS operation, s.target AS target, s.parameters AS parameters, s.payload AS payload ORDER BY h.ordinal`;
-const COUNTERPART_QUERY = `MATCH (s:Assertion)-[:ExplainsSymmetryOf]->(d:Assertion)
-WHERE s.id = $id OR d.id = $id RETURN s.id AS symmetry, d.id AS derivation`;
 
 export function KnowledgeExplorer() {
   const { state } = useAtlas();
@@ -79,28 +77,34 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
   const [db, setDB] = useState<KnowledgeDB | null>(null);
   const [entities, setEntities] = useState<{ id: string; title: string }[]>([]);
   const [records, setRecords] = useState<RelationshipRecord[]>([]);
+  const [comparisons, setComparisons] = useState<RelationshipRecord[]>([]);
   const [active, setActive] = useState<string | null>(state.knowledgeAssertion);
   const [storedDetail, setDetail] = useState<Detail | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [retry, setRetry] = useState(0);
-  const selected = records.find((r) => r.id === active) ?? records[0];
+  const selected =
+    [...records, ...comparisons].find((r) => r.id === active) ?? records[0] ?? comparisons[0];
   const detail = storedDetail?.id === selected?.id ? storedDetail : null;
 
   useEffect(() => {
     let cancelled = false;
     void getKnowledgeDB()
       .then(async (database) => {
-        const [list, rows] = await Promise.all([
+        const [list, rows, comparisonRows] = await Promise.all([
           database.query(
             "MATCH (n:Entity) WHERE n.kind <> 'editorial_concept' RETURN n.id AS id, n.title AS title ORDER BY title",
           ),
           queryRelationships(database, mode, focus),
+          mode === "derivation"
+            ? queryRelationships(database, "comparison", focus)
+            : Promise.resolve([]),
         ]);
         if (cancelled) return;
         setDB(database);
         setEntities(list as unknown as { id: string; title: string }[]);
         setRecords(rows);
+        setComparisons(comparisonRows);
         setLoading(false);
       })
       .catch((e: unknown) => {
@@ -145,7 +149,8 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
     setLoading(true);
     setError("");
     setFocus(id);
-    if (DATA.nodes.some((n) => n.id === id)) dispatch({ type: "selectNode", id });
+    if (DATA.nodes.some((n) => n.id === id))
+      dispatch({ type: "selectNode", id, jump: mode === "derivation" });
   }
   const payload = selected ? (JSON.parse(selected.payload) as Record<string, unknown>) : {};
   return (
@@ -155,7 +160,7 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
           <h2>{COPY[mode][0]}</h2>
           <p>{COPY[mode][1]}</p>
         </div>
-        {db && (
+        {db && !error && (
           <span className="knowledge-status" data-testid="knowledge-ready">
             配布レコードを読み取り専用で閲覧
           </span>
@@ -191,7 +196,9 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
           </button>
         )}
         <span role="status">
-          {loading ? "出典付きレコードを読み込んでいます…" : `${records.length} 件の直接関係`}
+          {loading
+            ? "出典付きレコードを読み込んでいます…"
+            : `${records.length} 件の直接関係${comparisons.length ? ` / 比較 ${comparisons.length} 件` : ""}`}
         </span>
       </div>
       {error && (
@@ -201,7 +208,13 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
             onClick={() => {
               setLoading(true);
               setError("");
-              setRetry((n) => n + 1);
+              setDB(null);
+              void resetKnowledgeDB()
+                .then(() => setRetry((n) => n + 1))
+                .catch((e: unknown) => {
+                  setError(String(e));
+                  setLoading(false);
+                });
             }}
           >
             再試行
@@ -211,37 +224,51 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
       {!loading && !error && (
         <div className="knowledge-body">
           <div className="knowledge-records" aria-label="関係レコード">
-            {records.length ? (
-              records.map((r) => (
-                <button
-                  key={r.id}
-                  className={selected?.id === r.id ? "active" : ""}
-                  data-knowledge-record={r.id}
-                  onClick={() => setActive(r.id)}
-                  aria-pressed={selected?.id === r.id}
-                >
-                  <span>
-                    {r.subjectTitle}{" "}
-                    <span aria-hidden="true">
-                      {(JSON.parse(r.payload) as { undirected?: boolean }).undirected ? "↔" : "→"}
-                    </span>{" "}
-                    {r.objectTitle}
-                  </span>
-                  <small>
-                    {r.label}
-                    {r.basis === "editorial" ? " · 編集上の所属" : ""}
-                  </small>
-                </button>
-              ))
-            ) : (
+            {records.length === 0 && (
               <p>
-                この表示に対応する直接関係はまだ登録されていません。未報告・無関係という意味ではありません。
+                この表示の対象となる直接関係は未登録です。比較関係は派生操作・対称性対応とは別に扱います。未報告・無関係という意味ではありません。
               </p>
+            )}
+            {[records, comparisons].map(
+              (group, index) =>
+                group.length > 0 && (
+                  <section key={index} aria-label={index === 0 ? "直接関係" : "比較関係"}>
+                    {index === 1 && <h3>比較（派生操作ではない）</h3>}
+                    {group.map((r) => (
+                      <button
+                        key={r.id}
+                        className={selected?.id === r.id ? "active" : ""}
+                        data-knowledge-record={r.id}
+                        onClick={() => setActive(r.id)}
+                        aria-pressed={selected?.id === r.id}
+                      >
+                        <span>
+                          {r.subjectTitle}{" "}
+                          <span aria-hidden="true">
+                            {(JSON.parse(r.payload) as { undirected?: boolean }).undirected
+                              ? "↔"
+                              : "→"}
+                          </span>{" "}
+                          {r.objectTitle}
+                        </span>
+                        <small>
+                          {r.label}
+                          {r.basis === "editorial" ? " · 編集上の所属" : ""}
+                        </small>
+                      </button>
+                    ))}
+                  </section>
+                ),
             )}
           </div>
           {selected && (
             <article className="knowledge-detail" aria-label="関係の根拠">
               <h3>{selected.label}</h3>
+              {selected.domain === "comparison" && (
+                <p>
+                  <strong>構造の比較です。派生操作を表す矢印ではありません。</strong>
+                </p>
+              )}
               <p>{selected.description}</p>
               <div className="knowledge-endpoints">
                 <button className="small" onClick={() => pick(selected.subjectId)}>
@@ -272,6 +299,7 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                   <strong>
                     操作 {i + 1}：{OPERATION_LABELS[String(s.operation)] ?? String(s.operation)}
                   </strong>
+                  <p>{stepProvenanceLabel(String(s.payload))}</p>
                   <p>
                     対象：
                     {typeof s.target === "string"
@@ -316,7 +344,7 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                 detail.refs.length ? (
                   <RefChips refs={detail.refs} />
                 ) : (
-                  <p>この所属は編集上の整理です。文献による所属の再照合が必要です。</p>
+                  <p>{missingEvidenceLabel(selected.basis)}</p>
                 )
               ) : (
                 <p role="status">根拠を読み込んでいます…</p>

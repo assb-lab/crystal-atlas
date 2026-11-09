@@ -1,10 +1,11 @@
 import { RELATIONSHIP_QUERY } from "./queries.ts";
+import { databaseLoader, withDeadline } from "./lifecycle.ts";
 import type { Connection, Database } from "@ladybugdb/wasm-core";
 import {
   KNOWLEDGE_SCHEMA_VERSION,
   LADYBUG_VERSION,
   type AtlasMode,
-  type KnowledgeManifest,
+  type KnowledgeDistributionManifest,
 } from "./schema.ts";
 
 // 0.22.3's FS declaration describes the sync API; the shipped async module exports an instance.
@@ -25,7 +26,8 @@ interface BrowserEngine {
   Connection: new (db: Database, threads?: number) => Connection;
 }
 export interface KnowledgeDB {
-  manifest: KnowledgeManifest;
+  manifest: KnowledgeDistributionManifest;
+  dispose(): Promise<void>;
   query(text: string, parameters?: Record<string, unknown>): Promise<Record<string, unknown>[]>;
 }
 export interface RelationshipRecord {
@@ -42,7 +44,6 @@ export interface RelationshipRecord {
   objectId: string;
   objectTitle: string;
 }
-let pending: Promise<KnowledgeDB> | undefined;
 const decode = (value: string) => Uint8Array.from(atob(value), (c) => c.charCodeAt(0));
 
 async function openKnowledge(): Promise<KnowledgeDB> {
@@ -50,6 +51,18 @@ async function openKnowledge(): Promise<KnowledgeDB> {
   let engine: BrowserEngine | undefined;
   let db: Database | undefined;
   let connection: Connection | undefined;
+  let disposed = false;
+  const dispose = async () => {
+    if (disposed) return;
+    disposed = true;
+    // The Worker owns all WASM connection/DB handles. Terminate it directly even
+    // if its RPC queue has stopped responding; there are no writes to flush.
+    if (engine)
+      await withDeadline(engine.close(), 2000, "Workerの終了がタイムアウトしました。").catch(
+        () => {},
+      );
+    blobs.forEach((url) => URL.revokeObjectURL(url));
+  };
   try {
     const inline = document.getElementById("atlas-knowledge-assets")?.textContent;
     const assets = inline ? (JSON.parse(inline) as Record<string, string>) : null;
@@ -60,23 +73,34 @@ async function openKnowledge(): Promise<KnowledgeDB> {
       blobs.push(url);
       return url;
     };
-    const moduleURL = assets ? blobURL("lbug.js") : new URL("lbug.js", base).href;
     const fetchAsset = async (name: string) => {
-      const response = await fetch(new URL(name, base));
+      const response = await fetch(new URL(name, base), {
+        cache: name === "manifest.json" ? "no-cache" : "default",
+      });
       if (!response.ok) throw new Error(`配布データを取得できませんでした (${response.status})`);
       return new Uint8Array(await response.arrayBuffer());
     };
-    const [module, manifestBytes, snapshot] = await Promise.all([
-      import(/* @vite-ignore */ moduleURL) as Promise<{ default: BrowserEngine }>,
-      assets ? decode(assets["manifest.json"]!) : fetchAsset("manifest.json"),
-      assets ? decode(assets["atlas.lbdb"]!) : fetchAsset("atlas.lbdb"),
-    ]);
-    const manifest = JSON.parse(new TextDecoder().decode(manifestBytes)) as KnowledgeManifest;
+    const manifestBytes = assets
+      ? decode(assets["manifest.json"]!)
+      : await fetchAsset("manifest.json");
+    const manifest = JSON.parse(
+      new TextDecoder().decode(manifestBytes),
+    ) as KnowledgeDistributionManifest;
     if (
       manifest.schemaVersion !== KNOWLEDGE_SCHEMA_VERSION ||
       manifest.engineVersion !== LADYBUG_VERSION
     )
       throw new Error("配布データとアプリの版が一致しません。ページを再読み込みしてください。");
+    if (
+      !manifest.files ||
+      Object.values(manifest.files).some((name) => !/^[a-zA-Z0-9._-]+$/.test(name))
+    )
+      throw new Error("配布ファイルの指定が不正です。");
+    const moduleURL = assets ? blobURL("lbug.js") : new URL(manifest.files.module, base).href;
+    const [module, snapshot] = await Promise.all([
+      import(/* @vite-ignore */ moduleURL) as Promise<{ default: BrowserEngine }>,
+      assets ? decode(assets["atlas.lbdb"]!) : fetchAsset(manifest.files.database),
+    ]);
     if (snapshot.byteLength !== manifest.bytes) throw new Error("配布DBのサイズが一致しません。");
     if (globalThis.crypto?.subtle) {
       const digest = await crypto.subtle.digest("SHA-256", snapshot);
@@ -89,7 +113,7 @@ async function openKnowledge(): Promise<KnowledgeDB> {
     // URL objects use a native Worker directly. The package's string-path wrapper
     // nests importScripts(blob:...), which cannot load an opaque-origin file:// blob.
     engine.setWorkerPath(
-      assets ? new URL(blobURL("lbug_wasm_worker.js")) : new URL("lbug_wasm_worker.js", base),
+      assets ? new URL(blobURL("lbug_wasm_worker.js")) : new URL(manifest.files.worker, base),
     );
     await engine.init();
     if (
@@ -106,43 +130,49 @@ async function openKnowledge(): Promise<KnowledgeDB> {
     let queue: Promise<unknown> = Promise.resolve();
     return {
       manifest,
+      dispose,
       query(text, parameters = {}) {
-        const run = queue.then(async () => {
-          const prepared = await conn.prepare(text);
-          try {
-            if (!prepared.isSuccess()) throw new Error(await prepared.getErrorMessage());
-            const result = await conn.execute(prepared, parameters);
-            try {
-              return await result.getAllObjects();
-            } finally {
-              await result.close();
-            }
-          } finally {
-            await prepared.close();
-          }
-        });
+        const run = queue.then(() =>
+          withDeadline(
+            (async () => {
+              if (disposed) throw new Error("接続は終了しています。再試行してください。");
+              const prepared = await conn.prepare(text);
+              try {
+                if (!prepared.isSuccess()) throw new Error(await prepared.getErrorMessage());
+                const result = await conn.execute(prepared, parameters);
+                try {
+                  return await result.getAllObjects();
+                } finally {
+                  await result.close();
+                }
+              } finally {
+                await prepared.close();
+              }
+            })(),
+            5000,
+            "照会が応答しません。再試行して接続を開き直してください。",
+          ),
+        );
         queue = run.catch(() => {});
         return run;
       },
     };
   } catch (error) {
-    await connection?.close().catch(() => {});
-    await db?.close().catch(() => {});
-    await engine?.close().catch(() => {});
-    blobs.forEach((url) => URL.revokeObjectURL(url));
+    await dispose();
     throw error;
   }
 }
 
 /** One engine per page, including React StrictMode remounts and mode changes. */
-export function getKnowledgeDB(): Promise<KnowledgeDB> {
-  return (pending ??= openKnowledge().catch((error: unknown) => {
-    pending = undefined;
-    throw error;
-  }));
-}
+const loader = databaseLoader(openKnowledge);
+export const getKnowledgeDB = loader.get;
+export const resetKnowledgeDB = loader.reset;
 
-export async function queryRelationships(db: KnowledgeDB, mode: AtlasMode, id: string) {
+export async function queryRelationships(
+  db: KnowledgeDB,
+  mode: AtlasMode | "comparison",
+  id: string,
+) {
   return (await db.query(RELATIONSHIP_QUERY, {
     domain: mode,
     id,

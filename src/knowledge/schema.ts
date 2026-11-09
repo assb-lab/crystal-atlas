@@ -65,7 +65,13 @@ export interface KnowledgeManifest {
   datasetVersion: string;
   datasetHash: string;
   databaseHash: string;
+  buildHash: string;
+  datasetFileHash: string;
+  schemaHash: string;
   bytes: number;
   counts: Record<string, number>;
   coverage: "legacy-curated-subset";
+}
+export interface KnowledgeDistributionManifest extends KnowledgeManifest {
+  files: { database: string; module: string; worker: string };
 }

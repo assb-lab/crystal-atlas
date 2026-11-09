@@ -1,10 +1,10 @@
-import { createHash } from "node:crypto";
 import { createRequire } from "node:module";
 import { mkdir, mkdtemp, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { DATA } from "../src/data/atlas.ts";
 import { knowledgeDataset } from "../src/knowledge/dataset.ts";
+import { sha256 as hash, validKnowledgeCache } from "./knowledge-cache.ts";
 import {
   KNOWLEDGE_SCHEMA_VERSION,
   LADYBUG_VERSION,
@@ -17,38 +17,34 @@ const require = createRequire(import.meta.url);
 const engine =
   require("@ladybugdb/wasm-core/nodejs/sync") as typeof import("@ladybugdb/wasm-core/nodejs/sync");
 const output = resolve(".atlas-build");
-const hash = (data: string | Uint8Array) => createHash("sha256").update(data).digest("hex");
 const dataset = knowledgeDataset(DATA);
+const datasetText = JSON.stringify(dataset, null, 2);
+const schemaText = TABLES.map(tableDDL).join(";\n") + ";\n";
+await engine.init();
+const engineVersion = engine.getVersion();
+if (engineVersion !== LADYBUG_VERSION) throw new Error("Ladybug engine version mismatch");
+const storageVersion = String(engine.getStorageVersion());
+const buildSources = await Promise.all([
+  readFile(import.meta.filename),
+  readFile(new URL("./knowledge-cache.ts", import.meta.url)),
+]);
 const datasetHash = hash(JSON.stringify({ dataset, schema: TABLES.map(tableDDL) }));
 const stamp = {
   schemaVersion: KNOWLEDGE_SCHEMA_VERSION,
-  engineVersion: LADYBUG_VERSION,
+  engineVersion,
+  storageVersion,
   datasetHash,
   datasetVersion: DATA.version,
+  buildHash: hash(Buffer.concat(buildSources)),
+  datasetFileHash: hash(datasetText),
+  schemaHash: hash(schemaText),
 };
-let cached = false;
-try {
-  const old = JSON.parse(
-    await readFile(join(output, "manifest.json"), "utf8"),
-  ) as KnowledgeManifest;
-  cached =
-    Object.entries(stamp).every(([k, v]) => old[k as keyof KnowledgeManifest] === v) &&
-    hash(await readFile(join(output, "atlas.lbdb"))) === old.databaseHash;
-  if (cached)
-    await Promise.all([
-      readFile(join(output, "dataset.json")),
-      readFile(join(output, "schema.cypher")),
-    ]);
-} catch {
-  /* First build or incomplete cache. */
-}
+const cached = await validKnowledgeCache(output, stamp);
 
 if (cached) console.log("Knowledge DB: verified build cache");
 else {
   const staging = await mkdtemp(join(tmpdir(), "crystal-atlas-db-"));
   try {
-    await engine.init();
-    if (engine.getVersion() !== LADYBUG_VERSION) throw new Error("Ladybug engine version mismatch");
     const dbPath = join(staging, "atlas.lbdb");
     const db = new engine.Database(dbPath, 64 * 1024 * 1024, 1);
     const conn = new engine.Connection(db);
@@ -100,8 +96,6 @@ else {
     const bytes = await readFile(dbPath);
     const manifest: KnowledgeManifest = {
       ...stamp,
-      storageVersion: String(engine.getStorageVersion()),
-      datasetVersion: DATA.version,
       databaseHash: hash(bytes),
       bytes: bytes.length,
       counts: Object.fromEntries(TABLES.map((t) => [t.name, dataset.rows[t.name]!.length])),
@@ -111,8 +105,8 @@ else {
     await writeFile(join(output, "atlas.lbdb.tmp"), bytes);
     await rename(join(output, "atlas.lbdb.tmp"), join(output, "atlas.lbdb"));
     await writeFile(join(output, "manifest.json"), JSON.stringify(manifest, null, 2));
-    await writeFile(join(output, "dataset.json"), JSON.stringify(dataset, null, 2));
-    await writeFile(join(output, "schema.cypher"), TABLES.map(tableDDL).join(";\n") + ";\n");
+    await writeFile(join(output, "dataset.json"), datasetText);
+    await writeFile(join(output, "schema.cypher"), schemaText);
     console.log(
       `Knowledge DB: ${manifest.counts.Entity} entities, ${manifest.counts.Assertion} assertions; snapshot reopened read-only`,
     );

@@ -89,6 +89,15 @@ body:has(.knowledge-derivation details[open]) #explore:not([hidden]) {
 .knowledge-records small {
   color: var(--sub);
 }
+.knowledge-records > section {
+  display: grid;
+  gap: 6px;
+}
+.knowledge-records > section > h3 {
+  margin: 8px 0 4px;
+  font-size: 13px;
+  color: var(--sub);
+}
 .knowledge-detail {
   overflow-wrap: anywhere;
   min-width: 0;
