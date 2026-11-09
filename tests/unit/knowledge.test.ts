@@ -59,7 +59,7 @@ test("editorial family membership does not inherit scientific evidence", () => {
 test("references preserve locators without inventing mentions or reviewed coverage", () => {
   assert.equal(rows.Mention.length, 55);
   assert.ok(rows.Mention.every((r) => r[2] === "candidate_unresolved"));
-  assert.equal(rows.RefersTo.length, 10);
+  assert.equal(rows.RefersTo.length, 12);
   assert.ok(rows.Asset.length > 0);
   assert.equal(rows.CoverageReview.filter((r) => r[1] === "recorded").length, 3);
   assert.equal(rows.HasAsset.length, 15);
@@ -82,12 +82,13 @@ test("references preserve locators without inventing mentions or reviewed covera
       !String(r[0]).startsWith("recipe:") &&
       r[1] !== "description" &&
       !String(r[0]).startsWith("contains:class:HS:") &&
-      r[0] !== "class-member:HS:perov",
+      r[0] !== "class-member:HS:perov" &&
+      r[0] !== "derivation:M13:fig1.1",
   ))
     assert.equal(a[5], "imported_not_revalidated");
   assert.equal(
     rows.Assertion.filter((r) => r[5] === "source_checked_not_machine_verified").length,
-    10,
+    11,
   );
 });
 test("source routes keep figure order without asserting a linear synthesis pathway", () => {

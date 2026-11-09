@@ -1,3 +1,5 @@
+import { SymmetryDetails } from "./SymmetryDetails.tsx";
+import { SymmetryTree } from "./SymmetryTree.tsx";
 import { FamilySchemes } from "./FamilySchemes.tsx";
 import {
   EVIDENCE_QUERY,
@@ -92,7 +94,10 @@ export function KnowledgeExplorer() {
           )}
         </details>
       ) : state.tab === "explore" ? (
-        <KnowledgePanel key={`${mode}:${state.selected}`} mode={mode} />
+        <>
+          <KnowledgePanel key={`${mode}:${state.selected}`} mode={mode} />
+          {mode === "symmetry" && <SymmetryTree />}
+        </>
       ) : null}
     </section>
   );
@@ -341,21 +346,25 @@ function KnowledgePanel({ mode }: { mode: AtlasMode }) {
                   {selected.objectTitle}
                 </button>
               </div>
-              {mode === "symmetry" && (
-                <div className="knowledge-symmetry">
-                  <p>
-                    <strong>
-                      {payload.verification === "literature_confirmed"
-                        ? "群–部分群関係は文献確認済み"
-                        : "群–部分群関係は未確認"}
-                    </strong>
-                  </p>
-                  {typeof payload.index === "string" && <p>部分群の種類・指数：{payload.index}</p>}
-                  {typeof payload.basis === "string" && <p>基底・原点の記述：{payload.basis}</p>}
-                  {typeof payload.split === "string" && <p>サイト対応の記述：{payload.split}</p>}
-                  <p>変換行列・Wyckoff対応の機械検証は未実施です。</p>
-                </div>
-              )}
+              {mode === "symmetry" &&
+                selected.id !== "adopted:manual:M13:21:relation:diamond-zns" && (
+                  <div className="knowledge-symmetry">
+                    <p>
+                      <strong>
+                        {payload.verification === "literature_confirmed"
+                          ? "群–部分群関係は文献確認済み"
+                          : "群–部分群関係は未確認"}
+                      </strong>
+                    </p>
+                    {typeof payload.index === "string" && (
+                      <p>部分群の種類・指数：{payload.index}</p>
+                    )}
+                    {typeof payload.basis === "string" && <p>基底・原点の記述：{payload.basis}</p>}
+                    {typeof payload.split === "string" && <p>サイト対応の記述：{payload.split}</p>}
+                    <p>変換行列・Wyckoff対応の機械検証は未実施です。</p>
+                  </div>
+                )}
+              {mode === "symmetry" && <SymmetryDetails assertionId={selected.id} />}
               {detail?.labelMaps.map((spec) => (
                 <LabelMapDetails key={spec.id} spec={spec} />
               ))}

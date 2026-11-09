@@ -42,7 +42,7 @@ for (const [label, url] of Object.entries({
     await page.locator("#extractionRun").selectOption("extraction:K:pdf2-3:v1");
     await expect(page.getByTestId("extraction-ready")).toContainText("採用 20 件");
     await page.locator("#catalogAsset").selectOption({ label: "Ulrich_Müller.pdf" });
-    await expect(page.getByTestId("extraction-ready")).toContainText("未判断 3 件");
+    await expect(page.getByTestId("extraction-ready")).toContainText("採用 3 件");
     await page.locator("#extractionCandidate").selectOption("manual:M13:21:relation:diamond-zns");
     await expect(page.getByTestId("extraction-detail")).toContainText("対称性の候補");
     await page.setViewportSize({ width: 390, height: 844 });

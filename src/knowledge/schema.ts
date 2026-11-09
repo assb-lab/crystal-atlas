@@ -1,5 +1,5 @@
 /** Versioned physical schema. Scientific relations are nodes so they can carry evidence. */
-export const KNOWLEDGE_SCHEMA_VERSION = 9;
+export const KNOWLEDGE_SCHEMA_VERSION = 10;
 export const LADYBUG_VERSION = "0.22.3";
 export type AtlasMode = "family" | "derivation" | "symmetry";
 export type Cell = string | number | boolean | null;
@@ -16,6 +16,9 @@ const rel = (name: string, from: string, to: string, extra: [string, string][] =
   endpoints: [from, to],
 });
 export const TABLES: Table[] = [
+  node("SymmetryMapping", ["id", "payload"]),
+  node("DeclaredSymmetryModel", ["id", "payload"]),
+  node("SymmetryValidation", ["id", "payload"]),
   node("ClassificationScheme", ["id", "title", "payload"]),
   node("Entity", ["id", "title", "kind", "payload"]),
   node("Assertion", [
@@ -47,6 +50,10 @@ export const TABLES: Table[] = [
   rel("SchemeDocument", "ClassificationScheme", "Document"),
   rel("SchemeItem", "ClassificationScheme", "Entity"),
   rel("ClaimInScheme", "Assertion", "ClassificationScheme"),
+  rel("MappingFor", "SymmetryMapping", "Assertion"),
+  rel("MappingEvidence", "SymmetryMapping", "SourceSpan"),
+  rel("MappingModel", "SymmetryMapping", "DeclaredSymmetryModel"),
+  rel("Validates", "SymmetryValidation", "SymmetryMapping"),
   rel("Subject", "Assertion", "Entity"),
   rel("Object", "Assertion", "Entity"),
   rel("HasEvidence", "Assertion", "SourceSpan"),

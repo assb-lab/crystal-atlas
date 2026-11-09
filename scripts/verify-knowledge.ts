@@ -1,4 +1,10 @@
 import {
+  SYMMETRY_MAPPING_QUERY,
+  SYMMETRY_VALIDATION_QUERY,
+  SYMMETRY_MODEL_QUERY,
+  SYMMETRY_TREE_QUERY,
+} from "../src/knowledge/queries.ts";
+import {
   CLASSIFICATION_SCHEMES_QUERY,
   CLASSIFICATION_ITEMS_QUERY,
   CLASSIFICATION_CLAIMS_QUERY,
@@ -105,6 +111,13 @@ try {
     ),
   );
   assert.deepEqual(query(CLASSIFICATION_ITEMS_QUERY, { id: "' OR true //" }), []);
+  assert.equal(query(SYMMETRY_TREE_QUERY).length, 15);
+  assert.equal(query(SYMMETRY_MAPPING_QUERY, { id: "relation:e8" }).length, 1);
+  assert.equal(query(SYMMETRY_VALIDATION_QUERY, { id: "mapping:legacy:e8" }).length, 0);
+  const idealValidation = query(SYMMETRY_VALIDATION_QUERY, { id: "mapping:M13:fig1.1" });
+  assert.equal(JSON.parse(String(idealValidation[0]!.payload)).parentOperations, 192);
+  assert.equal(query(SYMMETRY_MODEL_QUERY, { id: "mapping:M13:fig1.1" }).length, 1);
+  assert.deepEqual(query(SYMMETRY_MAPPING_QUERY, { id: "' OR true //" }), []);
   const contexts = query(MODEL_CONTEXT_QUERY, { id: "anatase" });
   assert.equal(contexts.length, 1);
   const context = JSON.parse(String(contexts[0]!.payload));

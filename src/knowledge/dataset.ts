@@ -1,3 +1,5 @@
+import { appendSymmetryMapping } from "./symmetry.ts";
+import { mullerReview, diamondMapping } from "../data/symmetry.ts";
 import { appendClassification, appendLegacySchemes } from "./classification.ts";
 import { howardScheme } from "../data/classification-schemes.ts";
 import type { Atlas, AtlasEdge, Ref } from "../types.ts";
@@ -346,5 +348,57 @@ export function knowledgeDataset(
     ]);
   appendOperationVocabulary(rows);
 
+  for (const edge of data.edges.filter((e) => e.strict))
+    appendSymmetryMapping(rows, {
+      id: `mapping:legacy:${edge.id}`,
+      assertionId: `relation:${edge.id}`,
+      parent: { symbol: edge.a, number: null, setting: null },
+      child: { symbol: edge.b, number: null, setting: null },
+      subgroupKind: "unknown",
+      index: null,
+      basis: null,
+      origin: null,
+      convention: "未転記",
+      wyckoff: null,
+      literatureState: "legacy_not_rechecked",
+      transcriptionState: "not_transcribed",
+      interpretation:
+        "既存strictの説明を保持。設定・指数・基底・原点・Wyckoff数値を空間群名から補わない。",
+    });
+  const mullerExtraction = extractions.find((e) => e.id === mullerReview.extractionId);
+  if (mullerExtraction) {
+    appendDecisions(rows, mullerExtraction, mullerReview);
+    appendSymmetryMapping(rows, diamondMapping);
+    const id = "derivation:M13:fig1.1";
+    add(
+      "Assertion",
+      id,
+      "derivation",
+      "species_differentiation",
+      "図の同一位置集合をSとZnで色分け",
+      "Fig.1.1と本文の同じ位置を区別する理想的な構築説明。",
+      "source_context_checked",
+      "literature_context_interpretation",
+      json({
+        scope: "模型のラベルを二分する操作。化学反応・実相転移ではない。",
+        modelId: `declared:${diamondMapping.id}`,
+        reviewer: "Codex",
+        reviewedOn: "2026-11-09",
+      }),
+    );
+    add("Subject", id, "diamond");
+    add("Object", id, "zns");
+    add("HasEvidence", id, "manual:M13:21:span:tree");
+    add(
+      "OperationStep",
+      "step:M13:fig1.1",
+      "species_differentiation",
+      `declared:${diamondMapping.id}`,
+      json({ labels: ["S", "Zn"] }),
+      json({ detailState: "source_checked", scope: "図の理想位置集合のラベル分割" }),
+    );
+    add("HasStep", id, "step:M13:fig1.1", 0);
+    add("ExplainsSymmetryOf", diamondMapping.assertionId, id);
+  }
   return { rows };
 }

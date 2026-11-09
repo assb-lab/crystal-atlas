@@ -228,3 +228,29 @@ body:has(.knowledge-derivation details[open]) #explore:not([hidden]) {
 .scheme-explorer li {
   margin: 8px 0;
 }
+
+.symmetry-tree {
+  padding: 16px;
+  overflow-wrap: anywhere;
+}
+.symmetry-tree ul {
+  padding-left: 16px;
+}
+.symmetry-tree-edge {
+  border-left: 2px solid var(--line);
+  padding: 8px;
+  margin: 6px 0;
+}
+.symmetry-tree-edge > span {
+  display: block;
+  margin: 8px 0;
+}
+.symmetry-spec pre {
+  max-height: 350px;
+  overflow: auto;
+  font-size: 11px;
+}
+.symmetry-spec {
+  overflow-wrap: anywhere;
+  border-top: 1px solid var(--line);
+}
