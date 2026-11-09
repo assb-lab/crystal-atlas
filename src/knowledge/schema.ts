@@ -1,5 +1,5 @@
 /** Versioned physical schema. Scientific relations are nodes so they can carry evidence. */
-export const KNOWLEDGE_SCHEMA_VERSION = 2;
+export const KNOWLEDGE_SCHEMA_VERSION = 3;
 export const LADYBUG_VERSION = "0.22.3";
 export type AtlasMode = "family" | "derivation" | "symmetry";
 export type Cell = string | number | boolean | null;
@@ -35,6 +35,7 @@ export const TABLES: Table[] = [
   // Asset inventory and pending coverage are distinct from extracted Mentions and completed reviews.
   node("Asset", ["id", "sha256", "payload"]),
   node("Mention", ["id", "rawName", "status", "payload"]),
+  node("RelationCandidate", ["id", "domain", "operation", "status", "payload"]),
   node("CoverageReview", ["id", "status", "payload"]),
   node("ProcessingRun", ["id", "payload"]),
   rel("Subject", "Assertion", "Entity"),
@@ -51,6 +52,13 @@ export const TABLES: Table[] = [
   rel("LocatedIn", "SourceSpan", "Asset"),
   rel("ContainsMention", "SourceSpan", "Mention"),
   rel("RefersTo", "Mention", "Entity"),
+  rel("CandidateRefersTo", "Mention", "Entity", [["note", "STRING"]]),
+  rel("CandidateSubject", "RelationCandidate", "Mention"),
+  rel("CandidateObject", "RelationCandidate", "Mention"),
+  rel("CandidateEvidence", "RelationCandidate", "SourceSpan"),
+  rel("CandidateMatches", "RelationCandidate", "Assertion", [["note", "STRING"]]),
+  rel("MentionByRun", "Mention", "ProcessingRun"),
+  rel("CandidateByRun", "RelationCandidate", "ProcessingRun"),
   rel("Reviews", "CoverageReview", "Asset"),
   rel("ByRun", "CoverageReview", "ProcessingRun"),
 ];

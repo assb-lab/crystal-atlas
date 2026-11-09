@@ -26,8 +26,9 @@ Family（分類）・Derivation（構造派生）・Symmetry（対称性）は�
 | Document / SourceSpan          | 版を含む書誌と、印刷頁・PDF頁・図表・URL等の参照位置                                 |
 | StructureModel                 | 格子・座標・占有率・出典の既存モデル。Modelsで対象に接続                             |
 | DerivationRoute                | 文献の図にある提示順。RouteMemberのordinalは合成反応順序を表さない                   |
-| Asset / Mention                | Assetはファイル指紋と目録。Mentionは実際の登場記録で未抽出のため空                   |
-| CoverageReview / ProcessingRun | ページ範囲の未調査台帳と目録生成活動。抽出・照合済みの履歴とは区別                   |
+| Asset / Mention                | Assetはファイル指紋と目録。Mentionは原表記・登場位置を持つ候補（対応未確定）         |
+| CoverageReview / ProcessingRun | 範囲別の調査状態と目録・候補抽出の活動。科学的照合の完了とは区別                     |
+| RelationCandidate              | 根拠と登場記録の端点を持つ未確定の派生・比較候補。Assertionとは別                    |
 
 `Subject`・`Object`がAssertionとEntityを、`HasEvidence`・`InDocument`がAssertionと文献箇所を結びます。構造型・物質・相を名前や化学式だけで名寄せしません。既存の物質・相を混在するカードは `legacy_material_or_phase` として保持し、今後の文献照合で分離します。
 
@@ -66,3 +67,11 @@ pnpm e2e
 物理スキーマv2では、文献候補をCandidateAsset、確認済み対応をHasAsset、目録生成活動をCataloguedByで接続します。[文献目録と調査台帳](LITERATURE_CATALOG.md)を参照してください。
 
 後続の実装は、登場記録の抽出と名寄せ、構造型／物質／相の分離、形式化したサイト対応、周期グラフ等をそれぞれIssueに切り出します。
+
+## 文献からの抽出候補（スキーマv3）
+
+Mentionは原表記と特定のSourceSpanを持ち、同じ名前の別の登場位置も独立したレコードです。CandidateRefersToは既存Entityとの対応候補で、確定したRefersToとは別です。
+
+RelationCandidateは派生または比較の未確定候補で、CandidateSubject/ObjectでMentionに、CandidateEvidenceで根拠箇所に、CandidateMatchesで既存Assertionの照合対象に接続します。CandidateMatchesは同一性を断定せず、逆向きや異なる出発点・操作についてnoteを保持します。新規Assertionや群–部分群の厳密な対応へ自動昇格しません。
+
+初回バッチはKのPDF 2–3頁です。ProcessingRunに対象SHA・PDF頁・確認した印刷頁・実施者・範囲と制限を保持し、MentionByRun / CandidateByRun / ByRunで登場記録・関係候補・対象台帳に接続します。図と本文にある構築説明と、編集上の比較をbasisで区別します。原子の追加を含む貫入、空孔占有、同種元素への変更を同じ操作へ統合しません。新規13箇所だけにLocatedInを付け、文献全体や既存出典の頁対応を確認したとは扱いません。詳細は[抽出パイロット](EXTRACTION_PILOT.md)を参照してください。

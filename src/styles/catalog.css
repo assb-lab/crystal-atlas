@@ -41,3 +41,27 @@
 .catalog-range dd {
   margin: 0;
 }
+.extraction-review {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.extraction-review select {
+  display: block;
+  margin: 12px 0;
+}
+.extraction-review pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.extraction-review details {
+  margin: 12px 0;
+}
+.extraction-parameters > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 8px 0;
+}
+.extraction-parameters dd {
+  margin: 0;
+}
