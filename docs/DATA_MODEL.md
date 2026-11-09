@@ -1,5 +1,7 @@
 # データモデル
 
+LadybugDBへの投影とFamily・Derivation・Symmetryのスキーマは[知識グラフ基盤](KNOWLEDGE_GRAPH.md)を参照してください。以下は既存アトラスの原データ形式です。DBはこの収録範囲を保持しつつ、編集上の分類、文献の派生操作、対称性対応と根拠を区別します。
+
 `src/data/atlas.ts` が各データモジュールを統合し、UI・JSON書き出し・テスト・単一HTMLビルドに同じデータを供給します。各項目の型は `src/types.ts` で定義し、型チェックで不正な項目や欠けた必須項目を検出します。
 
 Galassoと関連資料からの拡充分は `expansion.ts` と `expansion-models.ts`、トンネル・シアー酸化物と混合アニオン化合物の拡充分は `breadth.ts` と `breadth-models.ts` に格納します。それぞれ構造IDで構造カードと単位胞座標を対応させます。

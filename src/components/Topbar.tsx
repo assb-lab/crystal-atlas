@@ -1,11 +1,16 @@
 import { DATA } from "../data/atlas.ts";
 import type { Tab } from "../state.ts";
+import type { AtlasMode } from "../knowledge/schema.ts";
 import { useAtlas } from "../store.ts";
 
 const TABS: [Tab, string][] = [
-  ["explore", "関係を探索"],
   ["lab", "構造ラボ"],
   ["guide", "読み方・出典"],
+];
+const ATLASES: [AtlasMode, string, string][] = [
+  ["family", "Family", "分類"],
+  ["derivation", "Derivation", "構造派生"],
+  ["symmetry", "Symmetry", "対称性"],
 ];
 
 function exportData() {
@@ -39,6 +44,19 @@ export function Topbar() {
         </div>
       </div>
       <nav className="mainnav" aria-label="主な画面">
+        {ATLASES.map(([mode, title, label]) => (
+          <button
+            key={mode}
+            data-atlas-mode={mode}
+            data-tab={mode === "derivation" ? "explore" : undefined}
+            className={state.tab === "explore" && state.atlasMode === mode ? "active" : ""}
+            aria-current={state.tab === "explore" && state.atlasMode === mode ? "page" : undefined}
+            onClick={() => dispatch({ type: "atlasMode", mode })}
+          >
+            {title}
+            <small>{label}</small>
+          </button>
+        ))}
         {TABS.map(([id, label]) => (
           <button
             key={id}

@@ -5,15 +5,18 @@
   "description": "Interactive atlas of crystal-structure relationships",
   "type": "module",
   "scripts": {
-    "dev": "vp dev",
-    "build": "tsc -b && vp build && vp build --mode standalone",
+    "dev": "node scripts/build-knowledge.ts && vp dev",
+    "build:db": "node scripts/build-knowledge.ts",
+    "test:db": "node scripts/build-knowledge.ts && node scripts/verify-knowledge.ts",
+    "build": "node scripts/build-knowledge.ts && tsc -b && vp build && vp build --mode standalone",
     "preview": "vp preview",
     "test": "vp test run",
     "check": "vp check",
     "e2e": "playwright test",
-    "verify": "vp check && vp test run && pnpm build && playwright test"
+    "verify": "vp check && vp test run && pnpm test:db && pnpm build && playwright test"
   },
   "dependencies": {
+    "@ladybugdb/wasm-core": "0.22.3",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

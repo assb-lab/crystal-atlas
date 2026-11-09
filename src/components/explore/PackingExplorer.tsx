@@ -265,7 +265,11 @@ export function PackingExplorer() {
   }
 
   return (
-    <section id="explore" className="tabpage packing-explore" hidden={state.tab !== "explore"}>
+    <section
+      id="explore"
+      className="tabpage packing-explore"
+      hidden={state.tab !== "explore" || state.atlasMode !== "derivation"}
+    >
       <div className="workspacetools">
         <button
           id="toggleSidebar"

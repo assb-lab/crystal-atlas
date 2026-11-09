@@ -1,0 +1,64 @@
+# Crystal Atlas の知識グラフ基盤
+
+Family（分類）・Derivation（構造派生）・Symmetry（対称性）は、同じLadybugDBの3つの表示です。Derivationを既定にし、既存の全世代充填ツリーと、DBに登録した操作・根拠の閲覧を併用します。
+
+この段階は既存収録データを移行する基盤です。refs全文を網羅したDB、全構造の機械検証済み変換、原子周期グラフ、ページごとの抽出完了を意味しません。
+
+## 正本と生成物
+
+- 正本：`src/data/` の既存データ、`src/knowledge/dataset.ts` の明示的な移行・操作注釈、`src/knowledge/schema.ts` のスキーマ。
+- `pnpm build:db`：LadybugDB 0.22.3のNode向けWASMで、同じ入力からDBを再生成します。
+- `.atlas-build/`：Git除外した生成DB、版・SHA-256・件数のmanifest、照合用JSON、DDL。キャッシュは入力・DDLのハッシュ、エンジン版、DBのハッシュを照合します。
+- `dist/knowledge/`：静的配信用のDB・manifest・Worker・モジュール・ライセンス・照合用JSON・DDL。
+- `dist/crystal-atlas.html`：DBとWorkerも内蔵し、file://で読み込む版。WASM関連の内蔵により従来版より大きくなります。
+
+現時点の配信版はViteの静的SPAです。構造ごとのSSGページ生成はまだ実装していません。APIサーバーやDBサーバー、外部CDNは不要です。
+
+## レコードと関係
+
+物理スキーマの定義は `src/knowledge/schema.ts`、生成DDLは `dist/knowledge/schema.cypher` を参照してください。
+
+| ノード                         | 意味                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------ |
+| Entity                         | 構造型、基本充填、既存の物質・相カード、分類、編集上の概念。kindで区別               |
+| Assertion                      | 主語・目的語を持つ独立した主張。domain、操作、根拠の性質、再照合状態、原データを保持 |
+| OperationStep                  | 派生の操作と対象、パラメータ。HasStepのordinalで操作順を表現                         |
+| Document / SourceSpan          | 版を含む書誌と、印刷頁・PDF頁・図表・URL等の参照位置                                 |
+| StructureModel                 | 格子・座標・占有率・出典の既存モデル。Modelsで対象に接続                             |
+| DerivationRoute                | 文献の図にある提示順。RouteMemberのordinalは合成反応順序を表さない                   |
+| Asset / Mention                | 将来のファイル指紋・実際の登場記録。現段階では空                                     |
+| CoverageReview / ProcessingRun | 将来のページ調査・抽出履歴。現段階では空                                             |
+
+`Subject`・`Object`がAssertionとEntityを、`HasEvidence`・`InDocument`がAssertionと文献箇所を結びます。構造型・物質・相を名前や化学式だけで名寄せしません。既存の物質・相を混在するカードは `legacy_material_or_phase` として保持し、今後の文献照合で分離します。
+
+Familyの既存 `family` 属性は編集上の所属として移行します。構造カードの文献参照を分類の証拠へ流用しません。横断分類はその分類に付いている文献箇所を保持し、複数所属と包含を許します。
+
+Derivationには有向の空隙占有・規則化・歪み・積層・反型の記述を移します。無向の比較はcomparisonとして残します。既存の短い記述を自動で多数の操作へ分解せず、まず一段の記述として原文情報を保存します。詳細未転記のtargetはNULLです。構造構築の説明は、実験で確認した相転移や合成経路と区別します。
+
+Symmetryは独立したAssertionです。既存のstrictは `literature_confirmed` として引き継ぎ、未確認関係は `unverified` です。変換行列・原点移動・Wyckoff対応は推測で数値化せずNULLにします。文章で転記済みのbasis・splitは原データとして保存します。現在の全関係は移行後の再照合が未実施です。
+
+同じ構造変化について操作も対称性対応も明示されている場合、別レコードを `ExplainsSymmetryOf` でつなぎます。最初の注釈は既存e6（fccの3:1規則化）、e24（bccの色分け）、e56（ルチル型の八面体回転）です。単に空間群の組が一致するという理由で対応を作りません。
+
+## ブラウザ実行と互換対応
+
+WASMはレコード探索を開いたときに読み込み、ページ内で一つのWorkerを共有します。配布DBの長さ・ハッシュ（Web Crypto利用時）・スキーマ版・エンジン版・ストレージ版を確認し、仮想FSへ一度だけ配置してreadOnlyで開きます。画面の問い合わせは固定のCypherとパラメータバインドを使用し、一つの接続上で直列化します。読み込み失敗は画面に表示し、再試行できます。JSONへの暗黙の代替照会はしません。
+
+0.22.3の公式async Workerは、WasmFS側に存在しない `FS.writeFile` を呼びます。このため配布時に `src/knowledge/worker-compat.ts` の限定的な互換処理を適用します。`/atlas.lbdb` の初回配置だけに対し、エクスポート済みの `FS.createDataFile` で読み取り専用ファイルを作ります。node_modulesやWASMバイナリは変更しません。期待する呼び出しが一箇所でなければビルドを失敗させ、上流更新時に再検討を必須にします。
+
+標準の単一スレッド版を使うため、COOP/COEPやSharedArrayBufferは不要です。OPFS、ローカル編集の永続化、複数タブからの書き込み、共同編集はこの実装に含みません。
+
+WorkerのパスはURLオブジェクトで渡します。パッケージ内のthreadsが文字列URLに適用するimportScriptsラッパーを避け、標準のWorkerとして起動します。これにより、file://の単一HTMLでも内蔵Blobから起動できます。ブラウザのセキュリティ設定は変更しません。
+
+## 検証
+
+```sh
+pnpm check
+pnpm test
+pnpm test:db
+pnpm build
+pnpm e2e
+```
+
+`test:db` は生成DBを読み取り専用で再オープンし、全テーブルの件数、3表示の実照会、出典、パラメータの扱い、書き込み拒否を確認します。ブラウザE2Eでは同じ生成DBを実WASMで開き、配信版とネットワークを無効化した単一HTML版の操作・出典・表示切替・再読み込み、デスクトップと390pxでの表示を確認します。
+
+後続の実装は、文献目録・ファイル指紋、ページごとの調査台帳、登場記録の抽出と名寄せ、構造型／物質／相の分離、形式化したサイト対応、周期グラフ等をそれぞれIssueに切り出します。

@@ -1,5 +1,6 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig, lazyPlugins, type Plugin } from "vite-plus";
+import { knowledgeAssets } from "./scripts/knowledge-assets.ts";
 
 /**
  * `vp build --mode standalone` writes dist/crystal-atlas.html: one file with the JS and CSS
@@ -76,5 +77,5 @@ export default defineConfig({
   test: {
     include: ["tests/unit/**/*.test.ts"],
   },
-  plugins: lazyPlugins(() => [react(), standaloneHtml()]),
+  plugins: lazyPlugins(() => [react(), knowledgeAssets(), standaloneHtml()]),
 });
